@@ -1,0 +1,1 @@
+void Select_ApplyPatches();

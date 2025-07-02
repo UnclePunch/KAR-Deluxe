@@ -1,0 +1,1 @@
+void Stadium_ApplyPatches();

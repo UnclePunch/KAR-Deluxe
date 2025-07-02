@@ -1,0 +1,1 @@
+void Items_ApplyPatches();

@@ -1,0 +1,1 @@
+void Events_ApplyPatches();

@@ -62,15 +62,15 @@ MOD_LINKED_FILES := $(addsuffix .modlink, $(addprefix $(BUILD_DIR)/, $(MOD_NAMES
 # MOD_BIN_FILES: The final .bin files for each mod (e.g. out/credits.bin)
 MOD_BIN_FILES := $(addsuffix .bin, $(addprefix $(OUT_DIR)/, $(MOD_NAMES)))
 
-# --- Debug Outputs (Add these temporarily) ---
-$(warning DEBUG: LIB_SOURCES = $(LIB_SOURCES))
-$(warning DEBUG: LIB_OBJECTS = $(LIB_OBJECTS))
-$(warning DEBUG: MOD_NAMES = $(MOD_NAMES))
-$(warning DEBUG: MOD_ALL_SOURCES = $(MOD_ALL_SOURCES))
-$(warning DEBUG: MOD_OBJECTS = $(MOD_OBJECTS))
-$(warning DEBUG: ALL_INDIVIDUAL_OBJECTS_TO_COMPILE = $(ALL_INDIVIDUAL_OBJECTS_TO_COMPILE))
-$(warning DEBUG: MOD_LINKED_FILES = $(MOD_LINKED_FILES))
-$(warning DEBUG: DEPS = $(DEPS))
+# --- Debug Outputs ---
+#$(warning DEBUG: LIB_SOURCES = $(LIB_SOURCES))
+#$(warning DEBUG: LIB_OBJECTS = $(LIB_OBJECTS))
+#$(warning DEBUG: MOD_NAMES = $(MOD_NAMES))
+#$(warning DEBUG: MOD_ALL_SOURCES = $(MOD_ALL_SOURCES))
+#$(warning DEBUG: MOD_OBJECTS = $(MOD_OBJECTS))
+#$(warning DEBUG: ALL_INDIVIDUAL_OBJECTS_TO_COMPILE = $(ALL_INDIVIDUAL_OBJECTS_TO_COMPILE))
+#$(warning DEBUG: MOD_LINKED_FILES = $(MOD_LINKED_FILES))
+#$(warning DEBUG: DEPS = $(DEPS))
 
 # --- Main Targets ---
 

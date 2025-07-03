@@ -35,7 +35,7 @@ char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
 
 MenuDesc ModMenu = {
     .name = "Game Settings",
-    .pri = 5,
+    .pri = MENUPRI_NORMAL,
     .option_num = 6,
     .options = (OptionDesc[]){
         {

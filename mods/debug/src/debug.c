@@ -14,6 +14,7 @@
 #include "net.h"
 #include "fst/fst.h"
 #include "code_patch/code_patch.h"
+#include "hoshi/settings.h"
 
 char ModName[] = "Debug";
 char ModAuthor[] = "UnclePunch";
@@ -24,7 +25,7 @@ int val = 0;
 MenuDesc ModMenu = {
     .name = "Important Menu",
     .option_num = 1,
-    .pri = 0,
+    .pri = MENUPRI_VERYHIGH,
     .options = (OptionDesc[]){
         {
             .name = "Important Value",

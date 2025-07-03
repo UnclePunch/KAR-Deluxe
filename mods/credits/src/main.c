@@ -17,14 +17,14 @@
 
 char ModName[] = "KAR Deluxe Credits";
 char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
+char ModVersion[] = "v1.0";
 MenuDesc ModMenu = {
     .name = "Credits",
     .option_num = 1,
+    .pri = MENUPRI_VERYLOW,
     .options = (OptionDesc[]){
         {
             .name = "View Credits",
-            .pri = -1,
             .kind = OPTKIND_SCENE,
             .major_idx = -1,
         },

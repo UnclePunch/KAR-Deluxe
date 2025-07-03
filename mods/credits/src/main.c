@@ -20,15 +20,11 @@ char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
 MenuDesc ModMenu = {
     .name = "Credits",
-    .option_num = 2,
+    .option_num = 1,
     .options = (OptionDesc[]){
         {
             .name = "View Credits",
-            .kind = OPTKIND_SCENE,
-            .major_idx = -1,
-        },
-        {
-            .name = "View Credits",
+            .pri = -1,
             .kind = OPTKIND_SCENE,
             .major_idx = -1,
         },

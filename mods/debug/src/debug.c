@@ -19,6 +19,26 @@ char ModName[] = "Debug";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v1.0";
 
+#include "hoshi/settings.h"
+int val = 0;
+MenuDesc ModMenu = {
+    .name = "Important Menu",
+    .option_num = 1,
+    .pri = 0,
+    .options = (OptionDesc[]){
+        {
+            .name = "Important Value",
+            .kind = OPTKIND_VALUE,
+            .val = &val,
+            .value_num = 2,
+            .value_names = (char *[]){
+                "Off",
+                "On",
+            },
+        },
+    },
+};
+
 void OnBoot(HSD_Archive *archive)
 {
 

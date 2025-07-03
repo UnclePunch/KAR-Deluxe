@@ -15,24 +15,10 @@
 #include "musicsettings.h"
 #include "music_change.h"
 
-static int deflicker_enabled = 0;
-static int resolution_kind = 0;
-
 char ModName[] = "Music Settings";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
 int ModSaveSize = sizeof(struct MusicSettingsSave);
-// int ModSaveSizestatic MenuDesc ModMenu = {
-//     .name = "Music Settings",
-//     .option_num = 1,
-//     .options = (OptionDesc[]){
-//         {
-//             .name = "Music Settings",
-//             .kind = OPTKIND_SCENE,
-//             .major_idx = MJRKIND_AIR,
-//         },
-//     },
-// };
 
 void OnBoot(HSD_Archive *archive)
 {

@@ -24,7 +24,8 @@ MenuDesc ModMenu = {
     .pri = MENUPRI_VERYLOW,
     .options = (OptionDesc[]){
         {
-            .name = "View Credits",
+            .name = "Credits",
+            .description = "View the credits for KAR Deluxe.",
             .kind = OPTKIND_SCENE,
             .major_idx = -1,
         },

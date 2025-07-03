@@ -13,9 +13,11 @@
 #include "brake.h"
 #include "quickstats.h"
 #include "rearview.h"
-#include "run.h"
 #include "startup.h"
 #include "unpause.h"
+
+#include "competitive/run.h"
+#include "competitive/drop_ability.h"
 
 extern StartupKind startup_kind;
 extern int quickstats_enabled;
@@ -24,6 +26,8 @@ extern int rearview_enabled;
 extern int camerazoom_kind;
 extern int attractmode_enabled;
 extern int unpause_delay_enabled;
+extern int is_run_enabled;
+extern int ability_drop_enabled;
 
 char ModName[] = "Game Settings";
 char ModAuthor[] = "UnclePunch";
@@ -31,10 +35,12 @@ char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
 
 MenuDesc ModMenu = {
     .name = "Game Settings",
-    .option_num = 5,
+    .pri = 5,
+    .option_num = 6,
     .options = (OptionDesc[]){
         {
             // Controls Menu
+            .name = "Controls",
             .kind = OPTKIND_MENU,
             .menu_ptr = &(MenuDesc){
                 .name = "Controls",
@@ -64,6 +70,47 @@ MenuDesc ModMenu = {
                         .name = "Quick Stats",
                         .kind = OPTKIND_VALUE,
                         .val = &quickstats_enabled,
+                        .value_num = 2,
+                        .value_names = (char *[]){
+                            "Off",
+                            "On",
+                        },
+                    },
+                },
+            },
+        },
+        {
+            // Competitive Menu
+            .name = "Game Balance",
+            .kind = OPTKIND_MENU,
+            .menu_ptr = &(MenuDesc){
+                .name = "Game Balance",
+                .option_num = 3,
+                .options = (OptionDesc[]){
+                    {
+                        .name = "Run",
+                        .kind = OPTKIND_VALUE,
+                        .val = &is_run_enabled,
+                        .value_num = 2,
+                        .value_names = (char *[]){
+                            "Off",
+                            "On",
+                        },
+                    },
+                    {
+                        .name = "Invincible on Foot",
+                        .kind = OPTKIND_VALUE,
+                        .val = &quickstats_enabled,
+                        .value_num = 2,
+                        .value_names = (char *[]){
+                            "Off",
+                            "On",
+                        },
+                    },
+                    {
+                        .name = "Ability Drop",
+                        .kind = OPTKIND_VALUE,
+                        .val = &ability_drop_enabled,
                         .value_num = 2,
                         .value_names = (char *[]){
                             "Off",
@@ -139,6 +186,7 @@ void OnSaveInit(void *save, int req_init)
     AttractMode_Init();
     UnpauseDelay_Init();
     Run_Init();
+    AbilityDrop_Init();
 
     return;
 }

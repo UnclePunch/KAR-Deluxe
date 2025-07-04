@@ -25,7 +25,7 @@ char ModVersion[] = "v1.0";
 //     .name = "Important Menu",
 //     .option_num = 1,
 //     .pri = MENUPRI_VERYHIGH,
-//     .options = (OptionDesc[]){
+//     .options = (OptionDesc *[]){
 //         {
 //             .name = "Important Value",
 //             .kind = OPTKIND_VALUE,

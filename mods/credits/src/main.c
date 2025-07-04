@@ -18,24 +18,18 @@
 char ModName[] = "KAR Deluxe Credits";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v1.0";
-MenuDesc ModMenu = {
+
+OptionDesc ModSettings = {
     .name = "Credits",
-    .option_num = 1,
-    .pri = MENUPRI_VERYLOW,
-    .options = (OptionDesc[]){
-        {
-            .name = "Credits",
-            .description = "View the credits for KAR Deluxe.",
-            .kind = OPTKIND_SCENE,
-            .major_idx = -1,
-        },
-    },
+    .description = "View the credits for KAR Deluxe.",
+    .kind = OPTKIND_SCENE,
+    .major_idx = -1,
 };
 
 void OnBoot(HSD_Archive *archive)
 {
     // install the credits scene
-    ModMenu.options[0].major_idx = Credits_Init(); // install and set index
+    ModSettings.major_idx = Credits_Init(); // install and set index
 
     return;
 }

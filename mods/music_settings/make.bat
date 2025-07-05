@@ -1,1 +1,0 @@
-"../../../Externals/MexTK/MexTK.exe" -ff -i "src/main.c" "src/patch.c" "src/musicsettings.c" "src/music_database.c" "src/music_change.c" "../../../Lib/code_patch/code_patch.c" "../../../Lib/fst/fst.c" "../../../Lib/text_joint/text_joint.c" -s gbFunction -o "output/mods/musicsettings.dat" -ow -d -c -op 1

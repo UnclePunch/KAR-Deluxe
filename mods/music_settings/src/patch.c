@@ -10,6 +10,7 @@
 
 #include "musicsettings.h"
 #include "music_database.h"
+#include "music_change.h"
 #include "code_patch/code_patch.h"
 #include "fst/fst.h"
 
@@ -193,6 +194,81 @@ void Hook_MusicPrompt_Create(GOBJ *menu_gobj)
 }
 CODEPATCH_HOOKCREATE(0x8014ba08, "mr 3,29\n\t", Hook_MusicPrompt_Create, "", 0)
 
+// adjust stat size
+void Hook_MusicChange_AdjustStatSize(int ply)
+{
+    if (Ply_CheckIfHMN(ply))
+    {
+        int ply_view_num = Gm_GetPlyViewNum();
+        if (ply_view_num > 1)
+        {
+
+            switch (ply_view_num)
+            {
+                // 2p
+            case 2:
+            {
+                static float scale_mult = 0.85;
+                static Vec2 offsets[] = {
+                    {
+                        .X = -2.5,
+                        .Y = 4.5,
+                    },
+                    {
+                        .X = -2.5,
+                        .Y = 3,
+                    },
+                };
+
+                int ply_view_index = Ply_GetViewIndex(ply);
+
+                MusicChange_ScaleStats(ply, scale_mult, offsets[ply_view_index]);
+
+                break;
+            }
+                // 3p
+            case 3:
+            case 4:
+            {
+                static float scale_mult = 0.95;
+                static Vec2 offsets[] = {
+                    // top left
+                    {
+                        .X = -1.5,
+                        .Y = 2.3,
+                    },
+                    // bottom left
+                    {
+                        .X = -1.5,
+                        .Y = 0,
+                    },
+                    // top right
+                    {
+                        .X = -0.5,
+                        .Y = 2.3,
+                    },
+                    // bottom right
+                    {
+                        .X = -0.5,
+                        .Y = 0,
+                    },
+                };
+
+                int ply_view_index = Ply_GetViewIndex(ply);
+
+                MusicChange_ScaleStats(ply, scale_mult, offsets[ply_view_index]);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+
+    return;
+}
+CODEPATCH_HOOKCREATE(0x801139f8, "mr 3,30\n\t", Hook_MusicChange_AdjustStatSize, "", 0)
+
 void Patches_Apply()
 {
     CODEPATCH_REPLACEFUNC(0x8000bba0, Hook_MainMenu_BGMPlay);
@@ -204,4 +280,5 @@ void Patches_Apply()
     CODEPATCH_HOOKAPPLY(0x800460f0);
     CODEPATCH_HOOKAPPLY(0x80017960);
     CODEPATCH_HOOKAPPLY(0x8014ba08);
+    CODEPATCH_HOOKAPPLY(0x801139f8);
 }

@@ -174,15 +174,15 @@ void Game_OverloadIfAll()
     };
 
     //
-    int hmn_num = Gm_GetHMNNum();
-    if (hmn_num <= 0)
+    int view_num = Gm_GetPlyViewNum();
+    if (view_num <= 0)
         return;
 
     MatAnimDesc *matanimdesc_vanilla;
     JOBJSet **jobjset;
 
     // overload damage icon
-    char *this_symbol = stc_ifall_symbols[hmn_num - 1];                                                   //
+    char *this_symbol = stc_ifall_symbols[view_num - 1];                                                  //
     HSD_Archive *ifall_archive = *Gm_GetIfAllScreenArchive();                                             //
     jobjset = Archive_GetPublicAddress(ifall_archive, this_symbol);                                       //
     matanimdesc_vanilla = Matanimjoint_GetMatAnimDescByIndex(jobjset[0]->matanimjoint[0], 2, 0);          // vanila data

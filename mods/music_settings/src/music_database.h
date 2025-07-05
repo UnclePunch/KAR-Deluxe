@@ -44,8 +44,8 @@ typedef struct PlaylistData
 int SongData_Init();
 void SongData_CountSong(int entrynum);
 void SongData_IndexSong(int entrynum);
-int SongData_SanitizeText(char *in, char *out, int buffer_size);
 SongData *SongData_GetDataByName(char *song_name);
+SongData *SongData_GetDataByEntrynum(int entrynum);
 int SongData_GetIndexByName(char *song_name);
 MusicSettingsPlaylistMode SongData_GetPlaylistMode(MusicSettingsPlaylist playlist);
 int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist);

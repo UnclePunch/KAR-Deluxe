@@ -20,22 +20,15 @@ char ModName[] = "Debug";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v1.0";
 
-// int val = 0;
-// MenuDesc ModMenu = {
-//     .name = "Important Menu",
-//     .option_num = 1,
-//     .pri = MENUPRI_VERYHIGH,
-//     .options = (OptionDesc *[]){
-//         {
-//             .name = "Important Value",
-//             .kind = OPTKIND_VALUE,
-//             .val = &val,
-//             .value_num = 2,
-//             .value_names = (char *[]){
-//                 "Off",
-//                 "On",
-//             },
-//         },
+// int val;
+// OptionDesc ModSettings = {
+//     .name = "Important Value",
+//     .kind = OPTKIND_VALUE,
+//     .val = &val,
+//     .value_num = 2,
+//     .value_names = (char *[]){
+//         "Off",
+//         "On",
 //     },
 // };
 

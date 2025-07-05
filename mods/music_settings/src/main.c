@@ -23,6 +23,7 @@ int ModSaveSize = sizeof(struct MusicSettingsSave);
 void OnBoot(HSD_Archive *archive)
 {
     MusicSettings_Init();
+    MusicChange_Init();
     return;
 }
 void OnSceneChange(HSD_Archive *archive)
@@ -37,6 +38,10 @@ void OnSaveInit(MusicSettingsSave *save, int req_init)
 void OnMainMenuLoad()
 {
     MainMenu_LoadMusicPrompt();
+}
+void On3DLoad()
+{
+    MusicChange_On3DLoad();
 }
 void On3DPause()
 {

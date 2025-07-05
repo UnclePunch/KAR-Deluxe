@@ -188,7 +188,7 @@ void MusicSettings_CopyToSave()
 
         // OSReport("  Mode: %d\n", stc_playlist_data[playlist_idx].mode);
 
-        for (int song_idx = 0; song_idx < SONGS_PER_PLAYLIST; song_idx++)
+        for (int song_idx = 0; song_idx < stc_playlist_data[playlist_idx].song_num; song_idx++)
         {
             int database_song_idx = stc_playlist_data[playlist_idx].songs[song_idx];
             int song_hash = stc_song_data[database_song_idx].hash;
@@ -391,7 +391,7 @@ GOBJ *MusicSettings_BGCreate()
     Text *text = TextJoint_Create(g->hsd_object,
                                   24,
                                   stc_scene_menu_common->canvas_idx,
-                                  "Hello World",
+                                  "",
                                   0,
                                   930, 32,
                                   &(GXColor){204, 204, 204, 255});
@@ -994,7 +994,7 @@ void MusicSettings_UIUpdate(GOBJ *g)
             char sanitized_text[256];
 
             // sanitize text
-            SongData_SanitizeText(stc_song_data[song_database_idx].name, sanitized_text, sizeof(sanitized_text));
+            Text_Sanitize(stc_song_data[song_database_idx].name, sanitized_text, sizeof(sanitized_text));
 
             // remove .hps
             char *extension_ptr = strstr(sanitized_text, ".hps");

@@ -10,6 +10,7 @@
 
 #include "musicsettings.h"
 #include "music_database.h"
+#include "text_joint/text_joint.h"
 #include "fst/fst.h"
 
 // Music Database
@@ -154,176 +155,6 @@ void SongData_IndexSong(int entrynum)
 
     stc_song_num++;
 }
-int SongData_SanitizeText(char *in, char *out, int buffer_size)
-{
-    // symbol lookup
-    struct ASCIISymbolLookup
-    {
-        u8 ascii;
-        u16 text_code;
-    };
-
-    static struct ASCIISymbolLookup symbol_lookup[] = {
-        {
-            .ascii = ' ',
-            .text_code = 0x8140,
-        },
-        {
-            .ascii = '!',
-            .text_code = 0x8149,
-        },
-        {
-            .ascii = '"',
-            .text_code = 0x8168,
-        },
-        {
-            .ascii = '#',
-            .text_code = 0x8194,
-        },
-        {
-            .ascii = '$',
-            .text_code = 0x8190,
-        },
-        {
-            .ascii = '%',
-            .text_code = 0x8193,
-        },
-        {
-            .ascii = '&',
-            .text_code = 0x8195,
-        },
-        {
-            .ascii = '(',
-            .text_code = 0x8169,
-        },
-        {
-            .ascii = ')',
-            .text_code = 0x816A,
-        },
-        {
-            .ascii = '[',
-            .text_code = 0x816d,
-        },
-        {
-            .ascii = ']',
-            .text_code = 0x816e,
-        },
-        {
-            .ascii = '*',
-            .text_code = 0x8196,
-        },
-        {
-            .ascii = '+',
-            .text_code = 0x817B,
-        },
-        {
-            .ascii = '\'',
-            .text_code = 0x8166,
-        },
-        {
-            .ascii = ',',
-            .text_code = 0x8143,
-        },
-        {
-            .ascii = '-',
-            .text_code = 0x817C,
-        },
-        // {
-        //     .ascii = '.',
-        //     .text_code = 0x8144,
-        // },
-        {
-            .ascii = '/',
-            .text_code = 0x815E,
-        },
-        {
-            .ascii = ':',
-            .text_code = 0x8146,
-        },
-        {
-            .ascii = ';',
-            .text_code = 0x8147,
-        },
-        {
-            .ascii = '=',
-            .text_code = 0x8181,
-        },
-        {
-            .ascii = '?',
-            .text_code = 0x8148,
-        },
-        {
-            .ascii = '@',
-            .text_code = 0x8197,
-        },
-        {
-            .ascii = '_',
-            .text_code = 0x8151,
-        },
-    };
-
-    int out_size = 0;
-
-    while (in[0] != '\0')
-    {
-        char this_char = in[0];
-
-        // normal character
-        if ((this_char >= '0' && this_char <= '9') ||
-            (this_char >= 'A' && this_char <= 'Z') ||
-            (this_char >= 'a' && this_char <= 'z'))
-        {
-            if ((out_size + 1 + 1) >= buffer_size)
-                return 0;
-
-            // copy directly
-            out[0] = in[0];
-            in++;
-            out++;
-            out_size++;
-        }
-        else
-        {
-            int is_found = 0;
-
-            // check if its a special character
-            for (int i = 0; i < GetElementsIn(symbol_lookup); i++)
-            {
-                if (this_char == symbol_lookup[i].ascii)
-                {
-                    if ((out_size + 2 + 1) >= buffer_size)
-                        return 0;
-
-                    *((u16 *)&out[0]) = symbol_lookup[i].text_code;
-                    in++;
-                    out += 2;
-                    out_size += 2;
-
-                    is_found = 1;
-
-                    break;
-                }
-            }
-
-            // symbol not found in lookup, just copy it over
-            if (!is_found)
-            {
-                if ((out_size + 1 + 1) >= buffer_size)
-                    return 0;
-
-                // copy directly
-                out[0] = in[0];
-                in++;
-                out++;
-                out_size++;
-            }
-        }
-    }
-
-    out[0] = '\0';
-
-    return 1;
-}
 SongData *SongData_GetDataByName(char *song_name)
 {
     // search for a song that corresponds to this hash
@@ -336,6 +167,19 @@ SongData *SongData_GetDataByName(char *song_name)
     }
 
     OSReport("MUSIC: warning %s not found\n", song_name);
+
+    return 0;
+}
+SongData *SongData_GetDataByEntrynum(int entrynum)
+{
+    // search for a song that corresponds to this entrynum
+    for (int i = 0; i < stc_song_num; i++)
+    {
+        if (entrynum == stc_song_data[i].entrynum) // find match
+        {
+            return &stc_song_data[i];
+        }
+    }
 
     return 0;
 }

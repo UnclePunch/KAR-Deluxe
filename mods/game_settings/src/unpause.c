@@ -19,8 +19,6 @@ GOBJ *SignalGo_Create(int ply)
 {
     Game3dData *g3d = Gm_Get3dData();
 
-    // GOBJ *g = HUD_CreateElement(ply, signalgo_set[0]->jobj);
-    // GObj_AddProc(g, SignalGo_Anim, 20);
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,
                              0, 0,
                              HSD_OBJKIND_JOBJ, signalgo_set[0]->jobj,
@@ -67,8 +65,11 @@ void SignalGo_Anim(GOBJ *g)
         gp->timer++;
         if (gp->timer >= SIGNALGO_STARTDELAY)
         {
+            // init vars
             gp->timer = 0;
             gp->state = 1;
+
+            // begin animation
             JObj_SetFrameAndRate(g->hsd_object, 0, SIGNALGO_ANIMRATE);
         }
 
@@ -100,6 +101,7 @@ int UnpauseDelay_Wait_Hook()
     {
         unpause_timer++;
 
+        // ugly hardcoded frame indices. forget you saw this.
         if (unpause_timer == (int)((4 + SIGNALGO_STARTDELAY) / SIGNALGO_ANIMRATE) ||
             unpause_timer == (int)((24 + SIGNALGO_STARTDELAY) / SIGNALGO_ANIMRATE) ||
             unpause_timer == (int)((44 + SIGNALGO_STARTDELAY) / SIGNALGO_ANIMRATE))
@@ -116,7 +118,8 @@ int UnpauseDelay_Wait_Hook()
             gd->pause_cursor = -1;
             gd->pause_delay = 16;
 
-            int pause_kind = (Scene_GetCurrentMajor() == MJRKIND_AIR) ? 2 : 1;
+            // there is a condition where pause_kind is not 1... @ 80041234.
+            int pause_kind = 1; // (Scene_GetCurrentMajor() == MJRKIND_AIR && something) ? 2 : 1;
             Gm_Resume(pause_kind);
 
             is_unpause_delay = 0;
@@ -146,6 +149,7 @@ int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
     // remove hud, restore camera, play sfx
     Gm_PlayPauseSFX();
 
+    BGM_LowerVolume();
     Gm_HidePauseHUD();
     Gm_SetCameraNormal();
 
@@ -165,6 +169,7 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x800411d4, "", UnpauseDelay_Enter_Hook, "", 0, 
 
 void UnpauseDelay_Init()
 {
+    // apply our code patches
     CODEPATCH_HOOKAPPLY(0x80041188);
     CODEPATCH_HOOKAPPLY(0x800413b0);
     CODEPATCH_HOOKAPPLY(0x800411f8);
@@ -172,8 +177,10 @@ void UnpauseDelay_Init()
 }
 void UnpauseDelay_On3DStart()
 {
+    // init our variable
     is_unpause_delay = 0;
 
+    // get our file
     HSD_Archive *archive;
     Gm_LoadGameFile(&archive, "IfAllCountdown");
     signalgo_set = Archive_GetPublicAddress(archive, "ScInfSignalGo1_scene_models");

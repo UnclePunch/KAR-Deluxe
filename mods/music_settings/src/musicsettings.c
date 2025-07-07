@@ -781,10 +781,19 @@ void MusicSettings_UIInput(GOBJ *g)
     {
         int playlist_song_entry = gp->playlist.scroll + gp->playlist.cursor;
         MusicSettingsPlaylist playlist_kind = gp->game_mode.scroll + gp->game_mode.cursor;
+
         int song_num = stc_playlist_data[playlist_kind].song_num;
-        int scroll_max = ((song_num + 1) - PLAYLISTENTRY_NUM >= 0) ? ((song_num + 1) - PLAYLISTENTRY_NUM) : 0;
-        int cursor_max = (song_num < PLAYLISTENTRY_NUM) ? (song_num) : (PLAYLISTENTRY_NUM - 1);
-        int is_selected_add_btn = (gp->playlist.cursor == cursor_max && gp->playlist.scroll == scroll_max);
+        int scroll_max = ((song_num + 1) - PLAYLISTENTRY_NUM >= 0) ? ((song_num + 1) - PLAYLISTENTRY_NUM) : 0; // begin incrementing scroll when song_num exceeds the amount of max onscreen songs displayed at once
+        int cursor_max = (song_num < PLAYLISTENTRY_NUM) ? (song_num) : (PLAYLISTENTRY_NUM - 1);                // limit cursor max to the amount of max onscreen songs displayed at once
+
+        // if the max amount of songs are added to the playlist, dont allow us to scroll down to the add button
+        if (song_num == SONGS_PER_PLAYLIST)
+            scroll_max -= 1;
+
+        // conditions to consider us hovering over the add button
+        int is_selected_add_btn = (gp->playlist.cursor == cursor_max && // cursor at the bottom of the screen
+                                   gp->playlist.scroll == scroll_max && // we have scrolled as much as we are allowed
+                                   song_num < SONGS_PER_PLAYLIST);      // we are still allowed to add songs
 
         // OSReport("song_num %d, scroll_max %d cursor_max %d\n", song_num, scroll_max, cursor_max);
 
@@ -857,23 +866,26 @@ void MusicSettings_UIInput(GOBJ *g)
         }
         else if (down & PAD_BUTTON_X)
         {
-            if (!is_selected_add_btn && song_num > 1)
+            if (!is_selected_add_btn)
             {
-                // shift up
-                for (int i = playlist_song_entry; i < song_num - 1; i++)
-                    stc_playlist_data[playlist_kind].songs[i] = stc_playlist_data[playlist_kind].songs[i + 1];
+                if (song_num > 1)
+                {
+                    // shift up
+                    for (int i = playlist_song_entry; i < song_num - 1; i++)
+                        stc_playlist_data[playlist_kind].songs[i] = stc_playlist_data[playlist_kind].songs[i + 1];
 
-                stc_playlist_data[playlist_kind].songs[song_num - 1] = 0;
-                stc_playlist_data[playlist_kind].song_num--;
+                    stc_playlist_data[playlist_kind].songs[song_num - 1] = 0;
+                    stc_playlist_data[playlist_kind].song_num--;
 
-                // scroll up if necessary
-                int song_num = stc_playlist_data[playlist_kind].song_num;
-                int scroll_max = ((song_num + 1) - PLAYLISTENTRY_NUM >= 0) ? ((song_num + 1) - PLAYLISTENTRY_NUM) : 0;
-                // int cursor_max = (song_num < PLAYLISTENTRY_NUM) ? (song_num) : (PLAYLISTENTRY_NUM - 1);
-                if (gp->playlist.scroll > scroll_max)
-                    gp->playlist.scroll = scroll_max;
+                    // scroll up if necessary
+                    int song_num = stc_playlist_data[playlist_kind].song_num;
+                    int scroll_max = ((song_num + 1) - PLAYLISTENTRY_NUM >= 0) ? ((song_num + 1) - PLAYLISTENTRY_NUM) : 0;
+                    // int cursor_max = (song_num < PLAYLISTENTRY_NUM) ? (song_num) : (PLAYLISTENTRY_NUM - 1);
+                    if (gp->playlist.scroll > scroll_max)
+                        gp->playlist.scroll = scroll_max;
 
-                is_update = UPDATEKIND_REGRESS;
+                    is_update = UPDATEKIND_REGRESS;
+                }
             }
             else
                 SFX_Play(FGMMENU_CS_BEEP1);
@@ -931,6 +943,15 @@ void MusicSettings_UIUpdate(GOBJ *g)
     int gamemode_scroll_max = (PLAYLIST_NUM - GAMEMODEBUTTON_NUM >= 0) ? (PLAYLIST_NUM - GAMEMODEBUTTON_NUM) : 0;
     int playlist_cursor_max = (song_num >= PLAYLISTENTRY_NUM) ? PLAYLISTENTRY_NUM - 1 : song_num;
     int playlist_scroll_max = (song_num - (PLAYLISTENTRY_NUM - 1) >= 0) ? (song_num - (PLAYLISTENTRY_NUM - 1)) : 0;
+
+    // if the max amount of songs are added to the playlist, dont allow us to scroll down to the add button
+    if (song_num == SONGS_PER_PLAYLIST)
+        playlist_scroll_max -= 1;
+
+    // conditions to consider us hovering over the add button
+    int is_selected_add_btn = (gp->playlist.cursor == playlist_cursor_max && // cursor at the bottom of the screen
+                               gp->playlist.scroll == playlist_scroll_max && // we have scrolled as much as we are allowed
+                               song_num < SONGS_PER_PLAYLIST);               // we are still allowed to add songs
 
     // update game mode buttons
     for (int i = 0; i < GetElementsIn(gp->game_mode.button); i++)
@@ -1034,8 +1055,9 @@ void MusicSettings_UIUpdate(GOBJ *g)
     }
 
     // update playlist add button
-    if (playlist_mode == PLAYLISTMODE_PLAYLIST &&   // playlist mode is selected
-        gp->playlist.scroll == playlist_scroll_max) // scrolled as far as it can go
+    if (playlist_mode == PLAYLISTMODE_PLAYLIST &&     // playlist mode is selected
+        gp->playlist.scroll == playlist_scroll_max && // scrolled as far as it can go
+        song_num < SONGS_PER_PLAYLIST)                // able to add more songs
     {
         // move it
         gp->playlist.add_button.j->trans = gp->playlist.entry_button[playlist_cursor_max].j->trans;
@@ -1059,8 +1081,8 @@ void MusicSettings_UIUpdate(GOBJ *g)
         JObj_SetFlagsAll(gp->playlist.arrowup_j, JOBJ_HIDDEN);
 
     // update playlist entry cursor
-    if (gp->focus == MENUFOCUS_PLAYLISTENTRIES &&                                                    // focused on playlist entries
-        !(gp->playlist.cursor == playlist_cursor_max && gp->playlist.scroll == playlist_scroll_max)) // not hovered over add button
+    if (gp->focus == MENUFOCUS_PLAYLISTENTRIES && // focused on playlist entries
+        !(is_selected_add_btn))                   // not hovered over add button
     {
         JObj_ClearFlagsAll(gp->playlist.cursor_j, JOBJ_HIDDEN);                                                              // show cursor
         JObj_GetChildPosition(gp->playlist.entry_button[gp->playlist.cursor].cursorpos_j, 0, &gp->playlist.cursor_j->trans); // place it over the current selection
@@ -1069,9 +1091,9 @@ void MusicSettings_UIUpdate(GOBJ *g)
         JObj_SetFlagsAll(gp->playlist.cursor_j, JOBJ_HIDDEN);
 
     // update playlist entry delete button
-    if (gp->focus == MENUFOCUS_PLAYLISTENTRIES &&                                                      // focused on playlist entries
-        !(gp->playlist.cursor == playlist_cursor_max && gp->playlist.scroll == playlist_scroll_max) && // not hovered over add button
-        song_num > 1)                                                                                  // over 1 song present on the list
+    if (gp->focus == MENUFOCUS_PLAYLISTENTRIES && // focused on playlist entries
+        !(is_selected_add_btn) &&                 // not hovered over add button
+        song_num > 1)                             // over 1 song present on the list
     {
         JObj_ClearFlagsAll(gp->playlist.delete_button.j, JOBJ_HIDDEN);                                                              // show button
         JObj_GetChildPosition(gp->playlist.entry_button[gp->playlist.cursor].deletepos_j, 0, &gp->playlist.delete_button.j->trans); // place it over the current selection

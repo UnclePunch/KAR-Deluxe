@@ -18,6 +18,7 @@
 
 #include "competitive/run.h"
 #include "competitive/drop_ability.h"
+#include "competitive/sd_as_ko.h"
 
 extern StartupKind startup_kind;
 extern int quickstats_enabled;
@@ -28,6 +29,7 @@ extern int attractmode_enabled;
 extern int unpause_delay_enabled;
 extern int is_run_enabled;
 extern int ability_drop_enabled;
+extern int sd_as_ko_enabled;
 
 char ModName[] = "Game Settings";
 char ModAuthor[] = "UnclePunch";
@@ -93,7 +95,7 @@ OptionDesc ModSettings = {
                     .description = "Adjust rules for a more fair fight!",
                     .kind = OPTKIND_MENU,
                     .menu_ptr = &(MenuDesc){
-                        .option_num = 4,
+                        .option_num = 5,
                         .options = {
                             &(OptionDesc){
                                 .name = "Run",
@@ -122,6 +124,17 @@ OptionDesc ModSettings = {
                                 .description = "Kirby's invincible after getting KO'd!",
                                 .kind = OPTKIND_VALUE,
                                 .val = &quickstats_enabled,
+                                .value_num = 2,
+                                .value_names = (char *[]){
+                                    "Off",
+                                    "On",
+                                },
+                            },
+                            &(OptionDesc){
+                                .name = "SD's Award Points",
+                                .description = "Receive a point if a player self-destructs!",
+                                .kind = OPTKIND_VALUE,
+                                .val = &sd_as_ko_enabled,
                                 .value_num = 2,
                                 .value_names = (char *[]){
                                     "Off",
@@ -203,6 +216,7 @@ void OnSaveInit(void *save, int req_init)
     UnpauseDelay_Init();
     Run_Init();
     AbilityDrop_Init();
+    SD_as_KO_Init();
 
     return;
 }

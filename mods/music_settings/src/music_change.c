@@ -359,11 +359,20 @@ float MusicChange_GetScrollAmount(Text *t, float textbox_width)
 }
 void MusicChange_UpdateSongName(MusicChangeData *gp)
 {
-    int cur_playing_entrynum = ax_live->voice_data[stc_bgm_data_arr[1].vpb_index].x30[2];
+    char *song_name;
+    u32 vpb_index = stc_bgm_data_arr[1].vpb_index;
+
+    if (vpb_index == 63)
+        song_name = "None";
+    else
+    {
+        int cur_playing_entrynum = ax_live->voice_data[vpb_index].x30[2];
+        song_name = SongData_GetDataByEntrynum(cur_playing_entrynum)->name;
+    }
 
     // sanitize text
     char buf[200];
-    Text_Sanitize(SongData_GetDataByEntrynum(cur_playing_entrynum)->name, buf, sizeof(buf));
+    Text_Sanitize(song_name, buf, sizeof(buf));
 
     // remove .hps
     char *extension_ptr = strstr(buf, ".hps");

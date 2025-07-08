@@ -880,7 +880,6 @@ void MusicSettings_UIInput(GOBJ *g)
                     // scroll up if necessary
                     int song_num = stc_playlist_data[playlist_kind].song_num;
                     int scroll_max = ((song_num + 1) - PLAYLISTENTRY_NUM >= 0) ? ((song_num + 1) - PLAYLISTENTRY_NUM) : 0;
-                    // int cursor_max = (song_num < PLAYLISTENTRY_NUM) ? (song_num) : (PLAYLISTENTRY_NUM - 1);
                     if (gp->playlist.scroll > scroll_max)
                         gp->playlist.scroll = scroll_max;
 

@@ -12,7 +12,7 @@
 #include "code_patch/code_patch.h"
 #include "hoshi/settings.h"
 
-int sd_as_ko_enabled = 0;
+int sd_as_ko_enabled = 1;
 
 void Ply_AddDeathByAll(int ply, MachineData *md)
 {

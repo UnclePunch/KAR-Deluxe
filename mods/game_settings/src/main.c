@@ -19,6 +19,7 @@
 #include "competitive/run.h"
 #include "competitive/drop_ability.h"
 #include "competitive/sd_as_ko.h"
+#include "competitive/intang_after_ko.h"
 
 extern StartupKind startup_kind;
 extern int quickstats_enabled;
@@ -30,6 +31,7 @@ extern int unpause_delay_enabled;
 extern int is_run_enabled;
 extern int ability_drop_enabled;
 extern int sd_as_ko_enabled;
+extern int intang_after_ko_enabled;
 
 char ModName[] = "Game Settings";
 char ModAuthor[] = "UnclePunch";
@@ -123,7 +125,7 @@ OptionDesc ModSettings = {
                                 .name = "Invincible on Foot",
                                 .description = "Kirby's invincible after getting KO'd!",
                                 .kind = OPTKIND_VALUE,
-                                .val = &quickstats_enabled,
+                                .val = &intang_after_ko_enabled,
                                 .value_num = 2,
                                 .value_names = (char *[]){
                                     "Off",
@@ -217,6 +219,7 @@ void OnSaveInit(void *save, int req_init)
     Run_Init();
     AbilityDrop_Init();
     SD_as_KO_Init();
+    IntangAfterKO_Init();
 
     return;
 }
@@ -225,6 +228,7 @@ void On3DLoad()
     QuickStat_On3DStart();
     UnpauseDelay_On3DStart();
     Rearview_InitFlags();
+    IntangAfterKO_On3DLoad();
 }
 void On3DPause(int pause_ply)
 {

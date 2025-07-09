@@ -95,6 +95,7 @@ void SignalGo_Anim(GOBJ *g)
 int unpause_delay_enabled = 1;
 int is_unpause_delay = 0;
 int unpause_timer = 0;
+
 int UnpauseDelay_Wait_Hook()
 {
     if (is_unpause_delay)
@@ -133,6 +134,7 @@ int UnpauseDelay_Wait_Hook()
     }
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x80041188, "", UnpauseDelay_Wait_Hook, "", 0, 0x800415d8)
+
 int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
 {
     // count humans present

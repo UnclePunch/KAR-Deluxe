@@ -14,12 +14,15 @@
 
 // extern declaration of functions defined in assembly
 extern void run_hook();
+extern void swim_hook();
 
 // variables used in assembly functions
 int is_run_enabled = 1;
 float run_speed_mult = 1.5;
+float swim_speed_mult = 2.5;
 
 void Run_Init()
 {
     _CodePatch_HookApply((int *)0x801b8f60, run_hook);
+    _CodePatch_HookApply((int *)0x801b9404, swim_hook);
 }

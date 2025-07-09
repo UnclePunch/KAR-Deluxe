@@ -14,7 +14,7 @@
 #include "fst/fst.h"
 
 // Music Database
-int stc_cur_playing = -1;
+int stc_cur_playing_entrynum = -1;
 int stc_song_num = 0;
 SongData *stc_song_data;
 PlaylistData stc_playlist_data[PLAYLIST_NUM] = {0};
@@ -205,7 +205,7 @@ int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist)
         int song_database_idx = stc_playlist_data[playlist].songs[i];
         if (song_database_idx != 0)
         {
-            if (stc_cur_playing == stc_song_data[song_database_idx].entrynum)
+            if (stc_cur_playing_entrynum == stc_song_data[song_database_idx].entrynum)
                 return 1;
         }
     }
@@ -268,7 +268,7 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist)
         do
         {
             rand_song_idx = HSD_Randi(stc_song_num);
-        } while (rand_song_idx == stc_cur_playing);
+        } while (rand_song_idx == stc_cur_playing_entrynum);
 
         SongData_PlaySong(rand_song_idx); // play it
 
@@ -280,7 +280,7 @@ int SongData_PlaySong(int song_database_idx)
 {
     int entrynum = stc_song_data[song_database_idx].entrynum;
 
-    if (stc_cur_playing == entrynum)
+    if (stc_cur_playing_entrynum == entrynum)
         return 0;
 
     BGM_PlayFile(FST_GetFilePathFromEntrynum(entrynum),
@@ -301,26 +301,26 @@ int SongData_PlayRandomSong()
     do
     {
         rand_song_idx = HSD_Randi(stc_song_num);
-    } while (rand_song_idx == stc_cur_playing);
+    } while (stc_song_data[rand_song_idx].entrynum == stc_cur_playing_entrynum);
 
     SongData_PlaySong(rand_song_idx); // play it
 
     return 1;
 }
 
-int SongData_GetCurPlaying()
+int SongData_GetCurPlayingEntrynum()
 {
-    return stc_cur_playing;
+    return stc_cur_playing_entrynum;
 }
-void SongData_UpdateCurPlaying(int entrynum)
+void SongData_UpdateCurPlayingEntrynum(int entrynum)
 {
-    stc_cur_playing = entrynum;
+    stc_cur_playing_entrynum = entrynum;
 
-    // OSReport("currently playing (0x%08x) (0x%x) %s\n", &stc_cur_playing, entrynum, FST_GetFilenameFromEntrynum(entrynum));
+    // OSReport("currently playing (0x%08x) (0x%x) %s\n", &stc_cur_playing_entrynum, entrynum, FST_GetFilenameFromEntrynum(entrynum));
 }
 void SongData_StopCurPlaying()
 {
-    stc_cur_playing = -1;
+    stc_cur_playing_entrynum = -1;
 
     // OSReport("removing currently playing song\n");
 }

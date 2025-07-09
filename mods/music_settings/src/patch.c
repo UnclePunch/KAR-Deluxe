@@ -20,7 +20,7 @@ extern HSD_Archive *music_prompt_archive;
 // save previous bgm entrynum
 void Hook_BGM_Play(int entrynum)
 {
-    SongData_UpdateCurPlaying(entrynum);
+    SongData_UpdateCurPlayingEntrynum(entrynum);
 }
 CODEPATCH_HOOKCREATE(0x80445308, "mr 3,29\n\t", Hook_BGM_Play, "", 0)
 void Hook_BGM_Stop()
@@ -97,7 +97,7 @@ void Hook_MainMenu_BGMPlay()
     MusicSettingsPlaylistMode playlist_mode = SongData_GetPlaylistMode(PLAYLIST_MENU);
 
     // if menu music is random and we're already playing a song, keep playing it
-    if (playlist_mode == PLAYLISTMODE_RANDOM && SongData_GetCurPlaying() != -1)
+    if (playlist_mode == PLAYLISTMODE_RANDOM && SongData_GetCurPlayingEntrynum() != -1)
         return;
 
     // original behavior

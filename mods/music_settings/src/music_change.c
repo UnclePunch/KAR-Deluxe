@@ -177,8 +177,13 @@ void MusicChange_Think(GOBJ *g)
             }
             }
 
-            if (playlist_kind != 1 || !SongData_PlayFromPlaylist(playlist_kind))
-                SongData_PlayRandomSong();
+            if (playlist_kind != 1)
+            {
+                int is_played = SongData_PlayFromPlaylist(playlist_kind);
+
+                if (!is_played)
+                    SongData_PlayRandomSong();
+            }
         }
 
         SFX_Play(FGMMENU_CS_MV);

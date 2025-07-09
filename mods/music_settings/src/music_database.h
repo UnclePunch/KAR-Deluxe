@@ -52,8 +52,8 @@ int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist);
 int SongData_PlaySong(int song_database_idx);
 int SongData_PlayRandomSong();
 int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist);
-void SongData_UpdateCurPlaying(int entrynum);
-int SongData_GetCurPlaying();
+void SongData_UpdateCurPlayingEntrynum(int entrynum);
+int SongData_GetCurPlayingEntrynum();
 void SongData_StopCurPlaying();
 
 #endif

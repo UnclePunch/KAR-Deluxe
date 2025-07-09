@@ -30,7 +30,8 @@ typedef enum MusicSettingsPlaylistMode
 typedef struct SongData
 {
     int hash;
-    int entrynum;
+    u16 entrynum;
+    u8 is_rand_selected;
     char *name;
 } SongData;
 

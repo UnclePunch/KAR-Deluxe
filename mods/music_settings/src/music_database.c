@@ -105,6 +105,7 @@ int SongData_Init()
             strcat(bgm_path, stc_bgm_desc[stc_soundtest_desc[i].bgm].path);
             int entrynum = DVDConvertPathToEntrynum(bgm_path);
 
+            stc_song_data[stc_song_num].is_rand_selected = 0;
             stc_song_data[stc_song_num].entrynum = entrynum;
             stc_song_data[stc_song_num].name = stc_vanilla_song_names[stc_song_num]; // FST_GetFilenameFromEntrynum(entrynum);
 
@@ -295,15 +296,38 @@ int SongData_PlaySong(int song_database_idx)
 }
 int SongData_PlayRandomSong()
 {
-    int rand_song_idx;
-
-    // get a random song
+    // create array of valid candidates
+    int valid_num = 0;
+    u8 *valid_arr = HSD_MemAlloc(stc_song_num);
     do
     {
-        rand_song_idx = HSD_Randi(stc_song_num);
+        for (int i = 0; i < stc_song_num; i++)
+        {
+            if (stc_song_data[i].is_rand_selected == 0)
+                valid_arr[valid_num++] = i;
+        }
+
+        // if no random songs remain
+        if (valid_num == 0)
+        {
+            // reset all
+            for (int i = 0; i < stc_song_num; i++)
+                stc_song_data[i].is_rand_selected = 0;
+        }
+
+    } while (valid_num == 0);
+
+    // get a random song
+    int rand_song_idx;
+    do
+    {
+        rand_song_idx = valid_arr[HSD_Randi(valid_num)];
     } while (stc_song_data[rand_song_idx].entrynum == stc_cur_playing_entrynum);
 
-    SongData_PlaySong(rand_song_idx); // play it
+    HSD_Free(valid_arr);
+
+    SongData_PlaySong(rand_song_idx);                  // play it
+    stc_song_data[rand_song_idx].is_rand_selected = 1; // set as selected
 
     return 1;
 }

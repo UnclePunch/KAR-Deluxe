@@ -4,6 +4,16 @@
 #define SONGNAME_GXLINK 45
 #define MUSICCHANGE_SCROLLSPEED (0.05)
 
+typedef enum HUDLayoutKind
+{
+    HUDLAYOUT_1P_AR,
+    HUDLAYOUT_1P_CT,
+    HUDLAYOUT_2P_AR,
+    HUDLAYOUT_2P_CT,
+    HUDLAYOUT_4P_AR,
+    HUDLAYOUT_4P_CT,
+} HUDLayoutKind;
+
 typedef enum MusicChangeScrollState
 {
     MUSICCHANGE_SCROLLSTATE_NONE,
@@ -39,6 +49,7 @@ typedef struct MusicChangeData
     MusicChangeTextParams *param;
 } MusicChangeData;
 
+HUDLayoutKind HUD_GetLayout();
 void MusicChange_Init();
 void MusicChange_On3DLoad();
 GOBJ *MusicChange_Create();
@@ -51,4 +62,5 @@ void MusicChange_UpdateSongName(MusicChangeData *gp);
 float MusicChange_GetScrollAmount(Text *t, float textbox_width);
 MusicChangeTextParams *MusicChange_GetTextParam();
 float Text_GetWidth(Text *t);
+
 #endif

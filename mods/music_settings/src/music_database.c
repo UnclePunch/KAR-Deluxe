@@ -298,7 +298,7 @@ int SongData_PlayRandomSong()
 {
     // create array of valid candidates
     int valid_num = 0;
-    u8 *valid_arr = HSD_MemAlloc(stc_song_num);
+    u8 *valid_arr = HSD_MemAlloc(stc_song_num); // alloc this because the number of songs can vary greatly per installation
     do
     {
         for (int i = 0; i < stc_song_num; i++)
@@ -324,7 +324,7 @@ int SongData_PlayRandomSong()
         rand_song_idx = valid_arr[HSD_Randi(valid_num)];
     } while (stc_song_data[rand_song_idx].entrynum == stc_cur_playing_entrynum);
 
-    HSD_Free(valid_arr);
+    HSD_Free(valid_arr); // immediately free before other allocs occur as to not fragment the heap
 
     SongData_PlaySong(rand_song_idx);                  // play it
     stc_song_data[rand_song_idx].is_rand_selected = 1; // set as selected

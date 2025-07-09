@@ -253,104 +253,108 @@ void MusicChange_TextCObj(GOBJ *g)
     CObj_EndCurrent();
 }
 
-JOBJSet *MusicChange_GetJOBJSet()
+HUDLayoutKind HUD_GetLayout()
 {
+    int is_city = (Scene_GetCurrentMajor() == MJRKIND_CITY);
+
     switch (Gm_GetPlyViewNum())
     {
     case (0):
     case (1):
-        return music_assets->np_1;
-    case (2):
-        if (Gm_IsInCity())
-            return music_assets->np_ct_2;
+        if (is_city)
+            return HUDLAYOUT_1P_CT;
         else
-            return music_assets->np_air_2;
+            return HUDLAYOUT_1P_AR;
+    case (2):
+        if (is_city)
+            return HUDLAYOUT_2P_CT;
+        else
+            return HUDLAYOUT_2P_AR;
     case (3):
     case (4):
-        if (Gm_IsInCity())
-            return music_assets->np_ct_4;
+        if (is_city)
+            return HUDLAYOUT_4P_CT;
         else
-            return music_assets->np_air_4;
+            return HUDLAYOUT_4P_AR;
+    }
+}
+JOBJSet *MusicChange_GetJOBJSet()
+{
+    switch (HUD_GetLayout())
+    {
+    case (HUDLAYOUT_1P_AR):
+    case (HUDLAYOUT_1P_CT):
+        return music_assets->np_1;
+    case (HUDLAYOUT_2P_AR):
+        return music_assets->np_air_2;
+    case (HUDLAYOUT_2P_CT):
+        return music_assets->np_ct_2;
+    case (HUDLAYOUT_4P_AR):
+        return music_assets->np_air_4;
+    case (HUDLAYOUT_4P_CT):
+        return music_assets->np_ct_4;
     }
 }
 MusicChangeTextParams *MusicChange_GetTextParam()
 {
-    static MusicChangeTextParams music_change_param_air_1 = {
-        .pos = {1.1, 15.9},
-        .scale = {0.045, 0.055},
-        .aspect = {800, 32},
-        .scissor_left = 330,
-        .scissor_right = 555,
-        .textbox_width = 20.0,
-    };
-    static MusicChangeTextParams music_change_param_city_1 = {
-        .pos = {1.1, 15.9},
-        .scale = {0.045, 0.055},
-        .aspect = {800, 32},
-        .scissor_left = 331,
-        .scissor_right = 555,
-        .textbox_width = 20.0,
-    };
-    static MusicChangeTextParams music_change_param_air_2 = {
-        .pos = {-9, -4.2},
-        .scale = {0.045, 0.055},
-        .aspect = {950, 32},
-        .scissor_left = 215,
-        .scissor_right = 550,
-        .textbox_width = 30.0,
-    };
-    static MusicChangeTextParams music_change_param_city_2 = {
-        .pos = {-20, -3.7},
-        .scale = {0.045, 0.055},
-        .aspect = {950, 32},
-        .scissor_left = 100,
-        .scissor_right = 420,
-        .textbox_width = 29.0,
-    };
-    static MusicChangeTextParams music_change_param_air_4 = {
-        .pos = {-23.5, -3.25},
-        .scale = {0.75 * 0.045, 0.75 * 0.055},
-        .aspect = {1200, 32},
-        .scissor_left = 70,
-        .scissor_right = 465,
-        .textbox_width = 37.0,
-    };
-    static MusicChangeTextParams music_change_param_city_4 = {
-        .pos = {-23.5, -3.25},
-        .scale = {0.75 * 0.045, 0.75 * 0.055},
-        .aspect = {1200, 32},
-        .scissor_left = 70,
-        .scissor_right = 465,
-        .textbox_width = 37.0,
+    static MusicChangeTextParams music_change_param[] = {
+        // 1p (air ride)
+        {
+            .pos = {1.1, 15.9},
+            .scale = {0.045, 0.055},
+            .aspect = {800, 32},
+            .scissor_left = 330,
+            .scissor_right = 555,
+            .textbox_width = 20.0,
+        },
+        // 1p (city)
+        {
+            .pos = {1.1, 15.9},
+            .scale = {0.045, 0.055},
+            .aspect = {800, 32},
+            .scissor_left = 330,
+            .scissor_right = 555,
+            .textbox_width = 20.0,
+        },
+        // 2p (air ride)
+        {
+            .pos = {-9, -4.2},
+            .scale = {0.045, 0.055},
+            .aspect = {950, 32},
+            .scissor_left = 215,
+            .scissor_right = 550,
+            .textbox_width = 30.0,
+        },
+        // 2p (city)
+        {
+            .pos = {-20, -3.7},
+            .scale = {0.045, 0.055},
+            .aspect = {950, 32},
+            .scissor_left = 100,
+            .scissor_right = 420,
+            .textbox_width = 29.0,
+        },
+        // 4p (air ride)
+        {
+            .pos = {-23.5, -3.25},
+            .scale = {0.75 * 0.045, 0.75 * 0.055},
+            .aspect = {1200, 32},
+            .scissor_left = 70,
+            .scissor_right = 465,
+            .textbox_width = 37.0,
+        },
+        // 4p (city)
+        {
+            .pos = {-23.5, -3.25},
+            .scale = {0.75 * 0.045, 0.75 * 0.055},
+            .aspect = {1200, 32},
+            .scissor_left = 70,
+            .scissor_right = 465,
+            .textbox_width = 37.0,
+        },
     };
 
-    int ply_view_num = Gm_GetPlyViewNum();
-    int is_in_city = Gm_IsInCity();
-
-    // single player hud
-    if (ply_view_num == 1)
-    {
-        if (is_in_city)
-            return &music_change_param_city_1;
-        else
-            return &music_change_param_air_1;
-    }
-    // 2p splitscreen hud
-    else if (ply_view_num == 2)
-    {
-        if (is_in_city)
-            return &music_change_param_city_2;
-        else
-            return &music_change_param_air_2;
-    }
-    // 3p+ splitscreen hud
-    else if (ply_view_num >= 3)
-    {
-        if (is_in_city)
-            return &music_change_param_city_4;
-        else
-            return &music_change_param_air_4;
-    }
+    return &music_change_param[HUD_GetLayout()];
 }
 float MusicChange_GetScrollAmount(Text *t, float textbox_width)
 {
@@ -367,6 +371,7 @@ void MusicChange_UpdateSongName(MusicChangeData *gp)
     char *song_name;
     u32 vpb_index = stc_bgm_data_arr[1].vpb_index;
 
+    // check if no song is playing
     if (vpb_index == 63)
         song_name = "None";
     else

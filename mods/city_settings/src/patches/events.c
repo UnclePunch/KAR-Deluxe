@@ -54,7 +54,7 @@ void EventChance_Adjust(int *chance_arr)
         else
         {
             whitelisted_event_num++;
-            OSReport("ev_kind %d enabled with chance %d\n", i, chance_arr[i]);
+            // OSReport("ev_kind %d enabled with chance %d\n", i, chance_arr[i]);
         }
     }
 

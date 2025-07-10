@@ -41,9 +41,9 @@ OptionDesc ModSettings = {
     // Controls Menu
     .name = "Game Settings",
     .description = "Finetune gameplay!",
+    .pri = MENUPRI_HIGH,
     .kind = OPTKIND_MENU,
     .menu_ptr = &(MenuDesc){
-        .pri = MENUPRI_NORMAL,
         .option_num = 5,
         .options =
             {
@@ -53,19 +53,8 @@ OptionDesc ModSettings = {
                     .description = "Extra controls for enhanced play!",
                     .kind = OPTKIND_MENU,
                     .menu_ptr = &(MenuDesc){
-                        .option_num = 3,
+                        .option_num = 5,
                         .options = {
-                            &(OptionDesc){
-                                .name = "Brake",
-                                .description = "Press B to brake without charging!",
-                                .kind = OPTKIND_VALUE,
-                                .val = &brake_enabled,
-                                .value_num = 2,
-                                .value_names = (char *[]){
-                                    "Off",
-                                    "On",
-                                },
-                            },
                             &(OptionDesc){
                                 .name = "Rear View",
                                 .description = "Hold X to quickly see behind you!",
@@ -88,17 +77,17 @@ OptionDesc ModSettings = {
                                     "On",
                                 },
                             },
-                        },
-                    },
-                },
-                &(OptionDesc){
-                    // Competitive Menu
-                    .name = "Game Balance",
-                    .description = "Adjust rules for a more fair fight!",
-                    .kind = OPTKIND_MENU,
-                    .menu_ptr = &(MenuDesc){
-                        .option_num = 5,
-                        .options = {
+                            &(OptionDesc){
+                                .name = "Brake",
+                                .description = "Press B to brake without charging!",
+                                .kind = OPTKIND_VALUE,
+                                .val = &brake_enabled,
+                                .value_num = 2,
+                                .value_names = (char *[]){
+                                    "Off",
+                                    "On",
+                                },
+                            },
                             &(OptionDesc){
                                 .name = "Run",
                                 .description = "Hold B on foot to run faster!",
@@ -121,6 +110,17 @@ OptionDesc ModSettings = {
                                     "On",
                                 },
                             },
+                        },
+                    },
+                },
+                &(OptionDesc){
+                    // Competitive Menu
+                    .name = "Game Balance",
+                    .description = "Adjust rules for a more fair fight!",
+                    .kind = OPTKIND_MENU,
+                    .menu_ptr = &(MenuDesc){
+                        .option_num = 3,
+                        .options = {
                             &(OptionDesc){
                                 .name = "Invincible on Foot",
                                 .description = "Kirby's invincible after getting KO'd!",

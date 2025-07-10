@@ -14,86 +14,88 @@
 #include "citysettings.h" // needed for the custom archive ptr and p_link enum
 #include "event_toggle.h"
 
+#include "text_joint/text_joint.h"
+
 static EventToggleNames stc_event_names[] = {
     {
         "Dyna Blade",
         "The mystery bird Dyna Blade",
-        "has appeared\x81\x49 Aim for her head\x81\x49",
+        "has appeared! Aim for her head!",
     },
     {
         "Tac",
-        "Tac stole items and fled the scene\x81\x49",
-        "He's hiding somewhere\x81\x49",
+        "Tac stole items and fled the scene!",
+        "He's hiding somewhere!",
     },
     {
         "Meteors",
-        "DANGER\x81\x49 DANGER\x81\x49 Huge",
-        "meteors are incoming\x81\x49",
+        "DANGER! DANGER! Huge",
+        "meteors are incoming!",
     },
     {
         "Huge Pillar",
         "A huge, unidentified pillar",
-        "appeared\x81\x49 Bust it\x81\x49",
+        "appeared! Bust it!",
     },
     {
         "Rowdy Charge",
         "All Air Ride machine energy",
-        "tanks have run amok\x81\x49",
+        "tanks have run amok!",
     },
     {
         "Restoration Area",
         "A restoration area has",
-        "appeared somewhere in the city\x81\x49",
+        "appeared somewhere in the city!",
     },
     {
         "Station Fire",
         "The rail stations are all",
-        "burning out of control\x81\x49",
+        "burning out of control!",
     },
     {
         "Same Item",
-        "No fair\x81\x49 The boxes",
-        "all contain the same items\x81\x49",
+        "No fair! The boxes",
+        "all contain the same items!",
     },
     {
         "Lighthouse",
         "The city lighthouse",
-        "has turned on\x81\x49",
+        "has turned on!",
     },
     {
         "Secret Chamber",
         "The secret chamber in Castle ",
-        "Hall is open\x81\x49 Get some items\x81\x49",
+        "Hall is open! Get some items!",
     },
     {
         "Stadium Prediction",
-        "A glimpse into the future\x81\x49",
-        "Could it be true\x81\x48",
+        "A glimpse into the future!",
+        "Could it be true?",
     },
     {
         "Machine Formation",
         "Air Ride machine formation ",
-        "approaching\x81\x49",
+        "approaching!",
     },
     {
         "UFO",
         "A mysterious flying machine ",
-        "is approaching\x81\x49",
+        "is approaching!",
     },
     {
         "Item Bounce",
-        "The items are getting rubbery\x81\x49",
-        "They're bouncing\x81\x49",
+        "The items are getting rubbery!",
+        "They're bouncing!",
     },
     {
         "Fog",
         "A dense fog has",
-        "covered the city\x81\x49",
+        "covered the city!",
     },
     {
-        "Fake Power\x81\x5bUps",
-        "Some power\x81\x5bup items",
-        "are fakes. Be careful\x81\x49",
+        "Fake Power-Ups",
+        "Some power-up items",
+        "are fakes. Be careful!",
     },
 };
 
@@ -337,8 +339,10 @@ void EventToggle_Update(GOBJ *g)
     int sel_idx = (gp->cursor.x * EVENTTOGGLE_OPTNUM_Y) + gp->cursor.y;
 
     // update name
-    Text_SetText(gp->name.text, 0, stc_event_names[sel_idx].name); // update text contents
-    Text_CopyJointPosition(gp->name.text, gp->name.text_j);        // update text position
+    char buf[256];
+    Text_Sanitize(stc_event_names[sel_idx].name, buf, sizeof(buf));
+    Text_SetText(gp->name.text, 0, buf);                    // update text contents
+    Text_CopyJointPosition(gp->name.text, gp->name.text_j); // update text position
 
     // update options
     for (int i = 0; i < GetElementsIn(gp->option); i++)
@@ -357,7 +361,8 @@ void EventToggle_Update(GOBJ *g)
     // update description text
     for (int i = 0; i < GetElementsIn(gp->description); i++)
     {
-        Text_SetText(gp->description[i].text, 0, stc_event_names[sel_idx].desc[i]); // update text contents
+        Text_Sanitize(stc_event_names[sel_idx].desc[i], buf, sizeof(buf));
+        Text_SetText(gp->description[i].text, 0, buf);                              // update text contents
         Text_CopyJointPosition(gp->description[i].text, gp->description[i].text_j); // update text position
     }
 

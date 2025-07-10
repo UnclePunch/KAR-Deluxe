@@ -14,6 +14,8 @@
 #include "citysettings.h" // needed for the custom archive ptr and p_link enum
 #include "item_toggle.h"
 
+#include "text_joint/text_joint.h"
+
 static ItemToggleNames stc_item_names[] = {
     {
         .name = "Boost Up",
@@ -178,9 +180,7 @@ static ItemToggleNames stc_item_names[] = {
     {
         .name = "Tornado Panel",
         .desc = {"Launch enemies into the sky.",
-                 "Charge"
-                 "\x81\x5e"
-                 "Quick spin to activate, even in mid-air."},
+                 "Charge/Quick spin to activate, even in mid-air."},
     },
     {
         .name = "Sword Panel",
@@ -588,13 +588,16 @@ void ItemToggle_Update(GOBJ *g)
     }
 
     // update name
-    Text_SetText(gp->name.text, 0, stc_item_names[sel_idx].name); // update text contents
-    Text_CopyJointPosition(gp->name.text, gp->name.text_j);       // update text position
+    char buf[256];
+    Text_Sanitize(stc_item_names[sel_idx].name, buf, sizeof(buf));
+    Text_SetText(gp->name.text, 0, buf);                    // update text contents
+    Text_CopyJointPosition(gp->name.text, gp->name.text_j); // update text position
 
     // update description text
     for (int i = 0; i < GetElementsIn(gp->description); i++)
     {
-        Text_SetText(gp->description[i].text, 0, stc_item_names[sel_idx].desc[i]);  // update text contents
+        Text_Sanitize(stc_item_names[sel_idx].desc[i], buf, sizeof(buf));
+        Text_SetText(gp->description[i].text, 0, buf);                              // update text contents
         Text_CopyJointPosition(gp->description[i].text, gp->description[i].text_j); // update text position
     }
 

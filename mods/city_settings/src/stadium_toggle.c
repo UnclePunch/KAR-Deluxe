@@ -14,129 +14,128 @@
 #include "citysettings.h" // needed for the custom archive ptr and p_link enum
 #include "stadium_toggle.h"
 
+#include "text_joint/text_joint.h"
+
 static StadiumToggleNames stc_stadium_names[] = {
     {
-        "Drag Race\x81\x46 Straight",
-        "A straight\x81\x5bup speed battle\x81\x49",
+        "Drag Race: Straight",
+        "A straight-up speed battle!",
         "",
     },
     {
-        "Drag Race\x81\x46 Split",
-        "A straight\x81\x5bup speed battle\x81\x49",
+        "Drag Race: Split",
+        "A straight-up speed battle!",
         "",
     },
     {
-        "Drag Race\x81\x46 Bumpers",
-        "A straight\x81\x5bup speed battle\x81\x49",
+        "Drag Race: Bumpers",
+        "A straight-up speed battle!",
         "",
     },
     {
-        "Drag Race\x81\x46 Ramps",
-        "A straight\x81\x5bup speed battle\x81\x49",
+        "Drag Race: Ramps",
+        "A straight-up speed battle!",
         "",
     },
     {
-        "Destruction Derby\x81\x46 King Dedede",
+        "Destruction Derby: King Dedede",
         "Defeat your rivals and",
-        "seize victory\x81\x49",
+        "seize victory!",
     },
     {
-        "Destruction Derby\x81\x46 Volcano",
+        "Destruction Derby: Volcano",
         "Defeat your rivals and",
-        "seize victory\x81\x49",
+        "seize victory!",
     },
     {
-        "Destruction Derby\x81\x46 UFO",
+        "Destruction Derby: UFO",
         "Defeat your rivals and",
-        "seize victory\x81\x49",
+        "seize victory!",
     },
     {
-        "Destruction Derby\x81\x46 Inner City",
+        "Destruction Derby: Inner City",
         "Defeat your rivals and",
-        "seize victory\x81\x49",
+        "seize victory!",
     },
     {
-        "Destruction Derby\x81\x46 Outer City",
+        "Destruction Derby: Outer City",
         "Defeat your rivals and",
-        "seize victory\x81\x49",
+        "seize victory!",
     },
     {
         "Air Glider",
         "Jump from the platform and",
-        "fly as far as you can\x81\x49",
+        "fly as far as you can!",
     },
     {
         "Target Flight",
         "Fly into the number board",
-        "and earn points\x81\x49 "
-        "\x81\x6d"
-        "2 tries"
-        "\x81\x6e",
+        "and earn points! [2 tries]",
     },
     {
         "High Jump",
         "Tilt the Control Stick to",
-        "pull off the best jump\x81\x49",
+        "pull off the best jump!",
     },
     {
-        "Race\x81\x46 Fantasy Meadows",
-        "Race for victory\x81\x49",
+        "Race: Fantasy Meadows",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Magma Flows",
-        "Race for victory\x81\x49",
+        "Race: Magma Flows",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Sky Sands",
-        "Race for victory\x81\x49",
+        "Race: Sky Sands",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Frozen Hillside",
-        "Race for victory\x81\x49",
+        "Race: Frozen Hillside",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Beanstalk Park",
-        "Race for victory\x81\x49",
+        "Race: Beanstalk Park",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Celestial Valley",
-        "Race for victory\x81\x49",
+        "Race: Celestial Valley",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Machine Passage",
-        "Race for victory\x81\x49",
+        "Race: Machine Passage",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Checker Knights",
-        "Race for victory\x81\x49",
+        "Race: Checker Knights",
+        "Race for victory!",
         "",
     },
     {
-        "Race\x81\x46 Nebula Belt",
-        "Race for victory\x81\x49",
+        "Race: Nebula Belt",
+        "Race for victory!",
         "",
     },
     {
-        "Kirby Melee\x81\x46 Small",
+        "Kirby Melee: Small",
         "Defeat as many enemies",
-        "as you can\x81\x49",
+        "as you can!",
     },
     {
-        "Kirby Melee\x81\x46 Large",
+        "Kirby Melee: Large",
         "Defeat as many enemies",
-        "as you can\x81\x49",
+        "as you can!",
     },
     {
         "VS. King Dedede",
-        "Featuring King Dedede\x81\x49",
-        "Defeat him quickly\x81\x49",
+        "Featuring King Dedede!",
+        "Defeat him quickly!",
     },
 };
 static u8 stc_togglekind_to_stadiumkind[] = {
@@ -416,14 +415,17 @@ void StadiumToggle_Update(GOBJ *g)
     }
 
     // update name
-    Text_SetText(gp->name.text, 0, stc_stadium_names[sel_idx].name); // update text contents
-    Text_CopyJointPosition(gp->name.text, gp->name.text_j);          // update text position
+    char buf[256];
+    Text_Sanitize(stc_stadium_names[sel_idx].name, buf, sizeof(buf));
+    Text_SetText(gp->name.text, 0, buf);                    // update text contents
+    Text_CopyJointPosition(gp->name.text, gp->name.text_j); // update text position
 
     // update description text
     for (int i = 0; i < GetElementsIn(gp->description); i++)
     {
-        Text_SetText(gp->description[i].text, 0, stc_stadium_names[sel_idx].desc[i]); // update text contents
-        Text_CopyJointPosition(gp->description[i].text, gp->description[i].text_j);   // update text position
+        Text_Sanitize(stc_stadium_names[sel_idx].desc[i], buf, sizeof(buf));
+        Text_SetText(gp->description[i].text, 0, buf);                              // update text contents
+        Text_CopyJointPosition(gp->description[i].text, gp->description[i].text_j); // update text position
     }
 
     // set stadium image

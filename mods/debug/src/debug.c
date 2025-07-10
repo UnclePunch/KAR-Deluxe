@@ -20,17 +20,22 @@ char ModName[] = "Debug";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v1.0";
 
-// int val;
-// OptionDesc ModSettings = {
-//     .name = "Important Value",
-//     .kind = OPTKIND_VALUE,
-//     .val = &val,
-//     .value_num = 2,
-//     .value_names = (char *[]){
-//         "Off",
-//         "On",
-//     },
-// };
+static OSAlarm alarm;
+int debug_enabled;
+
+OptionDesc ModSettings = {
+    .name = "Debug Mode",
+    .description = "Enable debug functionality.",
+    .on_change = Debug_ChangeSetting,
+    .pri = MENUPRI_LOW,
+    .kind = OPTKIND_VALUE,
+    .val = &debug_enabled,
+    .value_num = 2,
+    .value_names = (char *[]){
+        "Off",
+        "On",
+    },
+};
 
 void OnBoot(HSD_Archive *archive)
 {
@@ -70,6 +75,13 @@ void OnSceneChange(HSD_Archive *archive)
     return;
 }
 
+void Debug_ChangeSetting(int val)
+{
+    if (val == 0)
+        *stc_dblevel = DB_MASTER;
+    else if (val == 1)
+        *stc_dblevel = DB_DEVELOP;
+}
 void Debug_Think()
 {
     if (Pad_GetDown(20) & PAD_BUTTON_DPAD_DOWN)

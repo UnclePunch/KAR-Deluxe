@@ -102,7 +102,9 @@ void Game_OverloadRdKirby(RiderKind rd_kind)
         for (int mat_idx = 0; mat_idx < rdkirby_overload[i].mat_indices_num; mat_idx++)
         {
             // get vanilla matanimdesc
-            MatAnimDesc *matanimdesc_vanilla = Matanimjoint_GetMatAnimDescByIndex((*stc_rdDataKirby)->model->matanimjointdesc, 0, rdkirby_overload[i].mat_indices[mat_idx]);
+            MatAnimDesc *matanimdesc_vanilla = Matanimjoint_GetMatAnimDescByIndex((*stc_rdDataKirby)->model->matanimjointdesc,
+                                                                                  0,
+                                                                                  rdkirby_overload[i].mat_indices[mat_idx]);
 
             // OSReport("%s matanimdesc #%d texanim: %p\n", rdkirby_overload[i].override_symbol, rdkirby_overload[i].mat_indices[mat_idx], matanimdesc_vanilla->texture_anim);
 
@@ -113,6 +115,9 @@ void Game_OverloadRdKirby(RiderKind rd_kind)
                     memcpy(&texanim_custom->imagetbl[j * 50], &matanimdesc_vanilla->texture_anim->imagetbl[j * 8], sizeof(void *) * 8); // copy over vanilla image data pointers
                 for (int j = 0; (j * 50) < texanim_custom->n_tluttbl; j++)
                     memcpy(&texanim_custom->tluttbl[j * 50], &matanimdesc_vanilla->texture_anim->tluttbl[j * 8], sizeof(void *) * 8); // copy over vanilla tlut
+
+                // copy next
+                texanim_custom->next = matanimdesc_vanilla->texture_anim->next;
 
                 // overload pointer in vanilla file to our texanim
                 matanimdesc_vanilla->texture_anim = texanim_custom;

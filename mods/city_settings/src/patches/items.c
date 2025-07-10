@@ -153,7 +153,7 @@ static float stc_item_freq_mult[] = {
     0,   // None
     0.5, // Low
     1.0, // Original
-    2.0, // High
+    1.5, // High
     3.0, // Very High
 };
 void ItemFreq_AdjustFallDesc(ItemFallDesc *desc, float mult)

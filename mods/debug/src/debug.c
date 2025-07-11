@@ -43,13 +43,13 @@ void OnBoot(HSD_Archive *archive)
     if ((*stc_dblevel) < DB_DEBUG_DEVELOP)
         return;
 
-    // output vanilla preload files
-    for (int i = 0; i < 82; i++)
-        OSReport("file #%d (%p):\n  %s\n  kind: %d\n",
-                 i,
-                 &stc_preload_entry_descs[i],
-                 stc_preload_entry_descs[i].file_name,
-                 stc_preload_entry_descs[i].file_kind);
+    // // output vanilla preload files
+    // for (int i = 0; i < 82; i++)
+    //     OSReport("file #%d (%p):\n  %s\n  kind: %d\n",
+    //              i,
+    //              &stc_preload_entry_descs[i],
+    //              stc_preload_entry_descs[i].file_name,
+    //              stc_preload_entry_descs[i].file_kind);
 
     Net_Init();
 
@@ -84,7 +84,8 @@ void Debug_ChangeSetting(int val)
 }
 void Debug_Think()
 {
-    if (Pad_GetDown(20) & PAD_BUTTON_DPAD_DOWN)
+    // output current state of all preloaded files
+    if (Pad_GetHeld(20) & PAD_BUTTON_Y && Pad_GetDown(20) & PAD_BUTTON_DPAD_DOWN)
     {
         Preload *p = stc_preload_table;
 
@@ -193,7 +194,5 @@ void Debug_Think()
 
         OSReport("\n");
         OSReport("~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-
-        SFX_Play(FGMMENU_CS_KETTEI);
     }
 }

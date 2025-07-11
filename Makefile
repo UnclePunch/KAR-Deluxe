@@ -9,7 +9,8 @@ LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
 INC_DIR 		?= $(HOSHI_DIR)/include
 TOOL_DIR 		?= $(HOSHI_DIR)/packtool
 OUT_DIR 		= out
-INSTALL_DIR 	?= C:/Users/Vin/Documents/ROMs/KAR-Plus/files/mods		#can override this on the command line: make install INSTALL_DIR=/path/to/your/mods
+MODS_OUT_DIR 	= $(OUT_DIR)/mods
+INSTALL_DIR 	?= C:/Users/Vin/Documents/ROMs/KAR-Plus/files/		#can override this on the command line: make install INSTALL_DIR=/path/to/your/mods
 
 # User-defined CFLAGS.
 CFLAGS = -O1 -mcpu=750 -meabi -msdata=none -mhard-float -ffreestanding \
@@ -31,11 +32,11 @@ INCLUDES = -I$(INC_DIR) -I$(LIB_ROOT_DIR)
 # 1. Libraries: Find all C source files recursively under the LIB_ROOT_DIR.
 LIB_SOURCES := $(shell find $(LIB_ROOT_DIR) -name "*.c")
 
-# 2. Mods: Manually list your mod folder names.
+# 2. Mods: Find all mods in the mod folder
 MOD_NAMES ?= $(shell find $(MODS_ROOT_DIR) -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
 #MOD_NAMES = city_settings credits
 
-# 3. Mods: For each mod, find its specific source files within its 'src' subdirectory.
+# 3. Mods Source: For each mod, find its specific source files within its 'src' subdirectory.
 MOD_C_SOURCES := $(foreach mod,$(MOD_NAMES),\
                        $(shell find $(MODS_ROOT_DIR)/$(mod)/src -name "*.c"))
 MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
@@ -66,9 +67,16 @@ OBJ_DIRS := $(sort $(dir $(ALL_INDIVIDUAL_OBJECTS_TO_COMPILE)))
 MOD_LINKED_FILES := $(addsuffix .modlink, $(addprefix $(BUILD_DIR)/, $(MOD_NAMES)))
 
 # MOD_BIN_FILES: The final .bin files for each mod (e.g. out/credits.bin)
-MOD_BIN_FILES := $(addsuffix .bin, $(addprefix $(OUT_DIR)/, $(MOD_NAMES)))
+MOD_BIN_FILES := $(addsuffix .bin, $(addprefix $(MODS_OUT_DIR)/, $(MOD_NAMES)))
+
+# Define a variable for all asset directories
+MOD_ASSET_DIRS := $(foreach mod,$(MOD_NAMES),\
+                               $(if $(wildcard $(MODS_ROOT_DIR)/$(mod)/assets), \
+                                    $(MODS_ROOT_DIR)/$(mod)/assets))
+MOD_ASSETS_COPIED := $(OUT_DIR)/.assets_copied # marker file in 'out' root
 
 # --- Debug Outputs ---
+# $(warning DEBUG: MOD_ASSET_DIRS = $(MOD_ASSET_DIRS))
 #$(warning DEBUG: LIB_SOURCES = $(LIB_SOURCES))
 #$(warning DEBUG: LIB_OBJECTS = $(LIB_OBJECTS))
 #$(warning DEBUG: MOD_NAMES = $(MOD_NAMES))
@@ -80,10 +88,10 @@ MOD_BIN_FILES := $(addsuffix .bin, $(addprefix $(OUT_DIR)/, $(MOD_NAMES)))
 
 # --- Main Targets ---
 
-.PHONY: all clean install
+.PHONY: all clean install assets
 
 # The 'all' target builds all final .bin files.
-all: $(MOD_BIN_FILES)
+all: $(MOD_BIN_FILES) $(MOD_ASSETS_COPIED)
 
 # --- Directory Creation Rules ---
 # Rule to create the top-level build directory
@@ -91,27 +99,37 @@ $(BUILD_DIR):
 	@mkdir -p $@
 
 # Rule to create the top-level output directory
-$(OUT_DIR):
+$(MODS_OUT_DIR):
 	@mkdir -p $@
 
 # Rule to create all necessary subdirectories within the build folder for objects
 $(OBJ_DIRS):
 	@mkdir -p $@
 
+# Rule to copy all assets to the root of the 'out' directory
+$(MOD_ASSETS_COPIED): $(MOD_ASSET_DIRS) | $(OUT_DIR)
+	@echo "--- Copying all mod assets to $(subst /.,/,$(dir $@)) ---" 	# Clean up path for display
+	@mkdir -p $(dir $@) 												# Ensure the parent directory for the marker file exists
+	@for mod_asset_dir in $(MOD_ASSET_DIRS); do \
+		if [ -d "$$mod_asset_dir" ]; then \
+			cp -r "$$mod_asset_dir"/* "$(subst /.,/,$(dir $@))"; \
+			echo "Copied assets from $$mod_asset_dir"; \
+		else \
+			echo "Warning: Assets directory '$$mod_asset_dir' not found."; \
+		fi; \
+	done
+	@touch $@ 															# Create the marker file
+
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
 # It uses an order-only prerequisite to ensure the output directory exists before compilation.
 $(BUILD_DIR)/%.o: %.c
-	@echo ""
-	@echo "Compiling C file: $<..."
-	@echo ""
+	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/%.o: %.s
-	@echo ""
-	@echo "Compiling ASM file: $<..."
-	@echo ""
+	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -142,7 +160,7 @@ $(foreach mod,$(MOD_NAMES),\
 # Define a template for the linking rule (including recipe).
 # This template will be used for each mod.
 define PACK_MOD_RULE_TEMPLATE
-$(OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink $(OUT_DIR)
+$(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)
 	@echo ""
 	@echo "--- Creating '$(1)' bin file ---"
 	@echo ""
@@ -158,11 +176,11 @@ $(foreach mod,$(MOD_NAMES),\
 -include $(DEPS)
 
 # --- Install Target ---
-# Copies the final .bin files from $(OUT_DIR) to $(INSTALL_DIR)
+# Copies the files from $(OUT_DIR) to $(INSTALL_DIR)
 install: all
 	@echo ""
 	@echo "--- Installing mod binaries to "$(INSTALL_DIR)" ---"
-	cp -r "$(OUT_DIR)"/* "$(strip $(INSTALL_DIR))/"
+	cp -a -r "$(OUT_DIR)"/* "$(strip $(INSTALL_DIR))/"
 	@echo ""
 	@echo "Installation complete."
 

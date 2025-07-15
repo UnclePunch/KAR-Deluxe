@@ -88,7 +88,7 @@ MOD_ASSETS_COPIED := $(OUT_DIR)/.assets_copied # marker file in 'out' root
 
 # --- Main Targets ---
 
-.PHONY: all clean install assets
+.PHONY: all clean install
 
 # The 'all' target builds all final .bin files.
 all: $(MOD_BIN_FILES) $(MOD_ASSETS_COPIED)
@@ -105,20 +105,6 @@ $(MODS_OUT_DIR):
 # Rule to create all necessary subdirectories within the build folder for objects
 $(OBJ_DIRS):
 	@mkdir -p $@
-
-# Rule to copy all assets to the root of the 'out' directory
-$(MOD_ASSETS_COPIED): $(MOD_ASSET_DIRS) | $(OUT_DIR)
-	@echo "--- Copying all mod assets to $(subst /.,/,$(dir $@)) ---" 	# Clean up path for display
-	@mkdir -p $(dir $@) 												# Ensure the parent directory for the marker file exists
-	@for mod_asset_dir in $(MOD_ASSET_DIRS); do \
-		if [ -d "$$mod_asset_dir" ]; then \
-			cp -r "$$mod_asset_dir"/* "$(subst /.,/,$(dir $@))"; \
-			echo "Copied assets from $$mod_asset_dir"; \
-		else \
-			echo "Warning: Assets directory '$$mod_asset_dir' not found."; \
-		fi; \
-	done
-	@touch $@ 															# Create the marker file
 
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
@@ -175,11 +161,19 @@ $(foreach mod,$(MOD_NAMES),\
 # --- Include generated dependency files (.d files) ---
 -include $(DEPS)
 
+# Rule to copy all assets to the root of the 'out' directory
+assets:
+	@for mod_asset_dir in $(MOD_ASSET_DIRS); do \
+		if [ -d "$$mod_asset_dir" ]; then \
+			cp -r "$$mod_asset_dir"/. "$(OUT_DIR)"; \
+		fi; \
+	done
+
 # --- Install Target ---
 # Copies the files from $(OUT_DIR) to $(INSTALL_DIR)
-install: all
+install: all assets
 	@echo ""
-	@echo "--- Installing mod binaries to "$(INSTALL_DIR)" ---"
+	@echo "--- Installing files to "$(INSTALL_DIR)" ---"
 	cp -a -r "$(OUT_DIR)"/* "$(strip $(INSTALL_DIR))/"
 	@echo ""
 	@echo "Installation complete."

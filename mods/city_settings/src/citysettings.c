@@ -673,10 +673,10 @@ void CitySettings_UpdateVanillaSettings()
 {
     // apply settings from vanilla game
     GameData *gd = Gm_GetGameData();
-    gd->time_seconds = stc_city_save->settings[CITYSETTING_SAVE_TIME] * 60;
-    gd->game_tempo = stc_city_save->settings[CITYSETTING_SAVE_TEMPO] + 1;
-    gd->menu_stadium_selection = stc_city_save->settings[CITYSETTING_SAVE_STADIUM];
-    gd->events_enable = (stc_city_save->settings[CITYSETTING_SAVE_EVENTFREQ] == 0) ? 0 : 1;
+    gd->city.time_seconds = stc_city_save->settings[CITYSETTING_SAVE_TIME] * 60;
+    gd->city.game_tempo = stc_city_save->settings[CITYSETTING_SAVE_TEMPO] + 1;
+    gd->city.menu_stadium_selection = stc_city_save->settings[CITYSETTING_SAVE_STADIUM];
+    gd->city.events_enable = (stc_city_save->settings[CITYSETTING_SAVE_EVENTFREQ] == 0) ? 0 : 1;
 
     return;
 }

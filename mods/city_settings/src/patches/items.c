@@ -10,6 +10,7 @@
 #include "item.h"
 
 #include "../citysettings.h"
+#include "around_world.h"
 
 #include "code_patch/code_patch.h"
 
@@ -208,6 +209,7 @@ void Hook_ItemFall_Init()
 {
     AllUp_AdjustSpawn();
     ItemToggle_Apply();
+    AroundWorld_EqualizeItemChances();
 }
 void Hook_ItemFall_ReInit()
 {
@@ -215,6 +217,7 @@ void Hook_ItemFall_ReInit()
 
     AllUp_AdjustSpawn();
     ItemToggle_Apply();
+    AroundWorld_EqualizeItemChances();
 }
 CODEPATCH_HOOKCREATE(0x800ec4b4, "", Hook_BoxGene_Init, "", 0)
 CODEPATCH_HOOKCREATE(0x800eb558, "", Hook_ItemFall_Init, "", 0)

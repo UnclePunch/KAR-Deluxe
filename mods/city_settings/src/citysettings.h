@@ -1,6 +1,8 @@
 #ifndef CITYSETTINGS_H
 #define CITYSETTINGS_H
 
+#include "datatypes.h"
+
 #define MENUGX_0 (0)
 #define MENUGX_1 (1)
 #define MENUGX_2 (2)
@@ -44,6 +46,7 @@ typedef enum CitySettingsOptionTexture
     CITYSETTING_OPTTEX_TEMPO,
     CITYSETTING_OPTTEX_TIME,
     CITYSETTING_OPTTEX_MACHINE_RESPAWN,
+    CITYSETTING_OPTTEX_GAUNTLETMODE,
 } CitySettingsOptionTexture;
 
 typedef enum CitySettingsMenuTexture
@@ -81,6 +84,7 @@ typedef enum CitySettingsValueSmallTexture
 typedef enum CitySettingsValueLargeTexture
 {
     CITYSETTING_VALLARGETEX_SHUFFLE,
+    CITYSETTING_VALLARGETEX_ALL,
     CITYSETTING_VALLARGETEX_DRAG_RACE,
     CITYSETTING_VALLARGETEX_AIR_GLIDER,
     CITYSETTING_VALLARGETEX_TARGET_FLIGHT,
@@ -145,6 +149,7 @@ typedef enum CitySettingsSaveID
     CITYSETTING_SAVE_MACHINEPACK,
     CITYSETTING_SAVE_MACHINESPEED,
     CITYSETTING_SAVE_MACHINERESPAWN,
+    CITYSETTING_SAVE_GAUNTLETMODE,
 } CitySettingsSaveID;
 
 typedef enum CitySettingsMenuDirection

@@ -129,7 +129,7 @@ void Machines_AdjustStarting()
     GameData *gd = Gm_GetGameData();
 
     // ensure its main city trial mode
-    if (gd->city_mode == CITYMODE_TRIAL)
+    if (gd->city.mode == CITYMODE_TRIAL)
     {
         CitySettingsSave *cs = CitySettings_SaveGet();
 
@@ -164,8 +164,8 @@ void Machines_AdjustStarting()
             gd->ply_data[i].machine_kind = c_desc->machine;
             gd->ply_data[i].is_bike = c_desc->is_bike;
             gd->ply_data[i].rider_kind = c_desc->rider_kind;
-            gd->machine_kind[i] = c_desc->machine;
-            gd->is_bike[i] = c_desc->is_bike;
+            gd->city.machine_kind[i] = c_desc->machine;
+            gd->city.is_bike[i] = c_desc->is_bike;
         }
     }
     return;
@@ -295,11 +295,11 @@ int MachineRespawn_CheckIfEnabledInCity(RiderData *rd)
 
     // ensure its main city trial mode
     if (Gm_IsInCity() &&                 // playing city trial
-        gd->city_mode == CITYMODE_TRIAL) // in the main mode
+        gd->city.mode == CITYMODE_TRIAL) // in the main mode
     {
         // change our machine to the one we started with
-        int machine_kind = gd->machine_kind[rd->ply];
-        int is_bike = gd->is_bike[rd->ply];
+        int machine_kind = gd->city.machine_kind[rd->ply];
+        int is_bike = gd->city.is_bike[rd->ply];
 
         // OSReport("spawning p%d on machine_kind %d\n", rd->ply + 1, gd->machine_kind[rd->ply]);
         Ply_SetMachineKind(rd->ply, machine_kind);

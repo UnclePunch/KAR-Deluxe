@@ -63,7 +63,7 @@ void Startup_Init()
         gd->main_menu.top_menu = MAINMENU_TOPMENU_CITY;
         gd->main_menu.submenu_kind = MAINMENU_TOPMENU_CITY;
         gd->main_menu.major_kind = major_kind;
-        gd->city_mode = CITYMODE_TRIAL;
+        gd->city.mode = CITYMODE_TRIAL;
         gd->is_showed_tutorial_city = 1;
         break;
     }

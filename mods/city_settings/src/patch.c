@@ -19,6 +19,7 @@
 #include "patches/machines.h"
 #include "patches/stadium.h"
 #include "patches/select.h"
+#include "patches/around_world.h"
 
 void Patches_Init()
 {
@@ -28,4 +29,5 @@ void Patches_Init()
     Machines_ApplyPatches();
     Stadium_ApplyPatches();
     Select_ApplyPatches();
+    AroundWorld_ApplyPatches();
 }

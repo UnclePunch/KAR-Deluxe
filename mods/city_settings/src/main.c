@@ -12,6 +12,7 @@
 #include "audio.h"
 
 #include "citysettings.h"
+#include "patches/around_world.h"
 
 char ModName[] = "City Settings";
 char ModAuthor[] = "UnclePunch";
@@ -31,4 +32,11 @@ void OnSceneChange(HSD_Archive *archive)
 void OnSaveInit(CitySettingsSave *save, int req_init)
 {
     CitySettings_SaveInit(save, req_init);
+}
+
+void OnPlayerSelectLoad()
+{
+}
+void On3DLoad()
+{
 }

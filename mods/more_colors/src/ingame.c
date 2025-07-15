@@ -12,6 +12,7 @@
 #include "colors.h"
 #include "airride.h"
 #include "code_patch/code_patch.h"
+#include "ingame.h"
 
 #include "hoshi/settings.h"
 
@@ -40,13 +41,6 @@ void Game_OverloadRdKirby(RiderKind rd_kind)
 
     if (rd_kind != RDKIND_KIRBY)
         return;
-
-    struct RdKirbyOverload
-    {
-        char *override_symbol;
-        u8 mat_indices_num;
-        u8 mat_indices[9];
-    };
 
     static struct RdKirbyOverload rdkirby_overload[] = {
         {
@@ -113,6 +107,7 @@ void Game_OverloadRdKirby(RiderKind rd_kind)
             {
                 for (int j = 0; (j * 50) < texanim_custom->n_imagetbl; j++)
                     memcpy(&texanim_custom->imagetbl[j * 50], &matanimdesc_vanilla->texture_anim->imagetbl[j * 8], sizeof(void *) * 8); // copy over vanilla image data pointers
+
                 for (int j = 0; (j * 50) < texanim_custom->n_tluttbl; j++)
                     memcpy(&texanim_custom->tluttbl[j * 50], &matanimdesc_vanilla->texture_anim->tluttbl[j * 8], sizeof(void *) * 8); // copy over vanilla tlut
 

@@ -9,6 +9,8 @@
 
 #include "code_patch/code_patch.h"
 
+static u8 stc_is_box_enabled[BOXKIND_NUM];
+
 void ItemToggle_Apply()
 {
     CitySettingsSave *city_save = CitySettings_SaveGet();
@@ -140,6 +142,31 @@ void LegendaryPiece_AdjustSpawn()
         box_gene_info->item_desc->legendary_pieces[1].chance_to_spawn = spawn_chances[city_save->settings[CITYSETTING_SAVE_HYDRASPAWN]];
     }
 }
+void Box_CheckIfEnabled()
+{
+    grBoxGeneObj *box_gene_obj = (*stc_grBoxGeneObj);
+    itCommonDataAll *it_common = (*stc_it_common_data);
+    if (!box_gene_obj || !it_common)
+        return;
+
+    // init all
+    for (int i = 0; i < BOXKIND_NUM; i++)
+        stc_is_box_enabled[i] = 0;
+
+    // ensure at least one item from each box is enabled
+    for (BoxKind box_kind = 0; box_kind < BOXKIND_NUM; box_kind++)
+    {
+        for (int i = 0; i < box_gene_obj->item_group_spawn[box_kind].num; i++)
+        {
+            if (box_gene_obj->item_group_spawn[box_kind].chance[i] > 0)
+            {
+                // OSReport("box %d enabled\n", box_kind);
+                stc_is_box_enabled[box_kind] = 1;
+                break;
+            }
+        }
+    }
+}
 
 ////////////////////
 // Item Frequency //
@@ -192,6 +219,7 @@ void ItemFreq_Adjust()
 ////////////////////
 // Hook Functions //
 ////////////////////
+
 void Hook_BoxGene_Init()
 {
     if (Gm_IsGrKindCity(Gm_GetCurrentGrKind()))
@@ -218,6 +246,57 @@ CODEPATCH_HOOKCREATE(0x800ec4b4, "", Hook_BoxGene_Init, "", 0)
 CODEPATCH_HOOKCREATE(0x800eb558, "", Hook_ItemFall_Init, "", 0)
 CODEPATCH_HOOKCREATE(0x800ed7f0, "", Hook_ItemFall_ReInit, "", 0)
 
+///////////////////////////
+// Replacement Functions //
+///////////////////////////
+
+int Hook_DetermineBoxType(BoxKind *box_col_kind, int *box_size_kind)
+{
+    /*
+    This is a rewrite of the vanilla game function, in order to support the ability to
+    blacklist spawning boxes of a certain type (when no items inside of them are enabled).
+    */
+
+    grBoxGeneInfo *box_gene = (*stc_grBoxGeneInfo);
+    if (!box_gene)
+        return 0;
+
+    u8(*box_chances)[3] = (u8(*)[3])box_gene->item_desc->box_spawn_chances;
+
+    // add up box chances, removing any boxes that contain 0 valid items
+    int chance_total = 0;
+    for (int box_kind = 0; box_kind < BOXKIND_NUM; box_kind++)
+    {
+        if (stc_is_box_enabled[box_kind])
+        {
+            for (int box_size = 0; box_size < 3; box_size++)
+                chance_total += box_chances[box_kind][box_size];
+        }
+    }
+
+    // unwrap and decide on a box to spawn
+    int rand_chance = HSD_Randi(chance_total);
+    chance_total = 0;
+    for (BoxKind box_kind = 0; box_kind < BOXKIND_NUM; box_kind++)
+    {
+        if (stc_is_box_enabled[box_kind])
+        {
+            for (int box_size = 0; box_size < 3; box_size++)
+            {
+                chance_total += box_chances[box_kind][box_size];
+
+                if (chance_total > rand_chance)
+                {
+                    *box_col_kind = box_kind;
+                    *box_size_kind = box_size;
+
+                    return box_kind;
+                }
+            }
+        }
+    }
+}
+
 ///////////////////
 // Apply Patches //
 ///////////////////
@@ -231,4 +310,6 @@ void Items_ApplyPatches()
     CODEPATCH_REPLACEINSTRUCTION(0x800ea984, 0x4800000c); // remove hardcoded 4 frame spawn interval
     CODEPATCH_REPLACEINSTRUCTION(0x8024ef24, 0x48000084); // remove hardcoded 100 item limit for sky spawn
     CODEPATCH_REPLACEINSTRUCTION(0x80250c20, 0x38600001); // remove hardcoded 100 item limit for box spawn
+
+    CODEPATCH_REPLACEFUNC(0x800ebc04, Hook_DetermineBoxType); //
 }

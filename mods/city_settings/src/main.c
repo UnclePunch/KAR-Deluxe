@@ -13,6 +13,7 @@
 
 #include "citysettings.h"
 #include "patches/around_world.h"
+#include "patches/items.h"
 
 char ModName[] = "City Settings";
 char ModAuthor[] = "UnclePunch";
@@ -39,4 +40,5 @@ void OnPlayerSelectLoad()
 }
 void On3DLoad()
 {
+    Box_CheckIfEnabled();
 }

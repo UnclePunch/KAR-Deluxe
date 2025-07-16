@@ -1,6 +1,6 @@
 
 #include "text.h"
-#include "useful.h"
+#include "os.h"
 #include "hsd.h"
 #include "obj.h"
 #include "preload.h"

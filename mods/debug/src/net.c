@@ -1,13 +1,13 @@
 
 #include "text.h"
-#include "useful.h"
+#include "os.h"
 #include "hsd.h"
 #include "preload.h"
 #include "scene.h"
 #include "inline.h"
 #include "audio.h"
 #include "game.h"
-#include "useful.h"
+#include "os.h"
 
 #include "debug.h"
 #include "net.h"

@@ -1,6 +1,6 @@
 #include "game.h"
 #include "hsd.h"
-#include "useful.h"
+#include "os.h"
 #include "preload.h"
 #include "game.h"
 #include "inline.h"

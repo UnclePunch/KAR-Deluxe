@@ -3,7 +3,7 @@
  *---------------------------------------------------------------------------*/
 
 #include "text.h"
-#include "useful.h"
+#include "os.h"
 #include "hsd.h"
 #include "preload.h"
 #include "scene.h"

@@ -1,12 +1,11 @@
 
-#include "text.h"
 #include "useful.h"
 #include "hsd.h"
 #include "preload.h"
 #include "scene.h"
 #include "inline.h"
-#include "audio.h"
 #include "game.h"
+#include "hud.h"
 #include <string.h>
 
 #include "colors.h"

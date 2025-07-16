@@ -216,20 +216,20 @@ int AroundWorld_OnMinorExit()
     case (STGROUP_DRAGRACE):
     case (STGROUP_SINGLERACE):
     {
-        AroundWorld_CalculateRanks(ranks, &gd->stadium.ply_race_time, 'i', 0);
+        AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_race_time, 'i', 0);
         break;
     }
     case (STGROUP_AIRGLIDER):
     case (STGROUP_HIGHJUMP):
     {
-        AroundWorld_CalculateRanks(ranks, &gd->stadium.ply_dist, 'f', 1);
+        AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_dist, 'f', 1);
         break;
     }
     case (STGROUP_TARGETFLIGHT):
     case (STGROUP_DESTRUCTION):
     case (STGROUP_MELEE):
     {
-        AroundWorld_CalculateRanks(ranks, &gd->stadium.ply_points, 'i', 1);
+        AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_points, 'i', 1);
         break;
     }
     }
@@ -273,8 +273,8 @@ int AroundWorld_OnMinorExit()
                     placement++;
             }
 
-            gd->stadium.ply_placement[i] = placement;
-            gd->stadium.ply_points[i] = stadium_wins[i];
+            gd->stadium_results.ply_placement[i] = placement;
+            gd->stadium_results.ply_points[i] = stadium_wins[i];
 
             // OSReport("ply %d points (%d) placement (%d)\n", i + 1, stadium_wins[i]);
         }

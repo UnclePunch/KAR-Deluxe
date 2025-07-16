@@ -1,7 +1,9 @@
 #ifndef GAMESETTINGS_UNPAUSE_H
 #define GAMESETTINGS_UNPAUSE_H
 
-#include "game.h"
+#include "datatypes.h"
+#include "obj.h"
+#include "hud.h"
 
 #define SIGNALGO_ANIMRATE (0.7)
 #define SIGNALGO_STARTDELAY 15

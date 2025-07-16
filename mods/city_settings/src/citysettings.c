@@ -1,4 +1,3 @@
-
 #include "text.h"
 #include "useful.h"
 #include "hsd.h"

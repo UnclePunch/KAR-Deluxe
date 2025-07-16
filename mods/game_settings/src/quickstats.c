@@ -1,12 +1,7 @@
-
-#include "text.h"
 #include "useful.h"
-#include "hsd.h"
-#include "preload.h"
-#include "scene.h"
 #include "inline.h"
-#include "audio.h"
 #include "obj.h"
+#include "hud.h"
 #include "game.h"
 
 #include "code_patch/code_patch.h"

@@ -5,8 +5,6 @@
 #include "text.h"
 #include "useful.h"
 #include "hsd.h"
-#include "preload.h"
-#include "scene.h"
 #include "inline.h"
 #include "game.h"
 #include "audio.h"

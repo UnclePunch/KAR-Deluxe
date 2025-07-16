@@ -1,14 +1,8 @@
-
-#include "text.h"
 #include "useful.h"
-#include "hsd.h"
 #include "preload.h"
 #include "scene.h"
 #include "inline.h"
-#include "audio.h"
 #include "game.h"
-#include "item.h"
-#include "string.h"
 
 #include "../citysettings.h"
 

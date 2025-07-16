@@ -206,11 +206,8 @@ int Machines_AdjustSpawnChance(MachineSpawnData *msd, float match_progress)
 
     // get vehicle spawns for the current point in the match
     int spawn_table_idx = 0;
-    while (1)
+    while (match_progress > vc_data_common->x20->spawn_desc[spawn_table_idx].match_progress)
     {
-        if (match_progress <= vc_data_common->x20->spawn_desc[spawn_table_idx].match_progress)
-            break;
-
         spawn_table_idx++;
     }
 
@@ -238,10 +235,12 @@ int Machines_AdjustSpawnChance(MachineSpawnData *msd, float match_progress)
         }
     }
 
+    int history_size = (whitelisted_vehicle_num <= 4) ? (whitelisted_vehicle_num - 1) : 4;
+
     // remove recently spawned vehicles
     for (int i = 0; i < GetElementsIn(spawn_chances); i++)
     {
-        for (int j = 0; j < GetElementsIn(msd->prev_machine_kind); j++)
+        for (int j = 0; j < history_size; j++)
         {
             if (i == msd->prev_machine_kind[j])
                 spawn_chances[i] = 0;
@@ -266,18 +265,18 @@ int Machines_AdjustSpawnChance(MachineSpawnData *msd, float match_progress)
     }
 
     // update buffer
-    if (whitelisted_vehicle_num > 1)
+    if (history_size > 0)
     {
-        int buffer_size = (whitelisted_vehicle_num <= 4) ? (whitelisted_vehicle_num - 1) : 4;
         msd->prev_machine_kind[msd->prev_machine_index] = machine_kind;
         msd->prev_machine_index++;
-        if (msd->prev_machine_index >= buffer_size)
+        if (msd->prev_machine_index >= history_size)
             msd->prev_machine_index = 0;
     }
 
     return machine_kind;
 }
 CODEPATCH_HOOKCREATE(0x801df00c, "mr 3,30\n\t", Machines_AdjustSpawnChance, "mr 31,3\n\t", 0x801df220)
+CODEPATCH_HOOKCREATE(0x801df44c, "mr 3,30\n\t", Machines_AdjustSpawnChance, "mr 31,3\n\t", 0x801df630)
 
 // Respawn Patches
 int MachineRespawn_CheckIfEnabledInCity(RiderData *rd)
@@ -368,6 +367,7 @@ void Machines_ApplyPatches()
 
     // adjust vehicle spawn code
     CODEPATCH_HOOKAPPLY(0x801df00c);                      // support less than 4 vehicles being enabled
+    CODEPATCH_HOOKAPPLY(0x801df44c);                      // blacklist disabled machines in formation
     CODEPATCH_REPLACEINSTRUCTION(0x801df254, 0x60000000); // ignore original buffer index increment code
     CODEPATCH_REPLACEINSTRUCTION(0x801df234, 0x60000000); // ignore original buffer index increment code
 

@@ -88,10 +88,10 @@ MOD_ASSETS_COPIED := $(OUT_DIR)/.assets_copied # marker file in 'out' root
 
 # --- Main Targets ---
 
-.PHONY: all clean install
+.PHONY: all clean install assets
 
 # The 'all' target builds all final .bin files.
-all: $(MOD_BIN_FILES) $(MOD_ASSETS_COPIED)
+all: $(MOD_BIN_FILES) assets
 
 # --- Directory Creation Rules ---
 # Rule to create the top-level build directory

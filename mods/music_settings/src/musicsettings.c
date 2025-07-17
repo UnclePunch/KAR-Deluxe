@@ -58,10 +58,10 @@ MajorKind MusicSettings_Init()
     SongData_Init();
     Patches_Apply();
 
-    minor_scene.idx = KARPlus_InstallMinorScene(&minor_scene);
+    minor_scene.idx = Hoshi_InstallMinorScene(&minor_scene);
     major_desc.initial_minor_id = minor_scene.idx;
 
-    major_desc.major_id = KARPlus_InstallMajorScene(&major_desc);
+    major_desc.major_id = Hoshi_InstallMajorScene(&major_desc);
 
     return major_desc.major_id;
 }
@@ -202,7 +202,7 @@ void MusicSettings_CopyToSave()
         // OSReport("\n");
     }
 
-    if (KARPlus_WriteSave() == CARD_RESULT_READY)
+    if (Hoshi_WriteSave() == CARD_RESULT_READY)
         OSReport("Saved music to card.\n");
 }
 
@@ -240,7 +240,7 @@ static HSD_Archive *settings_archive = 0;
 static HSD_SObjDesc *stc_sobj;
 void MusicSettings_Create()
 {
-    KARPlus_AddPreloadMenuFile("MnSelMusicAll");
+    Hoshi_AddPreloadMenuFile("MnSelMusicAll");
     Preload_Invalidate();
     Preload_Update();
 

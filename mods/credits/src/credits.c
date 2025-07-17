@@ -33,9 +33,9 @@ MinorSceneDesc minor_scene = {
 
 MajorKind Credits_Init()
 {
-    minor_scene.idx = KARPlus_InstallMinorScene(&minor_scene);
+    minor_scene.idx = Hoshi_InstallMinorScene(&minor_scene);
     major_desc.initial_minor_id = minor_scene.idx;
-    major_desc.major_id = KARPlus_InstallMajorScene(&major_desc);
+    major_desc.major_id = Hoshi_InstallMajorScene(&major_desc);
 
     return major_desc.major_id;
 }

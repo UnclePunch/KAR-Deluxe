@@ -5,11 +5,28 @@
 
 #include "obj.h"
 #include "citysettings.h"
+typedef struct CitySettingsMenuAssets
+{
+    JOBJSet *option_set;
+    JOBJSet *menu_set;
+    JOBJSet *value_set_small;
+    JOBJSet *value_set_wide;
+    JOBJSet *value_set_num;
+    JOBJSet *cursor_set;
+    JOBJSet *reset_set;
+    JOBJSet *warning_set;
+} CitySettingsMenuAssets;
+
+typedef struct CitySettingsMenuData
+{
+    CitySettingsMenuDesc *desc;
+    GOBJ *window_gobj;
+} CitySettingsMenuData;
 
 void Menu_Init(HSD_Archive *custom_archive);
 GOBJ *Menu_Create(CitySettingsMenuDesc *desc);
-void Menu_Update(GOBJ *g);
-CitySettingsMenuAction Menu_Input(GOBJ *g);
+void Menu_Update(CitySettingsMenuDesc *desc);
+CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc);
 void Menu_CursorUpdate(JOBJ *cursor_j, JOBJ *val_j, int is_wide);
 
 #define DEFINE_VALUE(_texture_frame, _description) _texture_frame, _description, 0

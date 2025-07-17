@@ -25,6 +25,8 @@ static float stc_val_pos[][3] =
         {-2.2, 9.1, 20.0},
 };
 
+static int z_hold_timer = 0;
+static int z_hold_released = 1;
 static CitySettingsMenuAssets menu_assets;
 
 /*---------------------------------------------------------------------*
@@ -42,12 +44,10 @@ void Menu_Init(HSD_Archive *custom_archive)
     menu_assets.value_set_wide = *(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleStadium_scene_models");
     menu_assets.value_set_num = *(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleNum_scene_models");
     menu_assets.cursor_set = *(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleCursor_scene_models");
+    menu_assets.reset_set = *(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelReset_scene_models");
 
-    // menu_assets.option_set->matanimjoint = (*(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleFrame_scene_models"))->matanimjoint;
-    // menu_assets.menu_set->matanimjoint = (*(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleFrame2_scene_models"))->matanimjoint;
-    // menu_assets.value_set_small->matanimjoint = (*(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleContents_scene_models"))->matanimjoint;
-    // menu_assets.value_set_wide->matanimjoint = (*(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleStadium_scene_models"))->matanimjoint;
-    // menu_assets.value_set_num->matanimjoint = (*(JOBJSet **)Archive_GetPublicAddress(custom_archive, "ScMenSelruleNum_scene_models"))->matanimjoint;
+    z_hold_timer = 0;
+    z_hold_released = 0;
 }
 
 /*---------------------------------------------------------------------*
@@ -68,6 +68,7 @@ GOBJ *Menu_Create(CitySettingsMenuDesc *desc)
                               JObj_GX, MENUGX_1, 0);
     CitySettingsMenuData *md = gm->userdata;
     md->desc = desc;
+    md->window_gobj = 0;
     GObj_AddProc(gm, GOBJ_Anim, 1);
 
     float max_top = 12;
@@ -187,7 +188,16 @@ GOBJ *Menu_Create(CitySettingsMenuDesc *desc)
     desc->generic.cursor_j = cj;
     JObj_AddNext(gm->hsd_object, cj);
 
-    Menu_Update(gm);
+    // add reset button to top level menu
+    if (!desc->prev)
+    {
+        // element
+        JOBJ *rj = JObj_LoadJoint(menu_assets.reset_set->jobj);
+        JObj_AddSetAnim(rj, 0, menu_assets.reset_set, 0, 0);
+        JObj_AddNext(gm->hsd_object, rj);
+    }
+
+    Menu_Update(desc);
 
     return gm;
 }
@@ -200,16 +210,8 @@ Description:    Updates the UI state of the menu passed to match its
 
 Arguments:      g                    GOBJ containing the menu.
 *---------------------------------------------------------------------*/
-void Menu_Update(GOBJ *g)
+void Menu_Update(CitySettingsMenuDesc *desc)
 {
-
-    // ensure this is a generic menu gobj
-    if (g->p_link != MENUPLINK_GENERIC)
-        return;
-
-    CitySettingsMenuData *md = g->userdata;
-    CitySettingsMenuDesc *desc = md->desc;
-
     // option update
     for (int opt_idx = 0; opt_idx < desc->generic.opt_num; opt_idx++)
     {
@@ -367,16 +369,14 @@ Name:           Menu_Input
 
 Description:    Processes inputs for this menu.
 
-Arguments:      g                     GOBJ containing the menu.
+Arguments:      desc                  CitySettingsMenuDesc describing the menu.
 
 Returns:        action_kind           Value that describes what occured this tick.
 *---------------------------------------------------------------------*/
-CitySettingsMenuAction Menu_Input(GOBJ *g)
+CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc)
 {
-    CitySettingsMenuData *md = g->userdata;
-    CitySettingsMenuDesc *desc = md->desc;
-
     int down = Pad_GetDown(20);
+    int held = Pad_GetHeld(20);
     int rapid_held = Pad_GetRapidHeld(20);
     CitySettingsMenuAction action_kind = CITYSETTING_MENUACT_NONE;
 
@@ -485,19 +485,43 @@ CitySettingsMenuAction Menu_Input(GOBJ *g)
         action_kind = CITYSETTING_MENUACT_REGRESS;
     }
 
-    // act on action
-    if (action_kind != CITYSETTING_MENUACT_NONE)
+    if (!z_hold_released && !(held & PAD_TRIGGER_Z))
+        z_hold_released = 1;
+
+    if (z_hold_released && held & PAD_TRIGGER_Z && !desc->prev)
     {
-        Menu_Update(g);
+        if (++z_hold_timer > 30)
+        {
+            action_kind = CITYSETTING_MENUACT_WINDOWOPEN;
+            z_hold_released = 0;
+        }
+    }
+    else
+        z_hold_timer = 0;
 
-        if (action_kind == CITYSETTING_MENUACT_CHANGE)
-            SFX_Play(FGMMENU_CS_MV);
-
-        else if (action_kind == CITYSETTING_MENUACT_ADVANCE || action_kind == CITYSETTING_MENUACT_EXIT)
-            SFX_Play(FGMMENU_CS_KETTEI);
-
-        else if (action_kind == CITYSETTING_MENUACT_REGRESS)
-            SFX_Play(FGMMENU_CS_CANCEL);
+    switch (action_kind)
+    {
+    case (CITYSETTING_MENUACT_CHANGE):
+    {
+        SFX_Play(FGMMENU_CS_MV);
+        break;
+    }
+    case (CITYSETTING_MENUACT_ADVANCE):
+    case (CITYSETTING_MENUACT_EXIT):
+    {
+        SFX_Play(FGMMENU_CS_KETTEI);
+        break;
+    }
+    case (CITYSETTING_MENUACT_WINDOWOPEN):
+    {
+        SFX_Play(FGMMENU_CS_KETTEI_PRE);
+        break;
+    }
+    case (CITYSETTING_MENUACT_REGRESS):
+    {
+        SFX_Play(FGMMENU_CS_CANCEL);
+        break;
+    }
     }
 
     return action_kind;

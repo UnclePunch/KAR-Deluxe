@@ -9,6 +9,7 @@
 
 #define MENUPLINK_GENERIC (30)
 #define MENUPLINK_CUSTOM (31)
+#define MENUPLINK_WINDOW (32)
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
@@ -166,6 +167,7 @@ typedef enum CitySettingsMenuAction
     CITYSETTING_MENUACT_ADVANCE,
     CITYSETTING_MENUACT_REGRESS,
     CITYSETTING_MENUACT_EXIT,
+    CITYSETTING_MENUACT_WINDOWOPEN,
 } CitySettingsMenuAction;
 
 typedef struct CitySettingsSave
@@ -263,21 +265,6 @@ struct CitySettingsMenuDesc
     };
 };
 
-typedef struct CitySettingsMenuData
-{
-    CitySettingsMenuDesc *desc;
-} CitySettingsMenuData;
-
-typedef struct CitySettingsMenuAssets
-{
-    JOBJSet *option_set;
-    JOBJSet *menu_set;
-    JOBJSet *value_set_small;
-    JOBJSet *value_set_wide;
-    JOBJSet *value_set_num;
-    JOBJSet *cursor_set;
-} CitySettingsMenuAssets;
-
 void Major_Enter();
 void Major_ExitMinor();
 void Minor_Load();
@@ -307,5 +294,12 @@ void CitySettings_ShowDescription();
 HSD_Archive *CitySettings_GetCustomMenuArchive();
 void Text_CopyJointPosition(Text *t, JOBJ *j);
 int Text_ConvertASCIIRewrite(u8 *out, char *s);
+
+void CitySettings_ForEach(CitySettingsMenuDesc *desc, void (*cb_func)(CitySettingsOption *option));
+void CitySettings_CountOptionCallback(CitySettingsOption *opt);
+void CitySettings_BackupOptionCallback(CitySettingsOption *opt);
+void CitySettings_RestoreOptionCallback(CitySettingsOption *opt);
+void CitySettings_BackupMenuDefaults();
+void CitySettings_SetDefault();
 
 #endif

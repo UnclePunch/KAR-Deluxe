@@ -9,8 +9,10 @@
 
 #include "citysettings.h"
 #include "code_patch/code_patch.h"
+#include "text_joint/text_joint.h"
 
 #include "menu.h"
+#include "window.h"
 #include "menu_define.c"
 #include "patch.h"
 
@@ -70,27 +72,19 @@ void CitySettings_OnGameStart()
 }
 CODEPATCH_HOOKCREATE(0x80014448, "", CitySettings_OnGameStart, "", 0)
 
-static void (*DOL_CitySettings_Load)();
-static void (*DOL_CitySettings_Think)(void *data);
-static void (*DOL_CitySettings_Exit)(void *data);
 static HSD_Archive *settings_archive = 0;
 static CitySettingsData settings_data;
 static CitySettingsSave *stc_city_save;
+static u8 *stc_city_settings_backup;
 void CitySettings_Init()
 {
 
     // replace city game settings minor scene functions
-    MinorSceneDesc *desc = KARPlus_GetMinorScenes();
+    MinorSceneDesc *desc = Hoshi_GetMinorScenes();
     while (desc->idx != MNRKIND_NUM)
     {
         if (desc->idx == MNRKIND_CITYSETTINGS)
         {
-            // OSReport("city settings minor data @ %x\n", desc);
-
-            DOL_CitySettings_Load = desc->cb_Load;
-            DOL_CitySettings_Think = desc->cb_ThinkPreGObjProc;
-            DOL_CitySettings_Exit = desc->cb_Exit;
-
             desc->cb_Load = CitySettings_Load;
             desc->cb_ThinkPreGObjProc = CitySettings_Think;
             desc->cb_Exit = CitySettings_Exit;
@@ -103,6 +97,8 @@ void CitySettings_Init()
     // add hook to game start code that applies patches at the beginning of every game
     CODEPATCH_HOOKAPPLY(0x80014448);
 
+    CitySettings_BackupMenuDefaults();
+
     return;
 }
 
@@ -111,15 +107,7 @@ void CitySettings_SaveInit(CitySettingsSave *save, int req_init)
     stc_city_save = save;
 
     if (req_init)
-    {
-        // init default save data
-        CitySettings_CopyToSave(&top_menu);
-
-        save->random_event_bitfield = -1;
-        save->random_stadium_bitfield = -1;
-        save->random_item_bitfield = -1;
-        save->random_machine_bitfield = (1 << VCKIND_WARP | 1 << VCKIND_WINGED | 1 << VCKIND_SHADOW | 1 << VCKIND_BULK | 1 << VCKIND_SLICK | 1 << VCKIND_FORMULA | 1 << VCKIND_WAGON | 1 << VCKIND_ROCKET | 1 << VCKIND_SWERVE | 1 << VCKIND_TURBO | 1 << VCKIND_JET | 1 << VCKIND_WHEELIEBIKE | 1 << VCKIND_REXWHEELIE | 1 << VCKIND_WHEELIESCOOTER);
-    }
+        CitySettings_SetDefault();
 
     CitySettings_UpdateVanillaSettings(); // apply vanilla settings immediately
 
@@ -129,6 +117,85 @@ void CitySettings_SaveInit(CitySettingsSave *save, int req_init)
 CitySettingsSave *CitySettings_SaveGet()
 {
     return stc_city_save;
+}
+
+// menu backup and restore functions
+static int stc_opt_num;
+void CitySettings_ForEach(CitySettingsMenuDesc *desc, void (*cb_func)(CitySettingsOption *option))
+{
+    // recursively iterate through all menus and init their option values from the save file
+    if (!desc)
+        return;
+
+    for (int opt_idx = 0; opt_idx < desc->generic.opt_num; opt_idx++)
+    {
+        // process each option
+        switch (desc->generic.options[opt_idx].kind)
+        {
+        case (CITYSETTING_OPTKIND_NUM):
+        case (CITYSETTING_OPTKIND_VALUE):
+        {
+            cb_func(&desc->generic.options[opt_idx]);
+            break;
+        }
+        case (CITYSETTING_OPTKIND_MENU):
+        {
+            if (desc->generic.options[opt_idx].u.menu.desc && desc->generic.options[opt_idx].u.menu.desc->kind == CITYSETTING_MENUKIND_GENERIC)
+                CitySettings_ForEach(desc->generic.options[opt_idx].u.menu.desc, cb_func);
+
+            break;
+        }
+        }
+    }
+}
+void CitySettings_CountOptionCallback(CitySettingsOption *opt)
+{
+    stc_opt_num++;
+}
+void CitySettings_BackupOptionCallback(CitySettingsOption *opt)
+{
+    int val;
+    if (opt->kind == CITYSETTING_OPTKIND_NUM)
+        val = opt->u.number.cur_selection;
+    else if (opt->kind == CITYSETTING_OPTKIND_VALUE)
+        val = opt->u.value.cur_selection;
+
+    stc_city_settings_backup[stc_opt_num++] = val;
+}
+void CitySettings_RestoreOptionCallback(CitySettingsOption *opt)
+{
+    int val = stc_city_settings_backup[stc_opt_num++];
+
+    if (opt->kind == CITYSETTING_OPTKIND_NUM)
+        opt->u.number.cur_selection = val;
+    else if (opt->kind == CITYSETTING_OPTKIND_VALUE)
+        opt->u.value.cur_selection = val;
+}
+void CitySettings_BackupMenuDefaults()
+{
+    // count number of options
+    stc_opt_num = 0;
+    CitySettings_ForEach(&top_menu, CitySettings_CountOptionCallback);
+
+    stc_city_settings_backup = HSD_MemAlloc(stc_opt_num);
+
+    // back them up
+    stc_opt_num = 0;
+    CitySettings_ForEach(&top_menu, CitySettings_BackupOptionCallback);
+}
+void CitySettings_SetDefault()
+{
+    // restore menu defaults
+    stc_opt_num = 0;
+    CitySettings_ForEach(&top_menu, CitySettings_RestoreOptionCallback);
+
+    // copy to save data
+    CitySettings_CopyToSave(&top_menu);
+
+    stc_city_save->random_event_bitfield = -1;
+    stc_city_save->random_stadium_bitfield = -1;
+    stc_city_save->random_item_bitfield = -1;
+    stc_city_save->random_machine_bitfield = (1 << VCKIND_WARP | 1 << VCKIND_WINGED | 1 << VCKIND_SHADOW | 1 << VCKIND_BULK | 1 << VCKIND_SLICK | 1 << VCKIND_FORMULA | 1 << VCKIND_WAGON | 1 << VCKIND_ROCKET | 1 << VCKIND_SWERVE | 1 << VCKIND_TURBO | 1 << VCKIND_JET | 1 << VCKIND_WHEELIEBIKE | 1 << VCKIND_REXWHEELIE | 1 << VCKIND_WHEELIESCOOTER);
 }
 
 void CitySettings_Load()
@@ -149,85 +216,72 @@ void CitySettings_Think(void *data)
     if (settings_data.menu.gobj_cur->p_link == MENUPLINK_GENERIC) // generic menu
     {
         CitySettingsMenuData *md = settings_data.menu.gobj_cur->userdata;
-        CitySettingsMenuAction action_kind = Menu_Input(settings_data.menu.gobj_cur);
 
-        switch (action_kind)
+        // update window if it exists
+        if (md->window_gobj)
         {
-        case (CITYSETTING_MENUACT_NONE):
-        case (CITYSETTING_MENUACT_CHANGE):
-        {
-            break;
-        }
-        case (CITYSETTING_MENUACT_ADVANCE):
-        {
-            settings_data.menu.dir = CITYSETTING_MENUDIR_ADVANCE; // animate forward
+            CitySettingsMenuAction action_kind = Window_Input(md->window_gobj);
 
-            // if previous menu still exists, destroy it
-            if (settings_data.menu.gobj_prev)
-                GObj_Destroy(settings_data.menu.gobj_prev);
-
-            settings_data.menu.gobj_prev = settings_data.menu.gobj_cur; // update prev menu
-
-            CitySettingsMenuDesc *next_desc = desc->generic.options[desc->generic.cursor_val].u.menu.desc;
-            next_desc->prev = desc;                  // store pointer to prev menu to the next menu
-            settings_data.menu.desc_cur = next_desc; // update current menu desc pointer
-
-            // create incoming menu
-            if (next_desc->kind == CITYSETTING_MENUKIND_GENERIC)
-                settings_data.menu.gobj_cur = Menu_Create(next_desc); // create new menu
-            else if (next_desc->kind == CITYSETTING_MENUKIND_CUSTOM)
-                settings_data.menu.gobj_cur = next_desc->custom.init_menu_cb(&settings_data.menu.input_update); // create new menu
-
-            // menu name update
-            CitySettingsMenuDesc *this_desc = next_desc;
-            for (int i = 0; i < GetElementsIn(settings_data.menu.name); i++)
+            switch (action_kind)
             {
-                static u8 anim_ids[] = {0, 2, 4};
-
-                if (this_desc) // animate it
-                {
-                    Text_SetText(settings_data.menu.name[i].text, 0, this_desc->name);
-                    JObj_AddSetAnim(settings_data.menu.name[i].j, anim_ids[i], settings_data.menu.name_jobjset[0], 0, 1);
-
-                    this_desc = this_desc->prev;
-                }
-                else // hide it
-                    JObj_AddSetAnim(settings_data.menu.name[i].j, 6, settings_data.menu.name_jobjset[0], 0, 1);
+            case (CITYSETTING_MENUACT_ADVANCE):
+            case (CITYSETTING_MENUACT_REGRESS):
+            case (CITYSETTING_MENUACT_EXIT):
+            {
+                GObj_Destroy(md->window_gobj);
+                md->window_gobj = 0;
+                Menu_Update(desc);
+                break;
             }
-
-            // new menu goes offscreen
-            JOBJ *menu_cur_j = settings_data.menu.gobj_cur->hsd_object;
-            menu_cur_j->trans = (Vec3){60, 0, 0};
-
-            // prev menu is focused
-            JOBJ *menu_prev_j = settings_data.menu.gobj_prev->hsd_object;
-            menu_prev_j->trans = (Vec3){0, 0, 0};
-
-            break;
-        }
-        case (CITYSETTING_MENUACT_REGRESS):
-        {
-            CitySettingsMenuDesc *prev_desc = desc->prev;
-
-            if (prev_desc)
+            case (CITYSETTING_MENUACT_CHANGE):
             {
-                desc->generic.cursor_val = 0;
-                settings_data.menu.dir = CITYSETTING_MENUDIR_REGRESS; // animate backwards
+                Window_Update(md->window_gobj);
+                break;
+            }
+            default:
+            }
+        }
+
+        // update the generic menu logic
+        else
+        {
+            CitySettingsMenuAction action_kind = Menu_Input(desc);
+
+            if (action_kind != CITYSETTING_MENUACT_NONE)
+                Menu_Update(desc);
+
+            switch (action_kind)
+            {
+            case (CITYSETTING_MENUACT_NONE):
+            case (CITYSETTING_MENUACT_CHANGE):
+            {
+                break;
+            }
+            case (CITYSETTING_MENUACT_ADVANCE):
+            {
+                settings_data.menu.dir = CITYSETTING_MENUDIR_ADVANCE; // animate forward
 
                 // if previous menu still exists, destroy it
                 if (settings_data.menu.gobj_prev)
                     GObj_Destroy(settings_data.menu.gobj_prev);
 
-                settings_data.menu.desc_cur = prev_desc;
-
                 settings_data.menu.gobj_prev = settings_data.menu.gobj_cur; // update prev menu
-                settings_data.menu.gobj_cur = Menu_Create(prev_desc);
+
+                CitySettingsMenuDesc *next_desc = desc->generic.options[desc->generic.cursor_val].u.menu.desc;
+                next_desc->prev = desc;                  // store pointer to prev menu to the next menu
+                settings_data.menu.desc_cur = next_desc; // update current menu desc pointer
+
+                // create incoming menu
+                if (next_desc->kind == CITYSETTING_MENUKIND_GENERIC)
+                    settings_data.menu.gobj_cur = Menu_Create(next_desc); // create new menu
+                else if (next_desc->kind == CITYSETTING_MENUKIND_CUSTOM)
+                    settings_data.menu.gobj_cur = next_desc->custom.init_menu_cb(&settings_data.menu.input_update); // create new menu
 
                 // menu name update
-                CitySettingsMenuDesc *this_desc = desc;
+                CitySettingsMenuDesc *this_desc = next_desc;
                 for (int i = 0; i < GetElementsIn(settings_data.menu.name); i++)
                 {
-                    static u8 anim_ids[] = {1, 3, 5};
+                    static u8 anim_ids[] = {0, 2, 4};
 
                     if (this_desc) // animate it
                     {
@@ -242,30 +296,81 @@ void CitySettings_Think(void *data)
 
                 // new menu goes offscreen
                 JOBJ *menu_cur_j = settings_data.menu.gobj_cur->hsd_object;
-                menu_cur_j->trans = (Vec3){-60, 0, 0};
+                menu_cur_j->trans = (Vec3){60, 0, 0};
 
                 // prev menu is focused
                 JOBJ *menu_prev_j = settings_data.menu.gobj_prev->hsd_object;
                 menu_prev_j->trans = (Vec3){0, 0, 0};
 
-                // remove pointer to previous menu
-                desc->prev = 0;
+                break;
             }
-            else
+            case (CITYSETTING_MENUACT_REGRESS):
+            {
+                CitySettingsMenuDesc *prev_desc = desc->prev;
+
+                if (prev_desc)
+                {
+                    desc->generic.cursor_val = 0;
+                    settings_data.menu.dir = CITYSETTING_MENUDIR_REGRESS; // animate backwards
+
+                    // if previous menu still exists, destroy it
+                    if (settings_data.menu.gobj_prev)
+                        GObj_Destroy(settings_data.menu.gobj_prev);
+
+                    settings_data.menu.desc_cur = prev_desc;
+
+                    settings_data.menu.gobj_prev = settings_data.menu.gobj_cur; // update prev menu
+                    settings_data.menu.gobj_cur = Menu_Create(prev_desc);
+
+                    // menu name update
+                    CitySettingsMenuDesc *this_desc = desc;
+                    for (int i = 0; i < GetElementsIn(settings_data.menu.name); i++)
+                    {
+                        static u8 anim_ids[] = {1, 3, 5};
+
+                        if (this_desc) // animate it
+                        {
+                            Text_SetText(settings_data.menu.name[i].text, 0, this_desc->name);
+                            JObj_AddSetAnim(settings_data.menu.name[i].j, anim_ids[i], settings_data.menu.name_jobjset[0], 0, 1);
+
+                            this_desc = this_desc->prev;
+                        }
+                        else // hide it
+                            JObj_AddSetAnim(settings_data.menu.name[i].j, 6, settings_data.menu.name_jobjset[0], 0, 1);
+                    }
+
+                    // new menu goes offscreen
+                    JOBJ *menu_cur_j = settings_data.menu.gobj_cur->hsd_object;
+                    menu_cur_j->trans = (Vec3){-60, 0, 0};
+
+                    // prev menu is focused
+                    JOBJ *menu_prev_j = settings_data.menu.gobj_prev->hsd_object;
+                    menu_prev_j->trans = (Vec3){0, 0, 0};
+
+                    // remove pointer to previous menu
+                    desc->prev = 0;
+                }
+                else
+                {
+                    Scene_SetDirection(PAD_BUTTON_B);
+                    Scene_ExitMinor();
+                }
+
+                break;
+            }
+            case (CITYSETTING_MENUACT_EXIT):
             {
                 Scene_SetDirection(PAD_BUTTON_B);
                 Scene_ExitMinor();
+
+                break;
             }
-
-            break;
-        }
-        case (CITYSETTING_MENUACT_EXIT):
-        {
-            Scene_SetDirection(PAD_BUTTON_B);
-            Scene_ExitMinor();
-
-            break;
-        }
+            case (CITYSETTING_MENUACT_WINDOWOPEN):
+            {
+                md->window_gobj = Window_Create("Restore all settings to default?", CitySettings_SetDefault);
+                break;
+            }
+            }
         }
     }
     else if (settings_data.menu.gobj_cur->p_link == MENUPLINK_CUSTOM)
@@ -406,7 +511,7 @@ void CitySettings_Exit(void *data)
 
     CitySettings_CopyToSave(&top_menu);
     CitySettings_UpdateVanillaSettings();
-    KARPlus_WriteSave();
+    Hoshi_WriteSave();
 
     return;
 }
@@ -414,12 +519,9 @@ void CitySettings_Exit(void *data)
 void CitySettings_Create()
 {
     // stc_preload_menu_files[18] = 1; // load MnSelruleAll into the preload cache
-    KARPlus_AddPreloadMenuFile("MnSelruleCustom");
+    Hoshi_AddPreloadMenuFile("MnSelruleCustom");
     Preload_Invalidate();
     Preload_Update();
-
-    // Gm_LoadGameFile(&settings_archive, "MnSelruleAll");
-    // HSD_SObjDesc *sobj = Archive_GetPublicAddress(settings_archive, "ScMenSelrule_scene_data");
 
     Gm_LoadGameFile(&settings_archive, "MnSelruleCustom");
     HSD_SObjDesc *sobj = Archive_GetPublicAddress(settings_archive, "ScMenSelrule_scene_data");
@@ -438,8 +540,11 @@ void CitySettings_Create()
     settings_data.bg_gobj = CitySettings_BGCreate();
     settings_data.is_intro_anim = 1;
 
-    // create description text
+    // init text
     stc_scene_menu_common->canvas_idx = Text_CreateCanvas(0, -1, 41, 17, 0, MENUGX_2, 0, -1);
+    TextJoint_Init(stc_scene_menu_common->canvas_idx);
+
+    // create description text
     Text *text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
     text->kerning = 1;
     text->align = 0;
@@ -473,6 +578,7 @@ void CitySettings_Create()
     }
 
     Menu_Init(settings_archive);
+    Window_Init(settings_archive);
     top_menu.generic.cursor_val = 0;      // init cursor
     CitySettings_CopyFromSave(&top_menu); // copy settings from save file to menu
     settings_data.menu.desc_cur = &top_menu;

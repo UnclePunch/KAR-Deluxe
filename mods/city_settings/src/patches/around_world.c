@@ -279,7 +279,7 @@ int AroundWorld_OnMinorExit()
             // OSReport("ply %d points (%d) placement (%d)\n", i + 1, stadium_wins[i]);
         }
 
-        gd->city.scene = 3;
+        gd->city.scene = 8;
         Scene_SetNextMinor(MNRKIND_CITYRESULT);
     }
     else

@@ -109,9 +109,12 @@ CitySettingsMenuAction Window_Input(GOBJ *g)
     {
         // exec callback when selecting yes
         if (gp->cursor == 0)
+        {
             gp->cb_confirm();
-
-        action_kind = CITYSETTING_MENUACT_ADVANCE;
+            action_kind = CITYSETTING_MENUACT_ADVANCE;
+        }
+        else if (gp->cursor == 1)
+            action_kind = CITYSETTING_MENUACT_REGRESS;
     }
     else if (down & PAD_BUTTON_B)
     {

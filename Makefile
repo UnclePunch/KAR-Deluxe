@@ -1,3 +1,7 @@
+ifeq ($(strip $(DEVKITPPC)),)
+$(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
+endif
+
 # --- Compiler and Flags ---
 CC = powerpc-eabi-gcc
 LD = powerpc-eabi-ld

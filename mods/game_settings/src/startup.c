@@ -13,7 +13,7 @@
 #include "startup.h"
 
 // Startup Behavior
-StartupKind startup_kind = STARTUP_MOVIE;
+StartupKind startup_kind = STARTUP_TITLE;
 static u8 startup_scenes[] = {
     MJRKIND_TITLE, // opening movie
     MJRKIND_TITLE, // title screen

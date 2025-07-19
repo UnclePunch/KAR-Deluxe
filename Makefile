@@ -37,7 +37,7 @@ INCLUDES = -I$(INC_DIR) -I$(LIB_ROOT_DIR)
 LIB_SOURCES := $(shell find $(LIB_ROOT_DIR) -name "*.c")
 
 # 2. Mods: Find all mods in the mod folder
-MOD_NAMES ?= $(shell find $(MODS_ROOT_DIR) -maxdepth 1 -mindepth 1 -type d -printf "%f\n")
+MOD_NAMES ?= $(notdir $(wildcard $(MODS_ROOT_DIR)/*))
 #MOD_NAMES = city_settings credits
 
 # 3. Mods Source: For each mod, find its specific source files within its 'src' subdirectory.
@@ -52,8 +52,9 @@ MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
 LIB_OBJECTS := $(patsubst $(LIB_ROOT_DIR)/%.c,$(BUILD_DIR)/$(LIB_ROOT_DIR)/%.o,$(LIB_SOURCES))
 
 # Map individual mod source files to their corresponding object files in BUILD_DIR.
-MOD_C_OBJECTS 	:= $(patsubst $(MODS_ROOT_DIR)/%.c,$(BUILD_DIR)/$(MODS_ROOT_DIR)/%.o,$(MOD_C_SOURCES))
-MOD_ASM_OBJECTS := $(patsubst $(MODS_ROOT_DIR)/%.s,$(BUILD_DIR)/$(MODS_ROOT_DIR)/%.o,$(MOD_ASM_SOURCES))
+MOD_C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(MOD_C_SOURCES))
+MOD_ASM_OBJECTS := $(patsubst %.s,$(BUILD_DIR)/%.o,$(MOD_ASM_SOURCES))
+
 MOD_OBJECTS		:= $(MOD_C_OBJECTS) $(MOD_ASM_OBJECTS)
 
 # Combine ALL individual object files (from both libraries and mods) that need to be compiled.
@@ -113,12 +114,12 @@ $(OBJ_DIRS):
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
 # It uses an order-only prerequisite to ensure the output directory exists before compilation.
-$(BUILD_DIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.c | $(OBJ_DIRS)
 	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-$(BUILD_DIR)/%.o: %.s
+$(BUILD_DIR)/%.o: %.s | $(OBJ_DIRS)
 	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
@@ -167,9 +168,9 @@ $(foreach mod,$(MOD_NAMES),\
 
 # Rule to copy all assets to the root of the 'out' directory
 assets:
-	@for mod_asset_dir in $(MOD_ASSET_DIRS); do \
-		if [ -d "$$mod_asset_dir" ]; then \
-			cp -r "$$mod_asset_dir"/. "$(OUT_DIR)"; \
+	@for dir in $(MOD_ASSET_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			cp -a "$$dir"/* "$(OUT_DIR)/"; \
 		fi; \
 	done
 
@@ -185,5 +186,5 @@ install: all assets
 # --- Clean Target ---
 clean:
 	@echo "Cleaning build and output directories..."
-	$(RM) -r $(BUILD_DIR)
-	$(RM) -r $(OUT_DIR)
+	rm -r $(BUILD_DIR)
+	rm -r $(OUT_DIR)

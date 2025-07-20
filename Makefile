@@ -148,7 +148,7 @@ $(foreach mod,$(MOD_NAMES),\
   $(eval $(call LINK_MOD_RULE_TEMPLATE,$(mod))))
 
 # --- Packing Rule for Bin Files ---
-# Define a template for the linking rule (including recipe).
+# Define a template for the packing rule (including recipe).
 # This template will be used for each mod.
 define PACK_MOD_RULE_TEMPLATE
 $(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)

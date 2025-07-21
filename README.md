@@ -1,16 +1,14 @@
 # Kirby Air Ride Deluxe
 Kirby Air Ride Deluxe is a collection of mods powered by the hoshi framework with an emphasis on customization and familiar aesthetics. Many new menus and UI elements are included to improve the user experience. All features are toggleable and their settings save to the memory card.
 
-## Installation
-There are 2 methods of playing Kirby Air Ride Deluxe:
-1. ISO - Most versatile option. Download the zip labeled "ISO", extract the folder and open ISOPatcher.exe. Simply drag your Kirby Air Ride (USA) iso onto the window and select a location to save the Kirby Air Ride Deluxe iso. Play anywhere iso's are supported.
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Building](#building)
+- [Credits](#credits)
+- [License](#license)
 
-2. Riivolution - Dolphin supports Riivolution patches for Gamecube games and is quite easy to use. Download the zip labeled "Riivolution" and extract its contents to "C:\Users\YourNameHere\Documents\Dolphin Emulator\Load\Riivolution". In Dolphin, right click your Kirby Air Ride iso, launch with Riivolution patches, enable Kirby Air Ride Deluxe and select Start.
-
-## Compiling
-Coming soon.
-
-## Features
+# Features
 
 ### General:
 - Added 8 additional Kirby Colors, complete with unique UI and HUD cosmetics.
@@ -37,7 +35,26 @@ Coming soon.
 - Allow players to respawn on their machine in City Trial
 - Enable/disable certain machines from spawning.
 
-## Credits:
+## Installation
+There are 2 methods of playing Kirby Air Ride Deluxe:
+1. ISO - Most versatile option. 
+   - Download the zip labeled "ISO".
+   - Extract the folder and open ISOPatcher.exe.
+   - Simply drag your Kirby Air Ride (USA) iso onto the window and select a location to save the Kirby Air Ride Deluxe iso.
+
+2. Riivolution - Dolphin supports Riivolution patches for Gamecube games and is quite easy to use.
+   - Download the zip labeled "Riivolution"
+   - Extract its contents to "C:\Users\YourNameHere\Documents\Dolphin Emulator\Load\Riivolution".
+   - In Dolphin, right click your Kirby Air Ride iso and select launch with Riivolution patches
+   - Enable Kirby Air Ride Deluxe and select Start to play.
+
+## Building
+See [BUILD](BUILD.md) file for details.
+
+## Credits
 - UnclePunch - Project Lead/Programmer
 - ShankMods - Director
 - TikiTacoTiki - Artwork/UI
+
+## License
+This project is licensed under the GPL License - see the [LICENSE](LICENSE) file for details.

@@ -21,6 +21,9 @@
 #include "competitive/sd_as_ko.h"
 #include "competitive/intang_after_ko.h"
 
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
+
 extern StartupKind startup_kind;
 extern int quickstats_enabled;
 extern int brake_enabled;

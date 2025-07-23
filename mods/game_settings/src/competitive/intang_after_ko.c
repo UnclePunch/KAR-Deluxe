@@ -70,6 +70,13 @@ void Rider_ApplyWalkIntang(GOBJ *r)
     if (intang_queue[rd->ply] == 0)
         return;
 
+    // if intang queued but on a machine, stop giving intang
+    if (rd->machine_gobj)
+    {
+        intang_queue[rd->ply] = 0;
+        return;
+    }
+
     Rider_GiveIntangibility(rd, 1);
 }
 

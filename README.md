@@ -1,7 +1,7 @@
 <img src="https://github.com/UnclePunch/KAR-Deluxe/blob/main/art/main%20logo.png" alt="drawing" width="300"/>
 
 # Kirby Air Ride Deluxe
-Kirby Air Ride Deluxe is a collection of mods powered by the hoshi framework with an emphasis on customization and familiar aesthetics. Many new menus and UI elements are included to improve the user experience. All features are toggleable and their settings save to the memory card.
+Kirby Air Ride Deluxe is a collection of mods powered by the [hoshi](https://github.com/UnclePunch/hoshi) framework with an emphasis on customization and familiar aesthetics. Many new menus and UI elements are included to improve the user experience. All features are toggleable and their settings save to the memory card.
 
 ## Table of Contents
 - [Features](#features)

@@ -41,4 +41,5 @@ void OnPlayerSelectLoad()
 void On3DLoad()
 {
     Box_CheckIfEnabled();
+    EventReveal_Do();
 }

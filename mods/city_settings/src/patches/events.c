@@ -60,6 +60,37 @@ void EventChance_Adjust(int *chance_arr)
 }
 CODEPATCH_HOOKCREATE(0x800ede24, "addi 3, 1, 0x8\n\t", EventChance_Adjust, "", 0)
 
+int is_reveal = 0;
+void EventReveal_Do()
+{
+    if (CitySettings_SaveGet()->settings[CITYSETTING_SAVE_STADIUMREVEAL] == 0 ||
+        !(Gm_IsInCity() && Gm_GetGameData()->city.mode == CITYMODE_TRIAL))
+    {
+        is_reveal = 0;
+        return;
+    }
+
+    EventCheckData *ev_chk = (*stc_eventcheck_gobj)->userdata;
+
+    ev_chk->state = 1;                    // event starting
+    ev_chk->cur_kind = EVKIND_PREDICTION; // set to predict the event
+    ev_chk->timer = 0;                    // reset timer
+    ev_chk->prev_kind[0] = ev_chk->cur_kind;
+    ev_chk->prev_kind_num++;
+
+    is_reveal = 1;
+}
+int EventReveal_Check(int num)
+{
+    if (!is_reveal)
+        return (HSD_Randi(num));
+    else
+    {
+        is_reveal = 0;
+        return num - 1;
+    }
+}
+
 ///////////////////
 // Apply Patches //
 ///////////////////
@@ -78,4 +109,5 @@ void Events_ApplyPatches()
         CODEPATCH_REPLACEINSTRUCTION(0x800edf28, 0x38c00000);
 
     CODEPATCH_HOOKAPPLY(0x800ede24);
+    CODEPATCH_REPLACECALL(0x80127990, EventReveal_Check);
 }

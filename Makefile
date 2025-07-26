@@ -14,7 +14,7 @@ INC_DIR 		?= $(HOSHI_DIR)/include
 TOOL_DIR 		?= $(HOSHI_DIR)/packtool
 OUT_DIR 		= out
 MODS_OUT_DIR 	= $(OUT_DIR)/mods
-INSTALL_DIR 	?= C:/Users/Vin/Documents/ROMs/KAR-Plus/files/		#can override this on the command line: make install INSTALL_DIR=/path/to/your/mods
+INSTALLDIR 		?= 	#can override this in the command line: make install INSTALL_DIR=/path/to/your/mods
 
 # User-defined CFLAGS.
 CFLAGS = -O1 -mcpu=750 -meabi -msdata=none -mhard-float -ffreestanding \

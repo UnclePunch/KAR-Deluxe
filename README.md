@@ -54,9 +54,9 @@ There are 2 methods of playing Kirby Air Ride Deluxe:
 See [BUILD](BUILD.md) file for details.
 
 ## Credits
-- UnclePunch - Project Lead/Programmer
-- ShankMods - Director
-- TikiTacoTiki - Artwork/UI
+UnclePunch - Project Lead/Programmer/Director
+ShankMods - Assistant Director
+TacoTIkiTaco - Artwork/UI
 
 ## License
 This project is licensed under the GPL License - see the [LICENSE](LICENSE) file for details.

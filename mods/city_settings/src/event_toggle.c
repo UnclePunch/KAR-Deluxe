@@ -236,7 +236,7 @@ int EventToggle_Input(GOBJ *g)
     int down = Pad_GetDown(20);
     int rapid_held = Pad_GetRapidHeld(20);
 
-    if (rapid_held & PAD_BUTTON_UP)
+    if (rapid_held & (PAD_BUTTON_UP | PAD_BUTTON_DPAD_UP))
     {
         if (gp->cursor.y > 0)
             gp->cursor.y--;
@@ -245,7 +245,7 @@ int EventToggle_Input(GOBJ *g)
 
         SFX_Play(FGMMENU_CS_MV);
     }
-    else if (rapid_held & PAD_BUTTON_DOWN)
+    else if (rapid_held & (PAD_BUTTON_DOWN | PAD_BUTTON_DPAD_DOWN))
     {
         if (gp->cursor.y < EVENTTOGGLE_OPTNUM_Y - 1)
             gp->cursor.y++;
@@ -254,7 +254,7 @@ int EventToggle_Input(GOBJ *g)
 
         SFX_Play(FGMMENU_CS_MV);
     }
-    else if (rapid_held & PAD_BUTTON_LEFT)
+    else if (rapid_held & (PAD_BUTTON_LEFT | PAD_BUTTON_DPAD_LEFT))
     {
         if (gp->cursor.x > 0)
             gp->cursor.x--;
@@ -263,7 +263,7 @@ int EventToggle_Input(GOBJ *g)
 
         SFX_Play(FGMMENU_CS_MV);
     }
-    else if (rapid_held & PAD_BUTTON_RIGHT)
+    else if (rapid_held & (PAD_BUTTON_RIGHT | PAD_BUTTON_DPAD_RIGHT))
     {
         if (gp->cursor.x < EVENTTOGGLE_OPTNUM_X - 1)
             gp->cursor.x++;

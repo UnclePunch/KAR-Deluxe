@@ -381,7 +381,7 @@ CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc)
     CitySettingsMenuAction action_kind = CITYSETTING_MENUACT_NONE;
 
     // determine action from input
-    if (rapid_held & PAD_BUTTON_DOWN)
+    if (rapid_held & (PAD_BUTTON_DOWN | PAD_BUTTON_DPAD_DOWN))
     {
         if (desc->generic.cursor_val < (desc->generic.opt_num - 1))
         {
@@ -389,7 +389,7 @@ CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc)
             action_kind = CITYSETTING_MENUACT_CHANGE;
         }
     }
-    else if (rapid_held & PAD_BUTTON_UP)
+    else if (rapid_held & (PAD_BUTTON_UP | PAD_BUTTON_DPAD_UP))
     {
         if (desc->generic.cursor_val > 0)
         {
@@ -397,7 +397,7 @@ CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc)
             action_kind = CITYSETTING_MENUACT_CHANGE;
         }
     }
-    else if (rapid_held & PAD_BUTTON_RIGHT)
+    else if (rapid_held & (PAD_BUTTON_RIGHT | PAD_BUTTON_DPAD_RIGHT))
     {
         switch (desc->generic.options[desc->generic.cursor_val].kind)
         {
@@ -427,7 +427,7 @@ CitySettingsMenuAction Menu_Input(CitySettingsMenuDesc *desc)
         }
         }
     }
-    else if (rapid_held & PAD_BUTTON_LEFT)
+    else if (rapid_held & (PAD_BUTTON_LEFT | PAD_BUTTON_DPAD_LEFT))
     {
         switch (desc->generic.options[desc->generic.cursor_val].kind)
         {

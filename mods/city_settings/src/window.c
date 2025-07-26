@@ -89,7 +89,7 @@ CitySettingsMenuAction Window_Input(GOBJ *g)
     CitySettingsMenuAction action_kind = CITYSETTING_MENUACT_NONE;
 
     // determine action from input
-    if (rapid_held & PAD_BUTTON_RIGHT)
+    if (rapid_held & (PAD_BUTTON_RIGHT | PAD_BUTTON_DPAD_RIGHT))
     {
         gp->cursor++;
         if (gp->cursor > 1)
@@ -97,7 +97,7 @@ CitySettingsMenuAction Window_Input(GOBJ *g)
 
         action_kind = CITYSETTING_MENUACT_CHANGE;
     }
-    else if (rapid_held & PAD_BUTTON_LEFT)
+    else if (rapid_held & (PAD_BUTTON_LEFT | PAD_BUTTON_DPAD_LEFT))
     {
         gp->cursor--;
         if (gp->cursor < 0)

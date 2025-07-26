@@ -673,7 +673,7 @@ void MusicSettings_UIInput(GOBJ *g)
         int scroll_max = (PLAYLIST_NUM - GAMEMODEBUTTON_NUM >= 0) ? (PLAYLIST_NUM - GAMEMODEBUTTON_NUM) : 0;
         int cursor_max = GAMEMODEBUTTON_NUM - 1;
 
-        if (rapid & PAD_BUTTON_UP)
+        if (rapid & (PAD_BUTTON_UP | PAD_BUTTON_DPAD_UP))
         {
             if (gp->game_mode.cursor == 0)
             {
@@ -695,7 +695,7 @@ void MusicSettings_UIInput(GOBJ *g)
                 is_update = UPDATEKIND_CHANGE;
             }
         }
-        else if (rapid & PAD_BUTTON_DOWN)
+        else if (rapid & (PAD_BUTTON_DOWN | PAD_BUTTON_DPAD_DOWN))
         {
             if (gp->game_mode.cursor == cursor_max)
             {
@@ -735,7 +735,7 @@ void MusicSettings_UIInput(GOBJ *g)
         int playlist_idx = gp->game_mode.cursor + gp->game_mode.scroll;
         int cursor_max = PLAYLISTMODE_NUM - 1;
 
-        if (rapid & PAD_BUTTON_LEFT)
+        if (rapid & (PAD_BUTTON_LEFT | PAD_BUTTON_DPAD_LEFT))
         {
             if (stc_playlist_data[playlist_idx].mode == 0)
             {
@@ -748,7 +748,7 @@ void MusicSettings_UIInput(GOBJ *g)
                 is_update = UPDATEKIND_CHANGE;
             }
         }
-        else if (rapid & PAD_BUTTON_RIGHT)
+        else if (rapid & (PAD_BUTTON_RIGHT | PAD_BUTTON_DPAD_RIGHT))
         {
             if (stc_playlist_data[playlist_idx].mode == cursor_max)
             {
@@ -761,7 +761,7 @@ void MusicSettings_UIInput(GOBJ *g)
                 is_update = UPDATEKIND_CHANGE;
             }
         }
-        else if (rapid & (PAD_BUTTON_DOWN | PAD_BUTTON_A))
+        else if (rapid & (PAD_BUTTON_DOWN | PAD_BUTTON_DPAD_DOWN | PAD_BUTTON_A))
         {
             if (stc_playlist_data[playlist_idx].mode == PLAYLISTMODE_PLAYLIST)
             {
@@ -797,7 +797,7 @@ void MusicSettings_UIInput(GOBJ *g)
 
         // OSReport("song_num %d, scroll_max %d cursor_max %d\n", song_num, scroll_max, cursor_max);
 
-        if (rapid & PAD_BUTTON_UP)
+        if (rapid & (PAD_BUTTON_UP | PAD_BUTTON_DPAD_UP))
         {
             if (gp->playlist.cursor == 0)
             {
@@ -818,7 +818,7 @@ void MusicSettings_UIInput(GOBJ *g)
                 is_update = UPDATEKIND_CHANGE;
             }
         }
-        else if (rapid & PAD_BUTTON_DOWN)
+        else if (rapid & (PAD_BUTTON_DOWN | PAD_BUTTON_DPAD_DOWN))
         {
             if (gp->playlist.cursor == cursor_max)
             {
@@ -834,15 +834,14 @@ void MusicSettings_UIInput(GOBJ *g)
                 is_update = UPDATEKIND_CHANGE;
             }
         }
-        else if (rapid & PAD_BUTTON_RIGHT)
+        else if (rapid & (PAD_BUTTON_RIGHT | PAD_BUTTON_DPAD_RIGHT))
         {
-
             // change song
             if (!is_selected_add_btn &&
                 SongData_ChangeSong(playlist_kind, playlist_song_entry, 1))
                 is_update = UPDATEKIND_CHANGE;
         }
-        else if (rapid & PAD_BUTTON_LEFT)
+        else if (rapid & (PAD_BUTTON_LEFT | PAD_BUTTON_DPAD_LEFT))
         {
             if (!is_selected_add_btn &&
                 SongData_ChangeSong(playlist_kind, playlist_song_entry, -1))

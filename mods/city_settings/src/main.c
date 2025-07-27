@@ -14,6 +14,7 @@
 #include "citysettings.h"
 #include "patches/around_world.h"
 #include "patches/items.h"
+#include "patches/events.h"
 
 char ModName[] = "City Settings";
 char ModAuthor[] = "UnclePunch";

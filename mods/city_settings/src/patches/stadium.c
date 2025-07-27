@@ -50,8 +50,9 @@ void StadiumChance_Adjust()
     {
         if (Gm_StadiumIsDefaultUnlocked(i) || Gm_StadiumIsUnlocked(i)) // ensure stadium is unlocked
         {
-            if (stadium_selection == STADSELECT_SHUFFLE ||                                                              // shuffle enabled
-                (stadium_selection >= STADSELECT_DRAGRACE && Gm_GetStadiumGroupFromKind(i) == (stadium_selection - 1))) // selected a type of stadium
+
+            if (stadium_selection == STADSELECT_SHUFFLE ||                                                                  // shuffle enabled
+                (stadium_selection >= STADSELECT_DRAGRACE && Gm_GetStadiumGroupFromKind(i) == (stadium_selection - 1 - 1))) // selected a type of stadium
             {
                 // is whitelisted
                 if (random_stadium_bitfield & (1 << i))
@@ -91,7 +92,7 @@ void StadiumChance_Adjust()
             else // specific stadium group
             {
                 // ensure this stadium is in our selected group
-                if (Gm_GetStadiumGroupFromKind(i) != (stadium_selection - 1))
+                if (Gm_GetStadiumGroupFromKind(i) != (stadium_selection - 1 - 1))
                     is_in_group = 0;
             }
 

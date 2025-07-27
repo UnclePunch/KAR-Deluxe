@@ -122,7 +122,7 @@ OptionDesc ModSettings = {
                     .description = "Adjust rules for a more fair fight!",
                     .kind = OPTKIND_MENU,
                     .menu_ptr = &(MenuDesc){
-                        .option_num = 3,
+                        .option_num = 2,
                         .options = {
                             &(OptionDesc){
                                 .name = "Invincible on Foot",
@@ -146,17 +146,17 @@ OptionDesc ModSettings = {
                                     "On",
                                 },
                             },
-                            &(OptionDesc){
-                                .name = "Unpause",
-                                .description = "Display a countdown after unpausing the game!",
-                                .kind = OPTKIND_VALUE,
-                                .val = &unpause_delay_enabled,
-                                .value_num = 2,
-                                .value_names = (char *[]){
-                                    "Original",
-                                    "Countdown",
-                                },
-                            },
+                            // &(OptionDesc){
+                            //     .name = "Unpause",
+                            //     .description = "Display a countdown after unpausing the game!",
+                            //     .kind = OPTKIND_VALUE,
+                            //     .val = &unpause_delay_enabled,
+                            //     .value_num = 2,
+                            //     .value_names = (char *[]){
+                            //         "Original",
+                            //         "Countdown",
+                            //     },
+                            // },
                         },
                     },
                 },
@@ -218,7 +218,7 @@ void OnSaveInit(void *save, int req_init)
     Brake_Init();
     Camera_Init();
     AttractMode_Init();
-    UnpauseDelay_Init();
+    // UnpauseDelay_Init();
     Run_Init();
     AbilityDrop_Init();
     SD_as_KO_Init();
@@ -229,7 +229,7 @@ void OnSaveInit(void *save, int req_init)
 void On3DLoad()
 {
     QuickStat_On3DStart();
-    UnpauseDelay_On3DStart();
+    // UnpauseDelay_On3DStart();
     Rearview_InitFlags();
     IntangAfterKO_On3DLoad();
 }

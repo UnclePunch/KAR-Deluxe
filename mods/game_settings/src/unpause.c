@@ -137,6 +137,9 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x80041188, "", UnpauseDelay_Wait_Hook, "", 0, 0
 
 int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
 {
+    if (!unpause_delay_enabled)
+        return 0;
+
     // count humans present
     int hmn_num = 0;
     for (int i = 0; i < 5; i++)
@@ -181,6 +184,9 @@ void UnpauseDelay_On3DStart()
 {
     // init our variable
     is_unpause_delay = 0;
+
+    if (!unpause_delay_enabled)
+        return;
 
     // get our file
     HSD_Archive *archive;

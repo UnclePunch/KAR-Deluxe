@@ -55,8 +55,8 @@ static u8 stc_togglekind_to_vckind[] = {
     VCKIND_DRAGOON,
     VCKIND_HYDRA,
     VCKIND_FLIGHT,
-    VCKIND_FREE,
-    VCKIND_STEER,
+    // VCKIND_FREE,
+    // VCKIND_STEER,
 };
 
 GOBJ *MachineToggle_Create(int (**input_cb)(GOBJ *))
@@ -115,9 +115,10 @@ GOBJ *MachineToggle_Create(int (**input_cb)(GOBJ *))
 
             // position the value
             opt_j->trans.X = -(60 / 2) + (col_idx * 60);
-            opt_j->trans.Y = ((MCHNTOGGLE_OPTNUM_Y / 2) * 6.6) - (row_idx * 6.6);
+            opt_j->trans.Y = 3 + ((MCHNTOGGLE_OPTNUM_Y - 1) * 6.8 / 2.0) - (row_idx * 6.8);
         }
     }
+
     JObj_SetMtxDirtySub(g->hsd_object);
 
     // init cursor
@@ -272,4 +273,21 @@ void MachineToggle_Update(GOBJ *g)
 
     JObj_AnimAll(g->hsd_object);
     return;
+}
+void MachineToggle_Verify()
+{
+    CitySettingsSave *cs = CitySettings_SaveGet();
+
+    int all_machines = 0;
+    for (int i = 0; i < GetElementsIn(stc_togglekind_to_vckind); i++)
+        all_machines |= (1 << stc_togglekind_to_vckind[i]);
+
+    if ((cs->random_machine_bitfield & all_machines) == 0)
+        cs->random_machine_bitfield = MachineToggle_GetDefaults();
+
+    return;
+}
+int MachineToggle_GetDefaults()
+{
+    return (1 << VCKIND_WARP | 1 << VCKIND_WINGED | 1 << VCKIND_SHADOW | 1 << VCKIND_BULK | 1 << VCKIND_SLICK | 1 << VCKIND_FORMULA | 1 << VCKIND_WAGON | 1 << VCKIND_ROCKET | 1 << VCKIND_SWERVE | 1 << VCKIND_TURBO | 1 << VCKIND_JET | 1 << VCKIND_WHEELIEBIKE | 1 << VCKIND_REXWHEELIE | 1 << VCKIND_WHEELIESCOOTER);
 }

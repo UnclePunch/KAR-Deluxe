@@ -110,6 +110,7 @@ void CitySettings_SaveInit(CitySettingsSave *save, int req_init)
         CitySettings_SetDefault();
 
     CitySettings_UpdateVanillaSettings(); // apply vanilla settings immediately
+    MachineToggle_Verify();               // ensure valid machine selection exists
 
     // apply patches on bootup
     Patches_Init(); // insert hooks in game code to read from city settings
@@ -195,7 +196,7 @@ void CitySettings_SetDefault()
     stc_city_save->random_event_bitfield = -1;
     stc_city_save->random_stadium_bitfield = -1;
     stc_city_save->random_item_bitfield = -1;
-    stc_city_save->random_machine_bitfield = (1 << VCKIND_WARP | 1 << VCKIND_WINGED | 1 << VCKIND_SHADOW | 1 << VCKIND_BULK | 1 << VCKIND_SLICK | 1 << VCKIND_FORMULA | 1 << VCKIND_WAGON | 1 << VCKIND_ROCKET | 1 << VCKIND_SWERVE | 1 << VCKIND_TURBO | 1 << VCKIND_JET | 1 << VCKIND_WHEELIEBIKE | 1 << VCKIND_REXWHEELIE | 1 << VCKIND_WHEELIESCOOTER);
+    stc_city_save->random_machine_bitfield = MachineToggle_GetDefaults();
 }
 
 void CitySettings_Load()
@@ -579,7 +580,8 @@ void CitySettings_Create()
 
     Menu_Init(settings_archive);
     Window_Init(settings_archive);
-    top_menu.generic.cursor_val = 0;      // init cursor
+    top_menu.generic.cursor_val = 0; // init cursor
+
     CitySettings_CopyFromSave(&top_menu); // copy settings from save file to menu
     settings_data.menu.desc_cur = &top_menu;
 

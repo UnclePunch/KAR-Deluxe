@@ -5,7 +5,7 @@
 #include "text.h"
 
 #define MCHNTOGGLE_OPTNUM_X (2)
-#define MCHNTOGGLE_OPTNUM_Y (10)
+#define MCHNTOGGLE_OPTNUM_Y (9)
 
 #define MCHNTOGGLE_OPTION_JOINT_BG (1)
 #define MCHNTOGGLE_OPTION_JOINT_TOGGLE (2)
@@ -48,5 +48,7 @@ GOBJ *MachineToggle_Create(int (**input_cb)(GOBJ *));
 int MachineToggle_Input(GOBJ *g);
 void MachineToggle_Update(GOBJ *g);
 void MachineToggle_Destroy(MachineToggleData *gp);
+void MachineToggle_Verify();
+int MachineToggle_GetDefaults();
 
 #endif

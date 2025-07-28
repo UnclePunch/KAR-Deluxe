@@ -21,6 +21,8 @@ char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v1.0";
 
 static OSAlarm alarm;
+Text *heap_text;
+int heap_is_visible = 0;
 int debug_enabled;
 
 OptionDesc ModSettings = {
@@ -51,7 +53,7 @@ void OnBoot(HSD_Archive *archive)
     //              stc_preload_entry_descs[i].file_name,
     //              stc_preload_entry_descs[i].file_kind);
 
-    Net_Init();
+    // Net_Init();
 
     return;
 }
@@ -66,11 +68,23 @@ void OnSceneChange(HSD_Archive *archive)
                              Debug_Think, 0,
                              0, 0, 0);
 
-    GOBJ_EZCreator(0, 0, 0,
-                   0, HSD_Free,
-                   0, 0,
-                   Net_Think, 0,
-                   0, 0, 0);
+    // GOBJ_EZCreator(0, 0, 0,
+    //                0, HSD_Free,
+    //                0, 0,
+    //                Net_Think, 0,
+    //                0, 0, 0);
+
+    // heap display
+    int canvas_idx = Text_CreateCanvas(1, 0, 0, 0, 0, 63, 0, 63);
+    Text *t = Text_CreateText(1, canvas_idx);
+    t->kerning = 0;
+    t->use_aspect = 1;
+    t->trans = (Vec3){10, 30, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){560, 32};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "");
+    heap_text = t;
 
     return;
 }
@@ -102,7 +116,7 @@ void Debug_Think()
             int free = 0;
             if (ph->heap_index != -1)
                 free = OSCheckHeap(ph->heap_index);
-            else if ((ph->handle != -1))
+            else if ((ph->handle != (PreloadHandle *)-1))
             {
                 PreloadHandle *handle = ph->handle;
 
@@ -195,4 +209,12 @@ void Debug_Think()
         OSReport("\n");
         OSReport("~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     }
+
+    if (Pad_GetHeld(20) & PAD_BUTTON_Y && Pad_GetDown(20) & PAD_BUTTON_DPAD_UP)
+        heap_is_visible ^= 1;
+
+    PreloadHeap *ph = &stc_preload_heaps_lookup->heap_arr[0];
+    Text_SetText(heap_text, 0, "%d: %.2fk \x81\x5e %.2fk", ph->heap_index, BytesToKB(OSCheckHeap(ph->heap_index)), BytesToKB(ph->size));
+
+    heap_text->hidden = !heap_is_visible;
 }

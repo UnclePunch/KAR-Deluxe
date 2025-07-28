@@ -17,6 +17,33 @@ int stadium_lineup_idx = 0;          // index of the current stadium event being
 StadiumKind stadium_lineup[7] = {0}; // contains the stadium events that will be played
 int stadium_wins[4] = {0};           // tracks wins across stadiums
 
+static char *stad_names[] = {
+    "STKIND_DRAG1",
+    "STKIND_DRAG2",
+    "STKIND_DRAG3",
+    "STKIND_DRAG4",
+    "STKIND_AIRGLIDER",
+    "STKIND_TARGETFLIGHT",
+    "STKIND_HIGHJUMP",
+    "STKIND_MELEE1",
+    "STKIND_MELEE2",
+    "STKIND_DESTRUCTION1",
+    "STKIND_DESTRUCTION2",
+    "STKIND_DESTRUCTION3",
+    "STKIND_DESTRUCTION4",
+    "STKIND_DESTRUCTION5",
+    "STKIND_SINGLERACE1",
+    "STKIND_SINGLERACE2",
+    "STKIND_SINGLERACE3",
+    "STKIND_SINGLERACE4",
+    "STKIND_SINGLERACE5",
+    "STKIND_SINGLERACE6",
+    "STKIND_SINGLERACE7",
+    "STKIND_SINGLERACE8",
+    "STKIND_SINGLERACE9",
+    "STKIND_VSKINGDEDEDE",
+};
+
 void AroundWorld_Init()
 {
     gmDataAll *gm_data_all = (*stc_gmdataall);
@@ -62,6 +89,9 @@ void AroundWorld_DecideStadiums()
         // pick a random one
         stadium_lineup[stadium_lineup_num++] = kinds_in_group[HSD_Randi(kinds_in_group_num)];
     }
+
+    // for (int i = 0; i < stadium_lineup_num; i++)
+    //     OSReport("stadium %d: %s\n", i + 1, stad_names[stadium_lineup[i]]);
 
     return;
 }
@@ -207,7 +237,7 @@ int AroundWorld_OnMinorExit()
 
     stadium_lineup_idx++;
 
-    OSReport("stadium %d (%d/%d)\n", stadium_lineup[stadium_lineup_idx], stadium_lineup_idx + 1, stadium_lineup_num);
+    OSReport("stadium %d (%d/%d)\n", stadium_lineup[stadium_lineup_idx], stadium_lineup_idx, stadium_lineup_num);
 
     // get player placements from the last stadium
     s8 ranks[4];
@@ -245,13 +275,13 @@ int AroundWorld_OnMinorExit()
         // int (*Ply_GetStadiumScore)(int ply) = (void *)0x8000b674;
         // int placement = Ply_GetStadiumScore(i);
 
-        // OSReport("ply %d placement: %d\n", i + 1, placement);
+        OSReport("ply %d placement: %d\n", i + 1, placement);
 
         if (placement == 0)
             stadium_wins[i]++;
     }
 
-    if (stadium_lineup_idx == stadium_lineup_num)
+    if (stadium_lineup_idx >= stadium_lineup_num)
     {
         // spoof as DD so results screen uses points to rank players
         gd->city.stadium_kind = STKIND_DESTRUCTION1;

@@ -1189,9 +1189,8 @@ int SongData_ChangeSong(MusicSettingsPlaylist playlist, int entry, int dir)
 
         // check if song is already in playlist
         int is_in_playlist = 0;
-        for (int i = 0; i < SONGS_PER_PLAYLIST; i++)
+        for (int i = 0; i < stc_playlist_data[playlist].song_num; i++)
         {
-
             if (cur_value == stc_playlist_data[playlist].songs[i])
             {
                 is_in_playlist = 1;

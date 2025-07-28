@@ -218,7 +218,7 @@ MusicSettingsPlaylistMode SongData_GetPlaylistMode(MusicSettingsPlaylist playlis
     return stc_playlist_data[playlist].mode;
 }
 
-int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist)
+int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume)
 {
     switch (stc_playlist_data[playlist].mode)
     {
@@ -257,7 +257,7 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist)
         }
 
         // play song
-        SongData_PlaySong(song_to_play); // play it
+        SongData_PlaySong(song_to_play, volume); // play it
 
         return 1;
     }
@@ -271,13 +271,13 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist)
             rand_song_idx = HSD_Randi(stc_song_num);
         } while (rand_song_idx == stc_cur_playing_entrynum);
 
-        SongData_PlaySong(rand_song_idx); // play it
+        SongData_PlaySong(rand_song_idx, volume); // play it
 
         return 1;
     }
     }
 }
-int SongData_PlaySong(int song_database_idx)
+int SongData_PlaySong(int song_database_idx, int volume)
 {
     int entrynum = stc_song_data[song_database_idx].entrynum;
 
@@ -285,7 +285,7 @@ int SongData_PlaySong(int song_database_idx)
         return 0;
 
     BGM_PlayFile(FST_GetFilePathFromEntrynum(entrynum),
-                 255,
+                 volume,
                  63,
                  1);
 
@@ -294,7 +294,7 @@ int SongData_PlaySong(int song_database_idx)
 
     return 1;
 }
-int SongData_PlayRandomSong()
+int SongData_PlayRandomSong(int volume)
 {
     // create array of valid candidates
     int valid_num = 0;
@@ -326,7 +326,7 @@ int SongData_PlayRandomSong()
 
     HSD_Free(valid_arr); // immediately free before other allocs occur as to not fragment the heap
 
-    SongData_PlaySong(rand_song_idx);                  // play it
+    SongData_PlaySong(rand_song_idx, volume);          // play it
     stc_song_data[rand_song_idx].is_rand_selected = 1; // set as selected
 
     return 1;

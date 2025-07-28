@@ -859,7 +859,7 @@ void MusicSettings_UIInput(GOBJ *g)
             else
             {
                 // play song
-                SongData_PlaySong(stc_playlist_data[playlist_kind].songs[playlist_song_entry]);
+                SongData_PlaySong(stc_playlist_data[playlist_kind].songs[playlist_song_entry], 255);
                 SFX_Play(FGMMENU_CS_KETTEI);
             }
         }

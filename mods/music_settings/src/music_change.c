@@ -112,23 +112,14 @@ void MusicChange_Think(GOBJ *g)
     // check to change song
     if (Pad_GetDown(Gm_GetGameData()->pause_ply) & PAD_TRIGGER_Z)
     {
-        // not during events (will play both songs at once)
-        if (Gm_IsInCity() && Gm_GetCityMode() == CITYMODE_TRIAL)
-        {
-            EventCheckData *ed = (*stc_eventcheck_gobj)->userdata;
-            if (ed->state > 0)
-            {
-                SFX_Play(FGMMENU_CS_BEEP1);
-                return;
-            }
-        }
-
         int is_changed = 0;
         MajorKind mj = Scene_GetCurrentMajor();
 
+        int volume = (stc_event_global->is_song_playing) ? 0 : 255; // song comes in muted when an event is in progress
+
         if (mj == MJRKIND_AIR)
         {
-            SongData_PlayRandomSong();
+            SongData_PlayRandomSong(volume);
         }
         else if (mj == MJRKIND_CITY)
         {
@@ -178,17 +169,18 @@ void MusicChange_Think(GOBJ *g)
 
             if (playlist_kind != 1)
             {
-                int is_played = SongData_PlayFromPlaylist(playlist_kind);
+                int is_played = SongData_PlayFromPlaylist(playlist_kind, volume);
 
                 if (!is_played)
-                    SongData_PlayRandomSong();
+                    SongData_PlayRandomSong(volume);
             }
         }
 
         SFX_Play(FGMMENU_CS_MV);
 
         // raise music volume
-        BGM_RaiseVolume();
+        if (volume > 0)
+            BGM_RaiseVolume();
 
         // update song name
         MusicChange_UpdateSongName(gp);

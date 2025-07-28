@@ -38,7 +38,7 @@ int Hook_Game_BGMPlay()
     case (GRKIND_CITY1):
     case (52): // city trial free run
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_CITY))
+        if (SongData_PlayFromPlaylist(PLAYLIST_CITY, 255))
             return 1;
         break;
     }
@@ -47,31 +47,31 @@ int Hook_Game_BGMPlay()
     case (GRKIND_DRAG3):
     case (GRKIND_DRAG4):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_DRAGRACE))
+        if (SongData_PlayFromPlaylist(PLAYLIST_DRAGRACE, 255))
             return 1;
         break;
     }
     case (GRKIND_AIRGLIDER):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_AIRGLIDER))
+        if (SongData_PlayFromPlaylist(PLAYLIST_AIRGLIDER, 255))
             return 1;
     }
     case (GRKIND_TARGETFLIGHT):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_TARGETFLIGHT))
+        if (SongData_PlayFromPlaylist(PLAYLIST_TARGETFLIGHT, 255))
             return 1;
         break;
     }
     case (GRKIND_HIGHJUMP):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_HIGHJUMP))
+        if (SongData_PlayFromPlaylist(PLAYLIST_HIGHJUMP, 255))
             return 1;
         break;
     }
     case (GRKIND_KIRBYMELEE1):
     case (GRKIND_KIRBYMELEE2):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_KIRBYMELEE))
+        if (SongData_PlayFromPlaylist(PLAYLIST_KIRBYMELEE, 255))
             return 1;
         break;
     }
@@ -81,7 +81,7 @@ int Hook_Game_BGMPlay()
     case (GRKIND_DESTRUCTIONDERBY4):
     case (GRKIND_DESTRUCTIONDERBY5):
     {
-        if (SongData_PlayFromPlaylist(PLAYLIST_DESTRUCTIONDERBY))
+        if (SongData_PlayFromPlaylist(PLAYLIST_DESTRUCTIONDERBY, 255))
             return 1;
         break;
     }
@@ -121,7 +121,7 @@ void Hook_MainMenu_BGMPlay()
     else
     {
         if (!SongData_CheckPlaylistForCurrentPlayingSong(PLAYLIST_MENU) &&
-            SongData_PlayFromPlaylist(PLAYLIST_MENU))
+            SongData_PlayFromPlaylist(PLAYLIST_MENU, 255))
         {
             // null sound test song just in case
             Gm_GetGameData()->main_menu.soundtest_bgm_kind = -1;
@@ -132,7 +132,7 @@ void Hook_MainMenu_BGMPlay()
 // city results music hook
 int Hook_CityResults_BGMPlay()
 {
-    if (SongData_PlayFromPlaylist(PLAYLIST_RESULTS))
+    if (SongData_PlayFromPlaylist(PLAYLIST_RESULTS, 255))
         return 1;
     else
         return 0;
@@ -142,7 +142,9 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x80045a18, "", Hook_CityResults_BGMPlay, "", 0,
 // 30 seconds left in city music hook
 int Hook_CityHurry_BGMPlay()
 {
-    if (SongData_PlayFromPlaylist(PLAYLIST_CITYHURRY))
+    int volume = (stc_event_global->is_song_playing) ? 0 : 255; // song comes in muted when an event is in progress
+
+    if (SongData_PlayFromPlaylist(PLAYLIST_CITYHURRY, volume))
         return 1;
     else
         return 0;
@@ -152,7 +154,7 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x80061c2c, "", Hook_CityHurry_BGMPlay, "", 0, 0
 // city stats ending music hook
 void Hook_CityGraph_BGMPlay()
 {
-    if (SongData_PlayFromPlaylist(PLAYLIST_CITYGRAPH))
+    if (SongData_PlayFromPlaylist(PLAYLIST_CITYGRAPH, 255))
         return;
 
     // original functionality

@@ -100,24 +100,29 @@ CharacterKind Machines_RollRandom()
     {
         if ((whitelisted_machines & (1 << i)))
         {
-            whitelist_lookup[whitelisted_vehicle_num] = i;
-            whitelisted_vehicle_num++;
+            // OSReport("%s is enabled\n", stc_vckind_names[i]);
+            whitelist_lookup[whitelisted_vehicle_num++] = i;
         }
     }
 
     if (whitelisted_vehicle_num > 0)
     {
-        int vc_kind = whitelist_lookup[HSD_Randi(whitelisted_vehicle_num)];
+        MachineKind vc_kind = whitelist_lookup[HSD_Randi(whitelisted_vehicle_num)];
+        // OSReport("%s was selected\n", stc_vckind_names[vc_kind]);
         return stc_vckind_to_character[vc_kind];
     }
     else
         return Machines_MenuIDToCharacterKind(HSD_Randi(GetElementsIn(stc_menu_to_character)));
 }
+void Machines_DetermineSingleRandom()
+{
+    // roll a random machine for all players to use
+    stc_random_character = Machines_RollRandom();
+}
 
 // Starting Machine
 void Machines_AdjustStarting()
 {
-
     GameData *gd = Gm_GetGameData();
 
     // ensure its main city trial mode
@@ -152,6 +157,8 @@ void Machines_AdjustStarting()
             }
 
             CharacterDesc *c_desc = Character_GetDesc(ckind);
+
+            // OSReport("assigning ply %d ckind %d. it contains machine %d and is_bike: %d\n", i, ckind, c_desc->machine, c_desc->is_bike);
 
             gd->ply_data[i].machine_kind = c_desc->machine;
             gd->ply_data[i].is_bike = c_desc->is_bike;
@@ -359,9 +366,6 @@ CODEPATCH_HOOKCREATE(0x801c68b4, "fmr 1,30\n\t", MachineDamageRatio_Apply, "fmr 
 
 void Machines_ApplyPatches()
 {
-    // roll a random machine for all players to use
-    stc_random_character = Machines_RollRandom();
-
     CODEPATCH_HOOKAPPLY(0x8002df5c); // injection to adjust starting machine
     CODEPATCH_HOOKAPPLY(0x801c73b4); // injection to adjust max speed
 

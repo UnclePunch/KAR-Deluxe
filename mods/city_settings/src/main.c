@@ -15,6 +15,7 @@
 #include "patches/around_world.h"
 #include "patches/items.h"
 #include "patches/events.h"
+#include "patches/machines.h"
 
 char ModName[] = "City Settings";
 char ModAuthor[] = "UnclePunch";
@@ -38,6 +39,7 @@ void OnSaveInit(CitySettingsSave *save, int req_init)
 
 void OnPlayerSelectLoad()
 {
+    Machines_DetermineSingleRandom();
 }
 void On3DLoad()
 {

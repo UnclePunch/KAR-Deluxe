@@ -524,6 +524,7 @@ void CitySettings_Create()
     Preload_Invalidate();
     Preload_Update();
 
+    // we crash here sometimes, mempkouhou assertion
     Gm_LoadGameFile(&settings_archive, "MnSelruleCustom");
     HSD_SObjDesc *sobj = Archive_GetPublicAddress(settings_archive, "ScMenSelrule_scene_data");
 

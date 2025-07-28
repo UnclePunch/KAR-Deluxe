@@ -229,7 +229,8 @@ void AroundWorld_CalculateRanks(s8 *ranks, void *score, char data_type, int is_h
 int AroundWorld_OnMinorExit()
 {
     // check if atw is enabled
-    if (CitySettings_SaveGet()->settings[CITYSETTING_SAVE_STADIUM] != STADSELECT_ALL)
+    if (!(Scene_GetCurrentMajor() == MJRKIND_CITY && Gm_GetGameData()->city.mode == CITYMODE_TRIAL) ||
+        CitySettings_SaveGet()->settings[CITYSETTING_SAVE_STADIUM] != STADSELECT_ALL)
         return 0;
 
     GameData *gd = Gm_GetGameData();

@@ -38,14 +38,14 @@ Kirby Air Ride Deluxe is a collection of mods powered by the [hoshi](https://git
 - Enable/disable certain machines from spawning.
 
 ## Installation
-There are 2 methods of playing Kirby Air Ride Deluxe:
-1. ISO - Most versatile option. 
-   - Download the zip labeled "ISO".
-   - Extract the folder and open ISOPatcher.exe.
-   - Simply drag your Kirby Air Ride (USA) iso onto the window and select a location to save the Kirby Air Ride Deluxe iso.
+First head to the [releases](https://github.com/UnclePunch/KAR-Deluxe/releases) tab. There are 2 methods of playing Kirby Air Ride Deluxe:
+1. **ISO** - Most versatile option. 
+   - Download the "Builder" .zip.
+   - Extract the folder and open Builder.exe.
+   - Drag your Kirby Air Ride (USA) iso onto the window and select a location to save the Kirby Air Ride Deluxe iso.
 
-2. Riivolution - Dolphin supports Riivolution patches for Gamecube games and is quite easy to use.
-   - Download the zip labeled "Riivolution"
+2. **Riivolution** - Dolphin supports Riivolution patches for Gamecube games and is quite easy to use.
+   - Download the "Riivolution" .zip.
    - Extract its contents to "C:\Users\YourNameHere\Documents\Dolphin Emulator\Load\Riivolution".
    - In Dolphin, right click your Kirby Air Ride iso and select launch with Riivolution patches
    - Enable Kirby Air Ride Deluxe and select Start to play.

@@ -23,7 +23,7 @@ extern PlaylistData stc_playlist_data[PLAYLIST_NUM];
 
 void MusicChange_Init()
 {
-    Hoshi_AddPreloadGameFile("IfAllNowPlaying");
+    Hoshi_AddPreloadGameFile("IfAllNowPlaying", PRELOADHEAPKIND_ALLM);
 }
 
 void MusicChange_On3DLoad()

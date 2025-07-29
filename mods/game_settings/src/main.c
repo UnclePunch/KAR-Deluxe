@@ -146,17 +146,17 @@ OptionDesc ModSettings = {
                                     "On",
                                 },
                             },
-                            // &(OptionDesc){
-                            //     .name = "Unpause",
-                            //     .description = "Display a countdown after unpausing the game!",
-                            //     .kind = OPTKIND_VALUE,
-                            //     .val = &unpause_delay_enabled,
-                            //     .value_num = 2,
-                            //     .value_names = (char *[]){
-                            //         "Original",
-                            //         "Countdown",
-                            //     },
-                            // },
+                            &(OptionDesc){
+                                .name = "Unpause",
+                                .description = "Display a countdown after unpausing the game!",
+                                .kind = OPTKIND_VALUE,
+                                .val = &unpause_delay_enabled,
+                                .value_num = 2,
+                                .value_names = (char *[]){
+                                    "Original",
+                                    "Countdown",
+                                },
+                            },
                         },
                     },
                 },

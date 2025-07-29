@@ -179,6 +179,8 @@ void UnpauseDelay_Init()
     CODEPATCH_HOOKAPPLY(0x800413b0);
     CODEPATCH_HOOKAPPLY(0x800411f8);
     CODEPATCH_HOOKAPPLY(0x800411d4);
+
+    Hoshi_AddPreloadGameFile("IfAllCountdown", PRELOADHEAPKIND_ALLM);
 }
 void UnpauseDelay_On3DStart()
 {

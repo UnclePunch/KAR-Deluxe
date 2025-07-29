@@ -218,7 +218,7 @@ void OnSaveInit(void *save, int req_init)
     Brake_Init();
     Camera_Init();
     AttractMode_Init();
-    // UnpauseDelay_Init();
+    UnpauseDelay_Init();
     Run_Init();
     AbilityDrop_Init();
     SD_as_KO_Init();
@@ -229,7 +229,7 @@ void OnSaveInit(void *save, int req_init)
 void On3DLoad()
 {
     QuickStat_On3DStart();
-    // UnpauseDelay_On3DStart();
+    UnpauseDelay_On3DStart();
     Rearview_InitFlags();
     IntangAfterKO_On3DLoad();
 }

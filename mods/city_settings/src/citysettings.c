@@ -524,7 +524,8 @@ void CitySettings_Create()
     Preload_Invalidate();
     Preload_Update();
 
-    // we crash here sometimes, mempkouhou assertion
+    // we crash here sometimes, mempkouhou assertion, here? 80057a28
+    // returning in Preload_IncreasePersistentHeapSize causes it to happen consistently
     Gm_LoadGameFile(&settings_archive, "MnSelruleCustom");
     HSD_SObjDesc *sobj = Archive_GetPublicAddress(settings_archive, "ScMenSelrule_scene_data");
 

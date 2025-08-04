@@ -33,8 +33,8 @@ static char *stc_machine_names[] = {
     "Dragoon",
     "Hydra",
     "Flight Star",
-    "Free Star",
-    "Steer Star",
+    // "Free Star",
+    // "Steer Star",
 };
 static u8 stc_togglekind_to_vckind[] = {
     VCKIND_COMPACT,

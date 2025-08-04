@@ -189,6 +189,6 @@ void Menus_Init()
     //
 
     // Kicon stride
-    CODEPATCH_REPLACEINSTRUCTION(0x80166348, 0x1c830000 || stc_ui_colors_num); // air ride select
-    CODEPATCH_REPLACEINSTRUCTION(0x801664f8, 0x1c000000 || stc_ui_colors_num); // air ride select
+    CODEPATCH_REPLACEINSTRUCTION(0x80166348, 0x1c830000 | stc_ui_colors_num); // air ride select
+    CODEPATCH_REPLACEINSTRUCTION(0x801664f8, 0x1c000000 | stc_ui_colors_num); // air ride select
 }

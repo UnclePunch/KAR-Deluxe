@@ -64,6 +64,8 @@ int Hook_OnKOFromDamage(MachineData *md)
 
     // add a death from every other player
     Ply_AddDeathByAll(ply, md);
+
+    return 1;
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x801e1f60, "mr 3, 30\n\t", Hook_OnKOFromDamage, "", 0, 0x801e1f78)
 
@@ -86,7 +88,10 @@ CODEPATCH_HOOKCREATE(0x80010184, "mr 3, 28\n\t", Hook_OnFallRespawn, "", 0x80010
 
 void SD_as_KO_Init()
 {
-    CODEPATCH_HOOKAPPLY(0x801e658c);
+    // on damaged
     CODEPATCH_HOOKAPPLY(0x801e1f60);
-    CODEPATCH_HOOKAPPLY(0x80010184);
+
+    // on fall
+    // CODEPATCH_HOOKAPPLY(0x801e658c);
+    // CODEPATCH_HOOKAPPLY(0x80010184);
 }

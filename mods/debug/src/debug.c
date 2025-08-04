@@ -42,7 +42,7 @@ OptionDesc ModSettings = {
 void OnBoot(HSD_Archive *archive)
 {
 
-    if ((*stc_dblevel) < DB_DEBUG_DEVELOP)
+    if ((*stc_dblevel) < DB_DEVELOP)
         return;
 
     // // output vanilla preload files
@@ -59,7 +59,7 @@ void OnBoot(HSD_Archive *archive)
 }
 void OnSceneChange(HSD_Archive *archive)
 {
-    if ((*stc_dblevel) < DB_DEBUG_DEVELOP)
+    if ((*stc_dblevel) < DB_DEVELOP)
         return;
 
     GOBJ *g = GOBJ_EZCreator(0, 0, 0,
@@ -92,9 +92,9 @@ void OnSceneChange(HSD_Archive *archive)
 void Debug_ChangeSetting(int val)
 {
     if (val == 0)
-        *stc_dblevel = DB_MASTER;
+        (*stc_dblevel) = DB_MASTER;
     else if (val == 1)
-        *stc_dblevel = DB_DEVELOP;
+        (*stc_dblevel) = DB_DEVELOP;
 }
 void Debug_Think()
 {

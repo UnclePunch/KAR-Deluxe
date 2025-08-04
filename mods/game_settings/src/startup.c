@@ -50,7 +50,6 @@ void Startup_Init()
     {
         // do something to fix the text in top left
         MainMenu_InitAllVariables();
-        FGM_LoadInGameBanks(); // title screen usually calls this, it holds up loading other modes if you dont do it beforehand
         break;
     }
     case (STARTUP_CITYSELECT):

@@ -11,8 +11,8 @@ BUILD_DIR 		= build
 HOSHI_DIR		= externals/hoshi
 LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
 INC_DIR 		?= $(HOSHI_DIR)/include
-TOOL_DIR 		?= $(HOSHI_DIR)/packtool
-OUT_DIR 		= out
+PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
+OUT_DIR 		= out/files
 MODS_OUT_DIR 	= $(OUT_DIR)/mods
 INSTALLDIR 		?= 	#can override this in the command line: make install INSTALL_DIR=/path/to/your/mods
 
@@ -22,7 +22,7 @@ CFLAGS = -O1 -mcpu=750 -meabi -msdata=none -mhard-float -ffreestanding \
            -fno-merge-constants -ffunction-sections -fdata-sections \
            -MMD # needed for automatic dependency generation
 
-LDFLAGS  ?= -r -T$(TOOL_DIR)/link.ld
+LDFLAGS  ?= -r -T$(PACKTOOL_DIR)/link.ld
 
 # Define MODS_ROOT_DIR
 MODS_ROOT_DIR = mods
@@ -155,7 +155,7 @@ $(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)
 	@echo ""
 	@echo "--- Creating '$(1)' bin file ---"
 	@echo ""
-	python $(TOOL_DIR)/main.py $$< -m gbFunction -o $$@
+	python $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
 
 endef
 

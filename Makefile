@@ -187,4 +187,4 @@ install: all assets
 clean:
 	@echo "Cleaning build and output directories..."
 	rm -r $(BUILD_DIR)
-	rm -r $(OUT_DIR)
+	rm -r $(MODS_OUT_DIR)

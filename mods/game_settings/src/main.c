@@ -211,7 +211,7 @@ void OnSceneChange(HSD_Archive *archive)
 
     return;
 }
-void OnSaveInit(void *save, int req_init)
+void OnSaveLoaded()
 {
     Startup_Init();
     QuickStat_Init();

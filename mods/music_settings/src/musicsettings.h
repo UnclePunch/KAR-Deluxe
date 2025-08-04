@@ -135,7 +135,8 @@ typedef struct MusicSettingsData
 } MusicSettingsData;
 
 void MusicSettings_CopyFromSave();
-void MusicSettings_SaveInit(MusicSettingsSave *save, int req_init);
+void MusicSettings_SaveSetDefault();
+void MusicSettings_OnSaveLoaded();
 void MainMenu_LoadMusicPrompt();
 
 MajorKind MusicSettings_Init();

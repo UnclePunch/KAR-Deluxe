@@ -273,7 +273,7 @@ void Minor_Exit();
 void CitySettings_OnSaveCreateOrLoad();
 void CitySettings_OnGameStart();
 void CitySettings_Init();
-void CitySettings_SaveInit(CitySettingsSave *save, int req_init);
+void CitySettings_SaveLoaded();
 CitySettingsSave *CitySettings_SaveGet();
 void CitySettings_Load();
 void CitySettings_Think(void *data);

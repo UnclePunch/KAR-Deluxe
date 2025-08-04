@@ -20,6 +20,8 @@
 char ModName[] = "City Settings";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
+
+CitySettingsSave *ModSave;
 int ModSaveSize = sizeof(struct CitySettingsSave);
 
 void OnBoot(HSD_Archive *archive)
@@ -32,9 +34,15 @@ void OnSceneChange(HSD_Archive *archive)
 {
     return;
 }
-void OnSaveInit(CitySettingsSave *save, int req_init)
+
+void OnSaveInit()
 {
-    CitySettings_SaveInit(save, req_init);
+    CitySettings_SetDefault();
+}
+
+void OnSaveLoaded()
+{
+    CitySettings_SaveLoaded();
 }
 
 void OnPlayerSelectLoad()

@@ -74,7 +74,7 @@ CODEPATCH_HOOKCREATE(0x80014448, "", CitySettings_OnGameStart, "", 0)
 
 static HSD_Archive *settings_archive = 0;
 static CitySettingsData settings_data;
-static CitySettingsSave *stc_city_save;
+extern CitySettingsSave *ModSave;
 static u8 *stc_city_settings_backup;
 void CitySettings_Init()
 {
@@ -102,13 +102,8 @@ void CitySettings_Init()
     return;
 }
 
-void CitySettings_SaveInit(CitySettingsSave *save, int req_init)
+void CitySettings_SaveLoaded()
 {
-    stc_city_save = save;
-
-    if (req_init)
-        CitySettings_SetDefault();
-
     CitySettings_UpdateVanillaSettings(); // apply vanilla settings immediately
     MachineToggle_Verify();               // ensure valid machine selection exists
 
@@ -117,7 +112,7 @@ void CitySettings_SaveInit(CitySettingsSave *save, int req_init)
 }
 CitySettingsSave *CitySettings_SaveGet()
 {
-    return stc_city_save;
+    return ModSave;
 }
 
 // menu backup and restore functions
@@ -193,10 +188,10 @@ void CitySettings_SetDefault()
     // copy to save data
     CitySettings_CopyToSave(&top_menu);
 
-    stc_city_save->random_event_bitfield = -1;
-    stc_city_save->random_stadium_bitfield = -1;
-    stc_city_save->random_item_bitfield = -1;
-    stc_city_save->random_machine_bitfield = MachineToggle_GetDefaults();
+    ModSave->random_event_bitfield = -1;
+    ModSave->random_stadium_bitfield = -1;
+    ModSave->random_item_bitfield = -1;
+    ModSave->random_machine_bitfield = MachineToggle_GetDefaults();
 }
 
 void CitySettings_Load()
@@ -782,17 +777,16 @@ void CitySettings_UpdateVanillaSettings()
 {
     // apply settings from vanilla game
     GameData *gd = Gm_GetGameData();
-    gd->city.time_seconds = stc_city_save->settings[CITYSETTING_SAVE_TIME] * 60;
-    gd->city.game_tempo = stc_city_save->settings[CITYSETTING_SAVE_TEMPO] + 1;
-    gd->city.menu_stadium_selection = stc_city_save->settings[CITYSETTING_SAVE_STADIUM];
-    gd->city.events_enable = (stc_city_save->settings[CITYSETTING_SAVE_EVENTFREQ] == 0) ? 0 : 1;
+    gd->city.time_seconds = ModSave->settings[CITYSETTING_SAVE_TIME] * 60;
+    gd->city.game_tempo = ModSave->settings[CITYSETTING_SAVE_TEMPO] + 1;
+    gd->city.menu_stadium_selection = ModSave->settings[CITYSETTING_SAVE_STADIUM];
+    gd->city.events_enable = (ModSave->settings[CITYSETTING_SAVE_EVENTFREQ] == 0) ? 0 : 1;
 
     return;
 }
 void CitySettings_CopyToSave(CitySettingsMenuDesc *desc)
 {
     // recursively iterate through all menus and copy their option values to the save file
-
     if (!desc)
         return;
 
@@ -803,12 +797,12 @@ void CitySettings_CopyToSave(CitySettingsMenuDesc *desc)
         {
         case (CITYSETTING_OPTKIND_NUM):
         {
-            stc_city_save->settings[desc->generic.options[opt_idx].u.number.save_idx] = desc->generic.options[opt_idx].u.number.cur_selection;
+            ModSave->settings[desc->generic.options[opt_idx].u.number.save_idx] = desc->generic.options[opt_idx].u.number.cur_selection;
             break;
         }
         case (CITYSETTING_OPTKIND_VALUE):
         {
-            stc_city_save->settings[desc->generic.options[opt_idx].u.value.save_idx] = desc->generic.options[opt_idx].u.value.cur_selection;
+            ModSave->settings[desc->generic.options[opt_idx].u.value.save_idx] = desc->generic.options[opt_idx].u.value.cur_selection;
             break;
         }
         case (CITYSETTING_OPTKIND_MENU):
@@ -836,18 +830,18 @@ void CitySettings_CopyFromSave(CitySettingsMenuDesc *desc)
         case (CITYSETTING_OPTKIND_NUM):
         {
             // ensure value is within bounds
-            if (stc_city_save->settings[desc->generic.options[opt_idx].u.number.save_idx] >= desc->generic.options[opt_idx].u.number.min &&
-                stc_city_save->settings[desc->generic.options[opt_idx].u.number.save_idx] < desc->generic.options[opt_idx].u.number.max)
-                desc->generic.options[opt_idx].u.number.cur_selection = stc_city_save->settings[desc->generic.options[opt_idx].u.number.save_idx];
+            if (ModSave->settings[desc->generic.options[opt_idx].u.number.save_idx] >= desc->generic.options[opt_idx].u.number.min &&
+                ModSave->settings[desc->generic.options[opt_idx].u.number.save_idx] < desc->generic.options[opt_idx].u.number.max)
+                desc->generic.options[opt_idx].u.number.cur_selection = ModSave->settings[desc->generic.options[opt_idx].u.number.save_idx];
 
             break;
         }
         case (CITYSETTING_OPTKIND_VALUE):
         {
             // ensure value is within bounds
-            if (stc_city_save->settings[desc->generic.options[opt_idx].u.value.save_idx] >= 0 &&
-                stc_city_save->settings[desc->generic.options[opt_idx].u.value.save_idx] < desc->generic.options[opt_idx].u.value.num)
-                desc->generic.options[opt_idx].u.value.cur_selection = stc_city_save->settings[desc->generic.options[opt_idx].u.value.save_idx];
+            if (ModSave->settings[desc->generic.options[opt_idx].u.value.save_idx] >= 0 &&
+                ModSave->settings[desc->generic.options[opt_idx].u.value.save_idx] < desc->generic.options[opt_idx].u.value.num)
+                desc->generic.options[opt_idx].u.value.cur_selection = ModSave->settings[desc->generic.options[opt_idx].u.value.save_idx];
 
             break;
         }

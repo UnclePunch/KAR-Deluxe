@@ -18,6 +18,8 @@
 char ModName[] = "Music Settings";
 char ModAuthor[] = "UnclePunch";
 char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
+
+MusicSettingsSave *ModSave = 0;
 int ModSaveSize = sizeof(struct MusicSettingsSave);
 
 void OnBoot(HSD_Archive *archive)
@@ -30,9 +32,14 @@ void OnSceneChange(HSD_Archive *archive)
 {
     return;
 }
-void OnSaveInit(MusicSettingsSave *save, int req_init)
+void OnSaveInit()
 {
-    MusicSettings_SaveInit(save, req_init);
+    MusicSettings_SaveSetDefault();
+    return;
+}
+void OnSaveLoaded()
+{
+    MusicSettings_OnSaveLoaded();
     return;
 }
 void OnMainMenuLoad()

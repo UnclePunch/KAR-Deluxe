@@ -14,7 +14,7 @@
 #include "fst/fst.h"
 #include "text_joint/text_joint.h"
 
-static MusicSettingsSave *music_save;
+extern MusicSettingsSave *ModSave;
 HSD_Archive *music_prompt_archive;
 
 MajorSceneDesc major_desc = {
@@ -65,36 +65,35 @@ MajorKind MusicSettings_Init()
 
     return major_desc.major_id;
 }
-void MusicSettings_SaveInit(MusicSettingsSave *save, int req_init)
+void MusicSettings_SaveSetDefault()
 {
-    music_save = save; // save ptr to save data
-
     // init playlist values on save creation
-    if (req_init)
+
+    // null all entries on all playlists
+    for (int i = 0; i < GetElementsIn(ModSave->playlist); i++)
     {
-        // null all entries on all playlists
-        for (int i = 0; i < GetElementsIn(save->playlist); i++)
-        {
-            for (int j = 0; j < GetElementsIn(save->playlist->song_hash); j++)
-                save->playlist[i].song_hash[j] = -1;
+        for (int j = 0; j < GetElementsIn(ModSave->playlist->song_hash); j++)
+            ModSave->playlist[i].song_hash[j] = -1;
 
-            stc_playlist_data[i].mode = PLAYLISTMODE_ORIGINAL;
-        }
-
-        // set defaults
-        for (int i = 0; i < GetElementsIn(playlist_defaults); i++)
-        {
-            MusicSettingsPlaylist playlist = playlist_defaults[i].playlist;
-            int entry = playlist_defaults[i].entry;
-            char *song_name = playlist_defaults[i].song_name;
-
-            save->playlist[playlist].song_hash[entry] = SongData_GetDataByName(song_name)->hash;
-        }
+        stc_playlist_data[i].mode = PLAYLISTMODE_ORIGINAL;
     }
 
+    // set defaults
+    for (int i = 0; i < GetElementsIn(playlist_defaults); i++)
+    {
+        MusicSettingsPlaylist playlist = playlist_defaults[i].playlist;
+        int entry = playlist_defaults[i].entry;
+        char *song_name = playlist_defaults[i].song_name;
+
+        ModSave->playlist[playlist].song_hash[entry] = SongData_GetDataByName(song_name)->hash;
+    }
+}
+void MusicSettings_OnSaveLoaded()
+{
     // convert hash to local id
     MusicSettings_CopyFromSave();
 }
+
 void MainMenu_LoadMusicPrompt()
 {
     music_prompt_archive = Archive_LoadFile("MnSelMusicPrompt");
@@ -112,14 +111,14 @@ void MusicSettings_CopyFromSave()
         // OSReport("Playlist %d:\n", playlist_idx);
 
         // store mode
-        stc_playlist_data[playlist_idx].mode = music_save->playlist[playlist_idx].mode;
+        stc_playlist_data[playlist_idx].mode = ModSave->playlist[playlist_idx].mode;
 
         // OSReport("  Mode: %d\n", stc_playlist_data[playlist_idx].mode);
 
         int song_num = 0;
         for (int song_idx = 0; song_idx < SONGS_PER_PLAYLIST; song_idx++)
         {
-            int hash = music_save->playlist[playlist_idx].song_hash[song_idx]; // get hash from save
+            int hash = ModSave->playlist[playlist_idx].song_hash[song_idx]; // get hash from save
 
             // OSReport("  hash: %x\n", hash);
 
@@ -184,7 +183,7 @@ void MusicSettings_CopyToSave()
         // OSReport("Playlist %d:\n", playlist_idx);
 
         // store mode
-        music_save->playlist[playlist_idx].mode = stc_playlist_data[playlist_idx].mode;
+        ModSave->playlist[playlist_idx].mode = stc_playlist_data[playlist_idx].mode;
 
         // OSReport("  Mode: %d\n", stc_playlist_data[playlist_idx].mode);
 
@@ -196,7 +195,7 @@ void MusicSettings_CopyToSave()
             // OSReport("  hash: %x\n", song_hash);
 
             // store hash
-            music_save->playlist[playlist_idx].song_hash[song_idx] = song_hash;
+            ModSave->playlist[playlist_idx].song_hash[song_idx] = song_hash;
         }
 
         // OSReport("\n");

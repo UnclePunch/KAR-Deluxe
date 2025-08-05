@@ -12,6 +12,7 @@
 
 #include "debug.h"
 #include "net.h"
+#include "profiler.h"
 #include "fst/fst.h"
 #include "code_patch/code_patch.h"
 #include "hoshi/settings.h"
@@ -41,6 +42,7 @@ OptionDesc ModSettings = {
 
 void OnBoot(HSD_Archive *archive)
 {
+    // Profiler_Init();
 
     if ((*stc_dblevel) < DB_DEVELOP)
         return;
@@ -100,11 +102,15 @@ void Debug_Think()
 
     // update text
     heap_text->hidden = is_hide_heap;
-    PreloadHeap *ph = &stc_preload_heaps_lookup->heap_arr[0];
-    Text_SetText(heap_text, 0, "%d: %.2fk \x81\x5e %.2fk", ph->heap_index, BytesToKB(OSCheckHeap(ph->heap_index)), BytesToKB(ph->size));
 
     if ((*stc_dblevel) >= DB_DEVELOP)
     {
+        if (!heap_text->hidden)
+        {
+            PreloadHeap *ph = &stc_preload_heaps_lookup->heap_arr[0];
+            Text_SetText(heap_text, 0, "%d: %.2fk \x81\x5e %.2fk", ph->heap_index, BytesToKB(OSCheckHeap(ph->heap_index)), BytesToKB(ph->size));
+        }
+
         // output current state of all preloaded files
         if (Pad_GetHeld(20) & PAD_BUTTON_Y && Pad_GetDown(20) & PAD_BUTTON_DPAD_DOWN)
         {

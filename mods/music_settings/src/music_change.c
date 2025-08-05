@@ -369,6 +369,11 @@ void MusicChange_UpdateSongName(MusicChangeData *gp)
         SongData *sd = SongData_GetDataByEntrynum(cur_playing_entrynum);
         if (sd)
             song_name = sd->name;
+        // else
+        // {
+        //     OSReport("vpb index %d, entrynum %d\n", vpb_index, cur_playing_entrynum);
+        //     assert("music change");
+        // }
     }
 
     // sanitize text

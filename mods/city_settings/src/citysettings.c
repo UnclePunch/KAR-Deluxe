@@ -899,7 +899,7 @@ void CitySettings_UpdateDescription(char *s)
     int new_size = Text_ConvertASCIIRewrite(out, s) + sizeof(header) + 0x2;
 
     // check to resize
-    if (new_size > description_text->allocInfo->size)
+    if (new_size > description_text->alloc->size)
     {
         // free old
         Text_Free(description_text->text_start);
@@ -907,8 +907,8 @@ void CitySettings_UpdateDescription(char *s)
         // alloc new
         int alloc_size = OSRoundUp32B(new_size + sizeof(header) + 0x3);
         description_text->text_start = Text_Alloc(alloc_size);
-        description_text->allocInfo->size = alloc_size;
-        description_text->allocInfo->x4 = (void *)description_text->text_start;
+        description_text->alloc->size = alloc_size;
+        description_text->alloc->start = (void *)description_text->text_start;
     }
 
     // copy data

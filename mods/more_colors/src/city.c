@@ -274,8 +274,9 @@ void CitySelect_LimitNonKirbyColor(int ply)
 {
     GameData *gd = Gm_GetGameData();
     int icon_idx = gd->city_select_ply.icon[ply];
+    CharacterKind c_kind = gd->city_select_ply.machine_select.c_kind_arr[icon_idx];
 
-    if (icon_idx == 10 || icon_idx == 19)
+    if (c_kind == CKIND_DEDEDE || c_kind == CKIND_METAKNIGHT)
     {
         if (gd->city_select_ply.color[ply] > 7)
         {

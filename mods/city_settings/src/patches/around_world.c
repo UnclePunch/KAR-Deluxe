@@ -51,6 +51,8 @@ void AroundWorld_Init()
     for (int i = 0; i < GetElementsIn(stadium_wins); i++)
         stadium_wins[i] = 0;
 
+    stadium_lineup_idx = 0;
+
     AroundWorld_DecideStadiums();
 
     Gm_GetGameData()->city.stadium_kind = stadium_lineup[0];

@@ -91,6 +91,32 @@ int EventReveal_Check(int num)
     }
 }
 
+int EventCheck_Lighthouse(GOBJ *g)
+{
+    int is_ready = 0;
+
+    // ensure the lighthouse is state 0
+    GOBJ *y = (*stc_gobj_lookup)[GAMEPLINK_YAKUMONO];
+    while (y)
+    {
+        if (y->entity_class != 15)
+            continue;
+
+        YakumonoData *yp = y->userdata;
+        if (yp->kind == 68)
+        {
+            if (yp->state == 0)
+                is_ready = 1;
+
+            break;
+        }
+
+        y = y->next;
+    }
+
+    return is_ready;
+}
+
 ///////////////////
 // Apply Patches //
 ///////////////////
@@ -110,4 +136,7 @@ void Events_ApplyPatches()
 
     CODEPATCH_HOOKAPPLY(0x800ede24);
     CODEPATCH_REPLACECALL(0x80127990, EventReveal_Check);
+
+    // store lighthouse event check callback
+    (*stc_event_function)[EVKIND_LIGHTHOUSE].check = EventCheck_Lighthouse;
 }

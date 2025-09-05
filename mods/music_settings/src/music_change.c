@@ -431,7 +431,7 @@ float Text_GetWidth(Text *t)
 {
     // get width as reported by text lib
     float width, height;
-    Text_GetWidthAndHeight(t, &width, &height);
+    Text_GetWidthAndHeight(t, 0, &width, &height);
 
     // if using aspect, clamp width
     if (t->use_aspect && width > t->aspect.X)

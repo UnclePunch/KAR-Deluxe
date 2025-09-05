@@ -908,7 +908,7 @@ void CitySettings_UpdateDescription(char *s)
         int alloc_size = OSRoundUp32B(new_size + sizeof(header) + 0x3);
         description_text->text_start = Text_Alloc(alloc_size);
         description_text->alloc->size = alloc_size;
-        description_text->alloc->start = (void *)description_text->text_start;
+        description_text->alloc->alloc = (void *)description_text->text_start;
     }
 
     // copy data

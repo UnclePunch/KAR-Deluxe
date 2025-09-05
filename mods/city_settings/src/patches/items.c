@@ -6,6 +6,7 @@
 
 #include "../citysettings.h"
 #include "around_world.h"
+#include "items.h"
 
 #include "code_patch/code_patch.h"
 
@@ -16,65 +17,61 @@ void ItemToggle_Apply()
     CitySettingsSave *city_save = CitySettings_SaveGet();
     grBoxGeneObj *box_gene_obj = (*stc_grBoxGeneObj);
 
-    // add/remove items to reflect its toggle status
+    // remove items to reflect its toggle status
     for (ItemKind it_kind = ITKIND_ACCEL; it_kind <= ITKIND_GORDO; it_kind++)
     {
         int is_enabled = ((city_save->random_item_bitfield & (1ULL << it_kind)) != 0);
-        BoxKind this_box_kind = Item_GetCommonAttr(it_kind)->box_kind;
 
+        if (is_enabled)
+            continue;
+
+        BoxKind this_box_kind = Item_GetCommonAttr(it_kind)->box_kind;
         // OSReport("item %d in box_kind %d, toggle: %d\n", it_kind, this_box_kind, is_enabled);
 
-        int item_found = 0;
+        // remove from box pool
+        if (Item_RemoveFromPool(it_kind,
+                                box_gene_obj->item_group_spawn[this_box_kind].it_kind,
+                                box_gene_obj->item_group_spawn[this_box_kind].chance,
+                                &box_gene_obj->item_group_spawn[this_box_kind].num))
+            ; // OSReport("removed item %d from box_kind %d\n", it_kind, this_box_kind);
 
-        for (int i = 0; i < box_gene_obj->item_group_spawn[this_box_kind].num; i++) // check this box's spawn table
+        // remove from subsequent item pool
+        if (Item_RemoveFromPool(it_kind,
+                                box_gene_obj->subsequent_it_kind,
+                                box_gene_obj->subsequent_chance,
+                                &box_gene_obj->subsequent_num))
+            ; // OSReport("removed item %d from subsequent item pool\n", it_kind, this_box_kind);
+    }
+}
+int Item_RemoveFromPool(ItemKind it_kind, u8 *it_kind_arr, u8 *it_chance_arr, u8 *num_ptr)
+{
+    int num = *num_ptr;
+
+    for (int i = 0; i < num; i++) // check this box's spawn table
+    {
+        if (it_kind_arr[i] == it_kind) // check for the item
         {
 
-            if (box_gene_obj->item_group_spawn[this_box_kind].it_kind[i] == it_kind) // check for the item
+            // remove it and shift ones below it up
+            for (int j = i; j < num - 1; j++)
             {
-                if (!is_enabled) // item is disabled
-                {
-                    // OSReport("removing item %d from box_kind %d\n", it_kind, this_box_kind);
-
-                    // remove it and shift ones below it up
-                    for (int j = i; j < box_gene_obj->item_group_spawn[this_box_kind].num - 1; j++)
-                    {
-                        box_gene_obj->item_group_spawn[this_box_kind].it_kind[j] = box_gene_obj->item_group_spawn[this_box_kind].it_kind[j + 1];
-                        box_gene_obj->item_group_spawn[this_box_kind].chance[j] = box_gene_obj->item_group_spawn[this_box_kind].chance[j + 1];
-                    }
-
-                    // zero out last entry for neatness
-                    box_gene_obj->item_group_spawn[this_box_kind].it_kind[box_gene_obj->item_group_spawn[this_box_kind].num] = 0;
-                    box_gene_obj->item_group_spawn[this_box_kind].chance[box_gene_obj->item_group_spawn[this_box_kind].num] = 0;
-                    box_gene_obj->item_group_spawn[this_box_kind].num--;
-                }
-
-                item_found = 1;
-                break;
-            }
-        }
-
-        if (!item_found && is_enabled)
-        {
-            // get its vanilla spawn rate
-            grBoxGeneInfo *box_gene_info = (*stc_grBoxGeneInfo);
-            int spawn_chance = 4;
-            for (int i = 0; i < box_gene_info->item_desc->item_spawn_num; i++)
-            {
-                if (box_gene_info->item_desc->item_spawn[i].it_kind == ITKIND_ALLUP)
-                {
-                    spawn_chance = box_gene_info->item_desc->item_spawn[i].fall_chance[Gm_GetCurrentStadiumGroup()];
-                    break;
-                }
+                it_kind_arr[j] = it_kind_arr[j + 1];
+                it_chance_arr[j] = it_chance_arr[j + 1];
             }
 
-            // OSReport("adding item %d to box_kind %d with change %d\n", it_kind, this_box_kind, spawn_chance);
+            // zero out last entry for neatness
+            it_kind_arr[num] = 0;
+            it_chance_arr[num] = 0;
+            num--;
 
-            // add it
-            box_gene_obj->item_group_spawn[this_box_kind].it_kind[box_gene_obj->item_group_spawn[this_box_kind].num] = it_kind;
-            box_gene_obj->item_group_spawn[this_box_kind].chance[box_gene_obj->item_group_spawn[this_box_kind].num] = spawn_chance;
-            box_gene_obj->item_group_spawn[this_box_kind].num++;
+            // write back new num
+            (*num_ptr) = num;
+
+            return 1;
         }
     }
+
+    return 0;
 }
 void AllUp_AdjustSpawn()
 {

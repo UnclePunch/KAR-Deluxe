@@ -8,13 +8,27 @@ LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
 
 # --- Directories ---
 BUILD_DIR 		= build
+SCRIPT_DIR 		?= scripts
 HOSHI_DIR		= externals/hoshi
 LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
 INC_DIR 		?= $(HOSHI_DIR)/include
 PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
-OUT_DIR 		= out/files
-MODS_OUT_DIR 	= $(OUT_DIR)/mods
-INSTALLDIR 		?= 	#can override this in the command line: make install INSTALL_DIR=/path/to/your/mods
+HOSHI_BIN_DIR	= $(HOSHI_DIR)/out/release
+ORIG_DOL		= $(HOSHI_DIR)/dol/kar.dol
+ROOT_DIR 		= root
+ISO_DIR		 	?= iso
+OUT_DIR 		= out
+MODS_OUT_DIR 	= $(ROOT_DIR)/files/mods
+ISO_OUT_DIR 	= 
+INSTALL_DIR 	?=
+
+# --- File Paths ---
+ISO_PATH		= kar.iso
+HOSHI_BIN		= $(HOSHI_BIN_DIR)/hoshi.bin
+
+# --- Script Paths ---
+ISOPATCH_SCRIPT		= $(SCRIPT_DIR)/iso.py
+DOLEXTRACT_SCRIPT	= $(SCRIPT_DIR)/dol.py
 
 # User-defined CFLAGS.
 CFLAGS = -O1 -mcpu=750 -meabi -msdata=none -mhard-float -ffreestanding \
@@ -78,7 +92,6 @@ MOD_BIN_FILES := $(addsuffix .bin, $(addprefix $(MODS_OUT_DIR)/, $(MOD_NAMES)))
 MOD_ASSET_DIRS := $(foreach mod,$(MOD_NAMES),\
                                $(if $(wildcard $(MODS_ROOT_DIR)/$(mod)/assets), \
                                     $(MODS_ROOT_DIR)/$(mod)/assets))
-MOD_ASSETS_COPIED := $(OUT_DIR)/.assets_copied # marker file in 'out' root
 
 # --- Debug Outputs ---
 # $(warning DEBUG: MOD_ASSET_DIRS = $(MOD_ASSET_DIRS))
@@ -93,23 +106,36 @@ MOD_ASSETS_COPIED := $(OUT_DIR)/.assets_copied # marker file in 'out' root
 
 # --- Main Targets ---
 
-.PHONY: all clean install assets
+.PHONY: all clean install assets riivolution patch
 
 # The 'all' target builds all final .bin files.
-all: $(MOD_BIN_FILES) assets
+all: 		$(MOD_BIN_FILES) hoshi assets
+package: 	all riivolution patch
 
 # --- Directory Creation Rules ---
 # Rule to create the top-level build directory
 $(BUILD_DIR):
 	@mkdir -p $@
 
-# Rule to create the top-level output directory
+# Rule to create the mods output directory
+$(OUT_DIR):
+	@mkdir -p $@
+
+# Rule to create the mods output directory
 $(MODS_OUT_DIR):
 	@mkdir -p $@
 
 # Rule to create all necessary subdirectories within the build folder for objects
 $(OBJ_DIRS):
 	@mkdir -p $@
+
+# Rule to extract the original dol from the iso
+$(ORIG_DOL):
+	python $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
+
+# --- hoshi target ---
+hoshi: $(ORIG_DOL)
+	$(MAKE) -C $(HOSHI_DIR)
 
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
@@ -166,25 +192,40 @@ $(foreach mod,$(MOD_NAMES),\
 # --- Include generated dependency files (.d files) ---
 -include $(DEPS)
 
-# Rule to copy all assets to the root of the 'out' directory
-assets:
+# Rule to copy all assets to the root directory
+assets: hoshi
 	@for dir in $(MOD_ASSET_DIRS); do \
 		if [ -d "$$dir" ]; then \
-			cp -a "$$dir"/* "$(OUT_DIR)/"; \
+			cp -a "$$dir"/* "$(ROOT_DIR)/files/"; \
 		fi; \
 	done
+	cp -a -r "$(ISO_DIR)"/* "$(strip $(ROOT_DIR))/"
+	cp -a -r "$(HOSHI_DIR)/dol/out"/main.dol "$(strip $(ROOT_DIR)/sys)/"
+	cp -a -r "$(HOSHI_DIR)/out/release"/* "$(strip $(ROOT_DIR)/files)/"
 
 # --- Install Target ---
-# Copies the files from $(OUT_DIR) to $(INSTALL_DIR)
-install: all assets
+# Copies the files from $(ROOT_DIR) to $(INSTALL_DIR)
+install: $(MOD_BIN_FILES) hoshi assets 
 	@echo ""
+	$(MAKE) -C $(HOSHI_DIR) install INSTALL_DIR="$(INSTALL_DIR)"
 	@echo "--- Installing files to "$(INSTALL_DIR)" ---"
-	cp -a -r "$(OUT_DIR)"/* "$(strip $(INSTALL_DIR))/"
+	cp -a -r "$(ROOT_DIR)"/* "$(strip $(INSTALL_DIR))/"
 	@echo ""
 	@echo "Installation complete."
+
+patch: $(OUT_DIR) $(MOD_BIN_FILES) hoshi assets
+	@echo ""
+	@echo "--- Creating ISO Patch... ---"
+	python $(SCRIPT_DIR) $(ISO_PATH) $(ROOT_DIR) $(OUT_DIR)/patch.xdelta
+
+riivolution: $(OUT_DIR) $(MOD_BIN_FILES) hoshi assets
+	@echo ""
+	@echo "--- Creating Riivolution Mod... ---"
+	cp -a -r "$(HOSHI_DIR)/dol/out/Riivolution" "$(OUT_DIR)"
+	cp -a -r "$(ROOT_DIR)"/files/* "$(OUT_DIR)/Riivolution/KirbyAirRideDeluxe"
 
 # --- Clean Target ---
 clean:
 	@echo "Cleaning build and output directories..."
-	rm -r $(BUILD_DIR)
-	rm -r $(MODS_OUT_DIR)
+	$(MAKE) -C $(HOSHI_DIR) clean
+	rm -rf $(ORIG_DOL) $(ROOT_DIR) $(OUT_DIR) $(BUILD_DIR)

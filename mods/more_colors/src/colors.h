@@ -9,6 +9,12 @@ typedef struct UIColor
     GXColor hud;
 } UIColor;
 
+typedef struct RdKirbyColors
+{
+    int num;
+    UIColor *colors;
+} RdKirbyColors;
+
 typedef struct ElementColorDesc
 {
     s16 joint_idx;
@@ -19,6 +25,6 @@ typedef struct ElementColorDesc
 void Select_SetUIColor(JOBJ *j, int joint_idx, int dobj_idx, GXColor color);
 int Select_ColorToAnim(int color_idx);
 void Select_UpdatePlyBoard(JOBJ *j, int p_kind, int anim_frame, ElementColorDesc *desc);
-UIColor *Colors_GetUIColors();
 void Colors_ApplyPatches();
+void Colors_Init(char *file_name);
 #endif

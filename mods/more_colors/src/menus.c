@@ -15,7 +15,7 @@
 
 #include "hoshi/settings.h"
 
-extern struct UIColor stc_ui_colors[];
+extern struct UIColor *stc_ui_colors;
 extern int stc_ui_colors_num;
 
 void Kicon_CopyTextures(MatAnimDesc *src_matanimdesc, HSD_Archive *ifall_archive)

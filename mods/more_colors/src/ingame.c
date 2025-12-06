@@ -15,7 +15,7 @@
 
 #include "hoshi/settings.h"
 
-extern struct UIColor stc_ui_colors[];
+extern struct UIColor *stc_ui_colors;
 extern int stc_ui_colors_num;
 
 static HSD_Archive *stc_ifall_morecolors;
@@ -153,7 +153,7 @@ void Game_LoadAdditionalAssets()
     stc_plicon_texanim = 0;
 
     // load our file
-    Gm_LoadGameFile(&stc_ifall_morecolors, "IfAllMoreColors");
+    Gm_LoadGameFile(&stc_ifall_morecolors, "RdKirbyMore");
 
     // get plicon data
     if (stc_ifall_morecolors)

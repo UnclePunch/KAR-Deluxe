@@ -15,53 +15,14 @@
 #include "profiler.h"
 #include "fst/fst.h"
 #include "code_patch/code_patch.h"
-#include "hoshi/settings.h"
-
-char ModName[] = "Debug";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v1.0";
 
 static OSAlarm alarm;
 Text *heap_text;
 int heap_is_visible = 0;
 int debug_enabled;
 
-OptionDesc ModSettings = {
-    .name = "Debug Mode",
-    .description = "Enable debug functionality.",
-    .on_change = Debug_ChangeSetting,
-    .pri = MENUPRI_LOW,
-    .kind = OPTKIND_VALUE,
-    .val = &debug_enabled,
-    .value_num = 2,
-    .value_names = (char *[]){
-        "Off",
-        "On",
-    },
-};
-
-void OnBoot(HSD_Archive *archive)
+void Debug_OnSceneChange()
 {
-    // Profiler_Init();
-
-    if ((*stc_dblevel) < DB_DEVELOP)
-        return;
-
-    // // output vanilla preload files
-    // for (int i = 0; i < 82; i++)
-    //     OSReport("file #%d (%p):\n  %s\n  kind: %d\n",
-    //              i,
-    //              &stc_preload_entry_descs[i],
-    //              stc_preload_entry_descs[i].file_name,
-    //              stc_preload_entry_descs[i].file_kind);
-
-    // Net_Init();
-
-    return;
-}
-void OnSceneChange(HSD_Archive *archive)
-{
-
     GOBJ *g = GOBJ_EZCreator(0, 0, 0,
                              0, HSD_Free,
                              0, 0,
@@ -85,10 +46,7 @@ void OnSceneChange(HSD_Archive *archive)
     t->viewport_color = (GXColor){0, 0, 0, 128};
     Text_AddSubtext(t, 0, 0, "");
     heap_text = t;
-
-    return;
 }
-
 void Debug_ChangeSetting(int val)
 {
     if (val == 0)

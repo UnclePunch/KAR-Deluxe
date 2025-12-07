@@ -1,6 +1,9 @@
 #ifndef MORECOLORS_H
 #define MORECOLORS_H
 
+#define COLORDATA_FILENAME      "RdKirbyColors.dat"
+#define COLORDATA_SYMBOLNAME    "rdKirbyColors"
+
 typedef struct UIColor
 {
     GXColor main;

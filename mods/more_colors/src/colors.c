@@ -16,26 +16,8 @@
 #include "ingame.h"
 #include "code_patch/code_patch.h"
 
-#include "hoshi/settings.h"
-
-char ModName[] = "More Colors";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v1.1";
-
-// Callbacks
-void OnBoot(HSD_Archive *archive)
-{
-    Colors_Init("RdKirbyColors.dat");
-
-    return;
-}
-void OnSceneChange(HSD_Archive *archive)
-{
-    return;
-}
-
 UIColor *stc_ui_colors = 0;
-int stc_ui_colors_num = -1; // GetElementsIn(stc_ui_colors);
+int stc_ui_colors_num = -1;
 
 // Shared Select Functions
 void Select_SetUIColor(JOBJ *j, int joint_idx, int dobj_idx, GXColor color) // function to manually set the color of a UI element
@@ -107,10 +89,10 @@ void Colors_Init(char *file_name)
 
     Archive_Init(&archive, buffer, dvdinfo.length);
 
-    RdKirbyColors *kirby_colors = (RdKirbyColors *)Archive_GetPublicAddress(&archive, "rdKirbyColors");
+    RdKirbyColors *kirby_colors = (RdKirbyColors *)Archive_GetPublicAddress(&archive, COLORDATA_SYMBOLNAME);
     if (!kirby_colors)
     {
-        OSReport("MoreColors: %s does not contain symbol %s, aborting.\n", file_name, "rdKirbyColors");
+        OSReport("MoreColors: %s does not contain symbol %s, aborting.\n", file_name, COLORDATA_SYMBOLNAME);
         return;
     }
 

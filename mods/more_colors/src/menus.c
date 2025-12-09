@@ -22,7 +22,7 @@ void Kicon_CopyTextures(MatAnimDesc *src_matanimdesc, HSD_Archive *ifall_archive
 {
     // load if not present
     if (!ifall_archive)
-        Gm_LoadGameFile(&ifall_archive, "IfAllMoreColors"); // get custom icons from file
+        Gm_LoadGameFile(&ifall_archive, COLORTEX_FILENAME); // get custom icons from file
 
     // get custom texanim
     HSD_TexAnim *dst_texanim = Archive_GetPublicAddress(ifall_archive, "ScInfPlicon_texanim");

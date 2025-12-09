@@ -4,6 +4,8 @@
 #define COLORDATA_FILENAME      "RdKirbyColors.dat"
 #define COLORDATA_SYMBOLNAME    "rdKirbyColors"
 
+#define COLORTEX_FILENAME      "RdKirbyMore"
+
 typedef struct UIColor
 {
     GXColor main;

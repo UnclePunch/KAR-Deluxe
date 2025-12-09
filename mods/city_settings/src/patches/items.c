@@ -71,6 +71,13 @@ int Item_RemoveFromPool(ItemKind it_kind, u8 *it_kind_arr, u8 *it_chance_arr, u8
         }
     }
 
+    // grBoxGeneInfo *box_gene_info = (*stc_grBoxGeneInfo);
+    // for (int i = 0; i < box_gene_info->item_desc->x18_num; i++)
+    // {
+    //     if (box_gene_info->item_desc->x18[i].chance_chamber > 0)
+    //         OSReport("[%d]: %d\n", box_gene_info->item_desc->x18[i].it_kind, box_gene_info->item_desc->x18[i].chance_chamber);
+    // }
+
     return 0;
 }
 void AllUp_AdjustSpawn()

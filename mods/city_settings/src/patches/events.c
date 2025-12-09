@@ -24,8 +24,8 @@ void EventFreq_Adjust()
     };
 
     EventCheckData *ep = (*stc_eventcheck_gobj)->userdata;
-    ep->data->param->event_delay_min *= freq_mult[val];
-    ep->data->param->event_delay_max *= freq_mult[val];
+    ep->data->event->delay_min *= freq_mult[val];
+    ep->data->event->delay_max *= freq_mult[val];
 }
 CODEPATCH_HOOKCREATE(0x800edc28, "", EventFreq_Adjust, "", 0)
 
@@ -91,7 +91,7 @@ int EventReveal_Check(int num)
     }
 }
 
-int EventCheck_Lighthouse(GOBJ *g)
+int EventCheck_Lighthouse(EventCheckData *gp)
 {
     int is_ready = 0;
 

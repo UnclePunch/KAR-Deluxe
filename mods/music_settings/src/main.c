@@ -1,34 +1,23 @@
 /*---------------------------------------------------------------------------*
-    Entrypoint for the video_settings module.
+    Entrypoint for the music_settings module.
 
  *---------------------------------------------------------------------------*/
 
-#include "text.h"
-#include "os.h"
-#include "hsd.h"
-#include "preload.h"
-#include "scene.h"
-#include "inline.h"
-#include "audio.h"
 #include "hoshi/settings.h"
+#include "hoshi/mod.h"
+
+#include "../../more_machines/src/machines.h"
 
 #include "musicsettings.h"
 #include "music_change.h"
 
-char ModName[] = "Music Settings";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
-
-MusicSettingsSave *ModSave = 0;
-int ModSaveSize = sizeof(struct MusicSettingsSave);
-
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
     MusicSettings_Init();
     MusicChange_Init();
     return;
 }
-void OnSceneChange(HSD_Archive *archive)
+void OnSceneChange()
 {
     return;
 }
@@ -50,11 +39,27 @@ void On3DLoad()
 {
     MusicChange_On3DLoad();
 }
-void On3DPause()
+void On3DPause(int pauser_ply)
 {
     MusicChange_Create();
 }
-void On3DUnpause()
+void On3DUnpause(int pauser_ply)
 {
     MusicChange_Destroy();
 }
+
+ModDesc mod_desc = {
+    .name = "Music Settings",
+    .author = "UnclePunch",
+    .version.major = VERSION_MAJOR,
+    .version.minor = VERSION_MINOR,
+    .save_size = sizeof(struct MusicSettingsSave),
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+    .OnSaveInit = OnSaveInit,
+    .OnSaveLoaded = OnSaveLoaded,
+    .OnMainMenuLoad = OnMainMenuLoad,
+    .On3DLoad = On3DLoad,
+    .On3DPause = On3DPause,
+    .On3DUnpause = On3DUnpause,
+};

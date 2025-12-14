@@ -9,6 +9,8 @@
 #include "obj.h"
 #include "game.h"
 
+#include "hoshi/func.h"
+
 #include "code_patch/code_patch.h"
 
 #include "unpause.h"

@@ -3,13 +3,7 @@
 
  *---------------------------------------------------------------------------*/
 
-#include "text.h"
-#include "os.h"
-#include "hsd.h"
-#include "preload.h"
-#include "scene.h"
-#include "inline.h"
-#include "audio.h"
+#include "hoshi/mod.h"
 
 #include "citysettings.h"
 #include "patches/around_world.h"
@@ -17,20 +11,13 @@
 #include "patches/events.h"
 #include "patches/machines.h"
 
-char ModName[] = "City Settings";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
-
-CitySettingsSave *ModSave;
-int ModSaveSize = sizeof(struct CitySettingsSave);
-
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
     CitySettings_Init(); // overload the city settings scene with our own code
 
     return;
 }
-void OnSceneChange(HSD_Archive *archive)
+void OnSceneChange()
 {
     return;
 }
@@ -54,3 +41,17 @@ void On3DLoad()
     Box_CheckIfEnabled();
     EventReveal_Do();
 }
+
+ModDesc mod_desc = {
+    .name = "City Settings",
+    .author = "UnclePunch",
+    .version.major = VERSION_MAJOR,
+    .version.minor = VERSION_MINOR,
+    .save_size = sizeof(struct CitySettingsSave),
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+    .OnSaveInit = OnSaveInit,
+    .OnSaveLoaded = OnSaveLoaded,
+    .OnPlayerSelectLoad = OnPlayerSelectLoad,
+    .On3DLoad = On3DLoad,
+};

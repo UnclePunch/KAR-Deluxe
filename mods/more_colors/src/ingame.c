@@ -13,6 +13,7 @@
 #include "code_patch/code_patch.h"
 #include "ingame.h"
 
+#include "hoshi/func.h"
 #include "hoshi/settings.h"
 
 extern struct UIColor *stc_ui_colors;

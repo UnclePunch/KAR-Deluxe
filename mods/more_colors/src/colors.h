@@ -1,6 +1,8 @@
 #ifndef MORECOLORS_H
 #define MORECOLORS_H
 
+#include "gx.h"
+
 #define COLORDATA_FILENAME      "RdKirbyColors.dat"
 #define COLORDATA_SYMBOLNAME    "rdKirbyColors"
 

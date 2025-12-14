@@ -1,14 +1,11 @@
-#include "os.h"
+#include "hoshi/mod.h"
+#include "hoshi/settings.h"
+
 #include "hsd.h"
 
 #include "debug.h"
 #include "net.h"
 #include "profiler.h"
-#include "hoshi/settings.h"
-
-char ModName[] = "Debug";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v1.0";
 
 extern int debug_enabled;
 
@@ -26,7 +23,7 @@ OptionDesc ModSettings = {
     },
 };
 
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
     // Profiler_Init();
 
@@ -45,9 +42,18 @@ void OnBoot(HSD_Archive *archive)
 
     return;
 }
-void OnSceneChange(HSD_Archive *archive)
+void OnSceneChange()
 {
     Debug_OnSceneChange();
 
     return;
 }
+
+ModDesc mod_desc = {
+    .name = "Debug",
+    .author = "UnclePunch",
+    .version.major = 1,
+    .version.minor = 0,
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+};

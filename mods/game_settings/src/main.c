@@ -1,13 +1,5 @@
-
-#include "text.h"
-#include "os.h"
-#include "hsd.h"
-#include "preload.h"
-#include "scene.h"
-#include "inline.h"
-#include "audio.h"
+#include "hoshi/mod.h"
 #include "hoshi/settings.h"
-#include "fst/fst.h"
 
 #include "attractmode.h"
 #include "brake.h"
@@ -36,11 +28,7 @@ extern int ability_drop_enabled;
 extern int sd_as_ko_enabled;
 extern int intang_after_ko_enabled;
 
-char ModName[] = "Game Settings";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v" STR(VERSION_MAJOR) "." STR(VERSION_MINOR);
-
-OptionDesc ModSettings = {
+OptionDesc mod_settings = {
     // Controls Menu
     .name = "Game Settings",
     .description = "Finetune gameplay!",
@@ -201,12 +189,11 @@ OptionDesc ModSettings = {
     },
 };
 
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
-
     return;
 }
-void OnSceneChange(HSD_Archive *archive)
+void OnSceneChange()
 {
 
     return;
@@ -237,3 +224,16 @@ void On3DPause(int pause_ply)
 {
     QuickStat_OnPause();
 }
+
+ModDesc mod_desc = {
+    .name = "Game Settings",
+    .author = "UnclePunch",
+    .version.major = VERSION_MAJOR,
+    .version.minor = VERSION_MINOR,
+    .option_desc = &mod_settings,
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+    .OnSaveLoaded = OnSaveLoaded,
+    .On3DLoad = On3DLoad,
+    .On3DPause = On3DPause,
+};

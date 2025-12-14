@@ -1,21 +1,24 @@
-#include "os.h"
-#include "hsd.h"
-
+#include "hoshi/mod.h"
 
 #include "colors.h"
 
-char ModName[] = "More Colors";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v1.1";
-
 // Callbacks
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
     Colors_Init(COLORDATA_FILENAME);
 
     return;
 }
-void OnSceneChange(HSD_Archive *archive)
+void OnSceneChange()
 {
     return;
 }
+
+ModDesc mod_desc = {
+    .name = "More Colors",
+    .author = "UnclePunch",
+    .version.major = 1,
+    .version.minor = 1,
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+};

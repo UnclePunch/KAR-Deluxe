@@ -7,6 +7,8 @@
 #include "game.h"
 #include "hud.h"
 
+#include "hoshi/func.h"
+
 #include "music_change.h"
 #include "music_database.h"
 #include "fst/fst.h"

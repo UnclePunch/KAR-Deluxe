@@ -9,6 +9,8 @@
 #include "audio.h"
 #include "scene.h"
 
+#include "hoshi/func.h"
+
 #include <string.h>
 
 #include "credits.h"

@@ -3,24 +3,23 @@
 
  *---------------------------------------------------------------------------*/
 
-#include "os.h"
-#include "hsd.h"
-#include "preload.h"
-#include "scene.h"
-#include "inline.h"
-#include "audio.h"
+#include "hoshi/mod.h"
 #include "hoshi/settings.h"
 
 #include "title.h"
 
-char ModName[] = "KAR Deluxe Title";
-char ModAuthor[] = "UnclePunch";
-char ModVersion[] = "v1.0";
-
-void OnBoot(HSD_Archive *archive)
+void OnBoot()
 {
     // apply patches
     Title_ApplyPatches();
 
     return;
 }
+
+ModDesc mod_desc = {
+    .name = "KAR Deluxe Title",
+    .author = "UnclePunch",
+    .version.major = 1,
+    .version.minor = 0,
+    .OnBoot = OnBoot,
+};

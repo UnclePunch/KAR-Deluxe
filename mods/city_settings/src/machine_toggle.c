@@ -100,7 +100,7 @@ GOBJ *MachineToggle_Create(int (**input_cb)(GOBJ *))
             JObj_SetFrameAndRate(JObj_GetIndex(opt_j, MCHNTOGGLE_OPTION_JOINT_ICON), opt_idx, 0); // set on/off state frame
 
             // create text
-            Text *text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+            Text *text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
             text->kerning = 1;
             text->align = 0;
             text->use_aspect = 1;

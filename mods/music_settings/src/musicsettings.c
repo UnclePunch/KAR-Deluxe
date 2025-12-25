@@ -254,8 +254,8 @@ void MusicSettings_Create()
     // create text canvas
     // GOBJ *textcam_g = MusicSettings_TextCamCreate(stc_sobj->cobjdesc[0]);
     // CObj_SetScissor(textcam_g->hsd_object, 0, 640, 0, 480);
-    stc_scene_menu_common->canvas_idx = Text_CreateCanvas(0, -1, 41, 17, 0, MENUGX_SONGNAME, 1, -1);
-    TextJoint_Init(stc_scene_menu_common->canvas_idx);
+    stc_scene_menu_common->text.canvas_idx = Text_CreateCanvas(0, -1, 41, 17, 0, MENUGX_SONGNAME, 1, -1);
+    TextJoint_Init(stc_scene_menu_common->text.canvas_idx);
 
     // create cam
     GOBJ *gc = MusicSettings_CamCreate(stc_sobj->cobjdesc[0]);
@@ -394,7 +394,7 @@ GOBJ *MusicSettings_BGCreate()
     // create description text
     Text *text = TextJoint_Create(g->hsd_object,
                                   24,
-                                  stc_scene_menu_common->canvas_idx,
+                                  stc_scene_menu_common->text.canvas_idx,
                                   "",
                                   0,
                                   930, 32,
@@ -527,7 +527,7 @@ GOBJ *MusicSettings_UICreate()
         // create song text
         text = TextJoint_Create(gp->playlist.entry_button[i].songname_j,
                                 0,
-                                stc_scene_menu_common->canvas_idx,
+                                stc_scene_menu_common->text.canvas_idx,
                                 "Hello World",
                                 0,
                                 SONG_ASPECT_X, 32,
@@ -538,7 +538,7 @@ GOBJ *MusicSettings_UICreate()
         // create song number text
         text = TextJoint_Create(gp->playlist.entry_button[i].songnum_j,
                                 0,
-                                stc_scene_menu_common->canvas_idx,
+                                stc_scene_menu_common->text.canvas_idx,
                                 "10",
                                 1,
                                 32, 32,

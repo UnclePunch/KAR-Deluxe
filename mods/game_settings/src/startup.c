@@ -13,7 +13,7 @@
 #include "startup.h"
 
 // Startup Behavior
-StartupKind startup_kind = STARTUP_MOVIE;
+StartupKind startup_kind = STARTUP_CITYSELECT;
 static u8 startup_scenes[] = {
     MJRKIND_TITLE, // opening movie
     MJRKIND_TITLE, // title screen
@@ -26,8 +26,13 @@ void Startup_Init()
 {
     // change bootup scene to this
     MajorKind major_kind = startup_scenes[startup_kind];
-    CODEPATCH_REPLACEINSTRUCTION(0x80047750, 0x38600000 | major_kind);
-    CODEPATCH_REPLACEINSTRUCTION(0x800477f0, 0x38600000 | major_kind);
+
+    // disable save minor code from changing scene
+    CODEPATCH_REPLACEINSTRUCTION(0x80047754, 0x60000000);
+    CODEPATCH_REPLACEINSTRUCTION(0x800477f4, 0x60000000);
+    
+    // change scene
+    Scene_SetNextMajor(major_kind);
 
     switch (startup_kind)
     {
@@ -64,7 +69,41 @@ void Startup_Init()
         gd->main_menu.major_kind = major_kind;
         gd->city.mode = CITYMODE_TRIAL;
         gd->is_showed_tutorial_city = 1;
+
+        // debug code to boot into city trial
+        if (0)
+        {
+            static PlayerDesc hmn_desc = {
+                .p_kind = PKIND_HMN,
+                .rider_kind = RDKIND_KIRBY,
+                .is_bike = 0,
+                .machine_kind = VCKIND_COMPACT,
+                .color = 0,
+                .x5 = 1,
+                .ply = 0,
+                .x7 = -1,
+                .x8 = 0x08ff0000,
+                .xc = 0,
+                .x10 = 0,
+                .x14 = 0,
+                .x18 = 0,
+                .x1c = 0,
+                .x20 = 0,
+                .x24 = 0,
+                .x28 = 0,
+                .x2c = 0,
+            };
+            memcpy(&gd->ply_desc[0], &hmn_desc, sizeof(PlayerDesc));
+            gd->ply_view_desc[0].x1 = 1;
+            gd->time_seconds = 5 * 60;
+            gd->city.x398 = 1;
+        }
+
+        gd->city.mode = CITYMODE_STADIUM;
+
+
         break;
+
     }
     case (STARTUP_AIRRIDESELECT):
     {

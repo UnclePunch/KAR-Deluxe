@@ -47,7 +47,7 @@ GOBJ *Window_Create(char *string, void (*cb_confirm)())
 
     wd->cursor = 0;
     wd->text = TextJoint_Create(wj, 2,
-                                stc_scene_menu_common->canvas_idx,
+                                stc_scene_menu_common->text.canvas_idx,
                                 string,
                                 1,
                                 wj->scale.X * 700, 24,

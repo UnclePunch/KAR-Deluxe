@@ -1,0 +1,49 @@
+/*---------------------------------------------------------------------------*
+    Entrypoint for the more_machines module.
+
+ *---------------------------------------------------------------------------*/
+
+#include "hoshi/mod.h"
+
+#include "starpole.h"
+#include "replay.h"
+
+OptionDesc mod_settings = {
+    .name = "Starpole",
+    .description = "Not sure yet.",
+    .pri = MENUPRI_NORMAL,
+    .kind = OPTKIND_SCENE,
+    .major_idx = -1,
+};
+
+void OnBoot()
+{
+    Starpole_Init();
+
+    return;
+}
+
+void OnSceneChange()
+{
+    Test_DisplayString();
+}
+
+void On3DLoadStart()
+{
+    Replay_On3DLoadStart();
+}
+
+void On3DExit()
+{
+    Replay_On3DExit();
+}
+
+ModDesc mod_desc = {
+    .name = "Starpole Communication",
+    .version.major = STARPOLE_VERSION_MAJOR,
+    .version.minor = STARPOLE_VERSION_MINOR,
+    .OnBoot = OnBoot,
+    .OnSceneChange = OnSceneChange,
+    .On3DLoadStart = On3DLoadStart,
+    .On3DExit = On3DExit,
+};

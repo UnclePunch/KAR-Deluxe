@@ -22,7 +22,7 @@ int frame_idx;
 int Replay_SendMatch()
 {
     // notify EXI of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_MATCH, 0) == -1)
+    if (Starpole_Imm(STARPOLE_CMD_MATCH, 0) <= 0)
         return 0;
 
     // initialize outgoing buffer
@@ -61,8 +61,11 @@ int Replay_SendEnd()
 int Replay_ReqMatch()
 {
     // request data
-    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) == -1)
+    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) <= 0)
+    {
+        OSReport("Replay: error receiving match\n");
         return 0;
+    }
 
     // receive it
     if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->match), EXI_READ))
@@ -168,8 +171,11 @@ void Replay_On3DLoadStart()
         return;
 
     // send off initial match data
-    // Starpole_SendMatch();
-    Replay_ReqMatch();
+    if (!Replay_SendMatch())
+        return;
+        
+    // if (!Replay_ReqMatch())
+    //     return;
 
     // create a gobj to transmit per frame match data
     GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0, 

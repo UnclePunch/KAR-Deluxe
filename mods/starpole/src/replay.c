@@ -13,22 +13,44 @@
 #include "hoshi/func.h"
 
 #include "starpole.h"
+#include "replay.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
 extern StarpoleBuffer *starpole_buf;
 int frame_idx;
+int is_active = 0;
+
+int replay_frame_size;
+ReplayMode replay_mode = REPLAY_PLAYBACK;
 
 int Replay_SendMatch()
 {
     // notify EXI of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_MATCH, 0) <= 0)
+    if (Starpole_Imm(STARPOLE_CMD_MATCH, 0) == -1)
+    {
+        OSReport("Replay: error sending match\n");
         return 0;
+    }
+
+    // calculate size of frame
+    int hmn_num = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (Ply_GetPKind(i) == PKIND_HMN)
+            hmn_num++;
+    }
+    replay_frame_size = sizeof(starpole_buf->frame.rng_seed) +
+                        sizeof(starpole_buf->frame.frame_idx) +
+                        sizeof(starpole_buf->frame.ply_num) +
+                        sizeof(starpole_buf->frame.ply[0]) * hmn_num;
 
     // initialize outgoing buffer
     GameData *gp = Gm_GetGameData();
     starpole_buf->match.rng_seed = *hsd_rand_seed;
-    starpole_buf->match.gr_kind = gp->stage_kind;
+    starpole_buf->match.frame_size = replay_frame_size;
+    starpole_buf->match.stadium_kind = gp->city.stadium_kind;
+    memcpy(starpole_buf->match.misc, &gp->city_kind, sizeof(starpole_buf->match.misc));
     memcpy(starpole_buf->match.ply_desc, gp->ply_desc, sizeof(starpole_buf->match.ply_desc));
 
     // send it
@@ -37,14 +59,14 @@ int Replay_SendMatch()
 
     return 1;
 }
-int Replay_SendFrame()
+int Replay_SendFrame(int frame_idx)
 {
     // notify EXI of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_FRAME, 0) == -1)
+    if (Starpole_Imm(STARPOLE_CMD_FRAME, frame_idx) == -1)
         return 0;
 
     // send it
-    if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->frame), EXI_WRITE))
+    if (!Starpole_DMA(starpole_buf, replay_frame_size, EXI_WRITE))
         return 0;
 
     return 1;
@@ -61,7 +83,7 @@ int Replay_SendEnd()
 int Replay_ReqMatch()
 {
     // request data
-    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) <= 0)
+    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) == -1)
     {
         OSReport("Replay: error receiving match\n");
         return 0;
@@ -74,7 +96,8 @@ int Replay_ReqMatch()
     // copy to game struct
     GameData *gp = Gm_GetGameData();
     *hsd_rand_seed = starpole_buf->match.rng_seed;
-    gp->stage_kind = starpole_buf->match.gr_kind;
+    gp->city.stadium_kind = starpole_buf->match.stadium_kind;
+    memcpy(&gp->city_kind, starpole_buf->match.misc, sizeof(starpole_buf->match.misc));
     memcpy(gp->ply_desc, starpole_buf->match.ply_desc, sizeof(starpole_buf->match.ply_desc));
 
     return 1;
@@ -82,28 +105,29 @@ int Replay_ReqMatch()
 int Replay_ReqFrame(int frame_idx)
 {
     // request data
-    if (Starpole_Imm(STARPOLE_CMD_REQFRAME, frame_idx) == -1)
+    int frame_size = Starpole_Imm(STARPOLE_CMD_REQFRAME, frame_idx);
+    if (frame_size == -1)
         return 0;
 
     // receive it
-    if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->frame), EXI_READ))
+    if (!Starpole_DMA(starpole_buf, frame_size, EXI_READ))
         return 0;
 
     return 1;
 }
 
-void Replay_OnFrameStart(GOBJ *g)
+void Record_OnFrameStart(GOBJ *g)
 {
     starpole_buf->frame.rng_seed = *hsd_rand_seed;
     return;
 }
-void Replay_OnFrameInputs(GOBJ *g)
+void Record_OnFrameInputs(GOBJ *g)
 {
     // log player inputs
     int ply = 0;
     for (int i = 0; i < 4; i++)
     {
-        if (Ply_GetPKind(i) != PKIND_NONE)
+        if (Ply_GetPKind(i) == PKIND_HMN)
         {
             GOBJ *r = Ply_GetRiderGObj(i);
             RiderData *rd = r->userdata;
@@ -112,9 +136,11 @@ void Replay_OnFrameInputs(GOBJ *g)
             starpole_buf->frame.ply[ply].idx = ply;
 
             // copy buttons
-            starpole_buf->frame.ply[ply].input.buttons = rd->input.down;
-            starpole_buf->frame.ply[ply].input.lstick = rd->input.lstick;
-            starpole_buf->frame.ply[ply].input.rstick = rd->input.rstick;
+            starpole_buf->frame.ply[ply].input.held = (stc_engine_pads[i].held & 0x00000FF0) >> 4;
+            starpole_buf->frame.ply[ply].input.stickX = stc_engine_pads[i].stickX;
+            starpole_buf->frame.ply[ply].input.stickY = stc_engine_pads[i].stickY;
+            starpole_buf->frame.ply[ply].input.substickX = stc_engine_pads[i].substickX;
+            starpole_buf->frame.ply[ply].input.substickY = stc_engine_pads[i].substickY;
 
             ply++;
         }
@@ -124,7 +150,7 @@ void Replay_OnFrameInputs(GOBJ *g)
     starpole_buf->frame.ply_num = ply;
     starpole_buf->frame.frame_idx = frame_idx;
 }
-void Replay_OnFrameEnd(GOBJ *g)
+void Record_OnFrameEnd(GOBJ *g)
 {
     // log player state
     int ply = 0;
@@ -146,23 +172,59 @@ void Replay_OnFrameEnd(GOBJ *g)
             else
                 machine_kind = -1;
 
-            // copy state
-            starpole_buf->frame.ply[ply].rd_state = rd->state_idx;
-            starpole_buf->frame.ply[ply].machine_kind = machine_kind;
-            starpole_buf->frame.ply[ply].pos = rd->pos;
+            // // copy state
+            // starpole_buf->frame.ply[ply].rd_state = rd->state_idx;
+            // starpole_buf->frame.ply[ply].machine_kind = machine_kind;
+            // starpole_buf->frame.ply[ply].pos = rd->pos;
 
             ply++;
         }
     }
 
-    // ship it off
-    if (Gm_GetIntroState() == GMINTRO_END)
-    {
-        // Starpole_SendFrame();
-        Replay_ReqFrame(frame_idx);
-        frame_idx++;
-    }
+    Replay_SendFrame(frame_idx);
+    frame_idx++;
     
+}
+
+void Playback_OnFrameStart(GOBJ *g)
+{
+    // request frame
+    Replay_ReqFrame(frame_idx);
+    
+    if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
+        OSReport("Random seed mismatch on frame %d!\n", frame_idx);
+
+    // *hsd_rand_seed = starpole_buf->frame.rng_seed;
+
+    return;
+}
+void Playback_OnFrameInputs(GOBJ *g)
+{
+    if (starpole_buf->frame.frame_idx != frame_idx)
+    {
+        OSReport("Replay: frame index mismatch\n");
+        assert("0");
+    }
+
+    // update player inputs
+    int ply = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (Ply_GetPKind(i) != PKIND_NONE)
+        {
+            // copy buttons
+            stc_engine_pads[i].held = (int)starpole_buf->frame.ply[ply].input.held << 4;
+            stc_engine_pads[i].stickX = starpole_buf->frame.ply[ply].input.stickX;
+            stc_engine_pads[i].stickY = starpole_buf->frame.ply[ply].input.stickY;
+            stc_engine_pads[i].substickX = starpole_buf->frame.ply[ply].input.substickX;
+            stc_engine_pads[i].substickY = starpole_buf->frame.ply[ply].input.substickY;
+            ply++;
+        }
+    }
+}
+void Playback_OnFrameEnd(GOBJ *g)
+{ 
+    frame_idx++;
 }
 
 void Replay_On3DLoadStart()
@@ -170,12 +232,27 @@ void Replay_On3DLoadStart()
     if (!Starpole_IsPresent())
         return;
 
-    // send off initial match data
-    if (!Replay_SendMatch())
+    // debug
+    if (stc_engine_pads[0].held & PAD_BUTTON_A)
+        replay_mode = REPLAY_RECORD;
+    else 
+        replay_mode = REPLAY_PLAYBACK;
+
+    // send/receive initial match data
+    int result;
+    if (replay_mode == REPLAY_PLAYBACK)
+        result = Replay_ReqMatch();
+    else
+        result = Replay_SendMatch();
+
+    if (!result)
+    {
+        is_active = 0;
         return;
-        
-    // if (!Replay_ReqMatch())
-    //     return;
+    }
+
+    // proceed with EXI comms throughout this match
+    is_active = 1;
 
     // create a gobj to transmit per frame match data
     GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0, 
@@ -185,11 +262,22 @@ void Replay_On3DLoadStart()
                     0, 0, 0);
 
     frame_idx = 0;
-    GObj_AddProc(g, Replay_OnFrameStart, RDPRI_0);
-    GObj_AddProc(g, Replay_OnFrameInputs, RDPRI_INPUT + 1);
-    GObj_AddProc(g, Replay_OnFrameEnd, RDPRI_15 + 1);
+
+    if (replay_mode == REPLAY_RECORD)
+    {
+        GObj_AddProc(g, Record_OnFrameStart, RDPRI_0);
+        GObj_AddProc(g, Record_OnFrameInputs, RDPRI_INPUT + 1);
+        GObj_AddProc(g, Record_OnFrameEnd, RDPRI_15 + 1);
+    }
+    else if (replay_mode == REPLAY_PLAYBACK)
+    {
+        GObj_AddProc(g, Playback_OnFrameStart, RDPRI_0);
+        GObj_AddProc(g, Playback_OnFrameInputs, RDPRI_INPUT);
+        GObj_AddProc(g, Playback_OnFrameEnd, RDPRI_15 + 1);
+    }
 }
 void Replay_On3DExit()
 {
-    Replay_SendEnd();
+    if (is_active && replay_mode == REPLAY_RECORD)
+        Replay_SendEnd();
 }

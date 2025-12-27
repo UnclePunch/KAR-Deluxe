@@ -32,29 +32,35 @@ typedef struct
 typedef struct
 {
     int rng_seed;
-    GroundKind gr_kind;
+    u16 frame_size;
+    u16 stadium_kind;
+    u8 misc[0xac4 - 0xa94];
     PlayerDesc ply_desc[4];
 } StarpoleDataMatch;
 
+#pragma pack(push, 1)
 typedef struct
 {
     int frame_idx;
     int rng_seed;
-    int ply_num;
+    u8 ply_num;
     struct
     {
-        int idx;
+        u8 idx;
         struct
         {
-            Vec2 lstick;
-            Vec2 rstick;
-            int buttons;
+            u8 held;
+            s8 stickX;
+            s8 stickY;
+            s8 substickX;
+            s8 substickY;
         } input;
-        int rd_state;
-        MachineKind machine_kind;
-        Vec3 pos;
+        // int rd_state;
+        // MachineKind machine_kind;
+        // Vec3 pos;
     }ply[4];
 } StarpoleDataFrame;
+#pragma pack(pop)
 
 typedef struct
 {

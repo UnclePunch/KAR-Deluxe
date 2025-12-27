@@ -141,12 +141,12 @@ hoshi: $(ORIG_DOL)
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
 # It uses an order-only prerequisite to ensure the output directory exists before compilation.
 $(BUILD_DIR)/%.o: %.c | $(OBJ_DIRS)
-	@echo "Compiling $<..."
+#	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/%.o: %.s | $(OBJ_DIRS)
-	@echo "Compiling $<..."
+#	@echo "Compiling $<..."
 	@mkdir -p $(dir $@) 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -161,11 +161,11 @@ endef
 # This template will be used for each mod.
 define LINK_MOD_RULE_TEMPLATE
 $(BUILD_DIR)/$(1).modlink: $(LIB_OBJECTS) $(call GET_MOD_LINK_OBJECTS,$(1))
-	@echo ""
-	@echo "--- Linking '$(1)' Mod Object Files ---"
-	@echo "DEBUG (Linking Rule): All prerequisites ($$^): $$^" # See what $$^ contains
-	@echo "DEBUG (Linking Rule): Filtered prerequisites for linker: $(filter %.o,$$^)" # See what is passed to linker
-	@echo ""
+#	@echo ""
+#	@echo "--- Linking '$(1)' Mod Object Files ---"
+#	@echo "DEBUG (Linking Rule): All prerequisites ($$^): $$^" # See what $$^ contains
+#	@echo "DEBUG (Linking Rule): Filtered prerequisites for linker: $(filter %.o,$$^)" # See what is passed to linker
+#	@echo ""
 	$(LD) $(LDFLAGS) $$^ -o $$@
 endef
 

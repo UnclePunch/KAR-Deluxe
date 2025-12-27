@@ -6,8 +6,6 @@
 #include "hoshi/settings.h"
 #include "hoshi/mod.h"
 
-#include "../../more_machines/src/machines.h"
-
 #include "musicsettings.h"
 #include "music_change.h"
 

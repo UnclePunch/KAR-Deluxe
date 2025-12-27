@@ -36,7 +36,13 @@ void OnPlayerSelectLoad()
 {
     Machines_DetermineSingleRandom();
 }
-void On3DLoad()
+
+void On3DLoadStart()
+{
+    CitySettings_OnGameStart();
+}
+
+void On3DLoadEnd()
 {
     Box_CheckIfEnabled();
     EventReveal_Do();
@@ -53,5 +59,6 @@ ModDesc mod_desc = {
     .OnSaveInit = OnSaveInit,
     .OnSaveLoaded = OnSaveLoaded,
     .OnPlayerSelectLoad = OnPlayerSelectLoad,
-    .On3DLoad = On3DLoad,
+    .On3DLoadStart = On3DLoadStart,
+    .On3DLoadEnd = On3DLoadEnd,
 };

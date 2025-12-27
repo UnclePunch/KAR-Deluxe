@@ -16,7 +16,7 @@ void Hook_SetMachineIcon(GOBJ *g)
     MatAnimDesc *machine_icon_anim = Matanimjoint_GetMatAnimDescByIndex(sicon2_set->matanimjoint[0], 1, 0);
     MatAnimDesc *machine_shadow_anim = Matanimjoint_GetMatAnimDescByIndex(sicon2_set->matanimjoint[0], 2, 0);
 
-    JOBJ *board_jobj = md->city_select.cityselect_menu_gobj->hsd_object;
+    JOBJ *board_jobj = md->city_select.board_gobj->hsd_object;
     DOBJ *machine_shadow_dobj = JObj_GetDObjIndex(board_jobj, 21, 0);
     DOBJ *machine_icon_dobj = JObj_GetDObjIndex(board_jobj, 21, 1);
 

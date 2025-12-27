@@ -204,7 +204,7 @@ GOBJ *StadiumToggle_Create(int (**input_cb)(GOBJ *))
             gp->option[opt_idx].is_on = (cs->random_stadium_bitfield & (1 << stc_togglekind_to_stadiumkind[opt_idx])) ? 1 : 0;
 
             // create text
-            Text *text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+            Text *text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
             text->kerning = 1;
             text->align = 0;
             text->use_aspect = 1;
@@ -227,7 +227,7 @@ GOBJ *StadiumToggle_Create(int (**input_cb)(GOBJ *))
     Text *text;
 
     // create name text
-    text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+    text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
     text->kerning = 1;
     text->align = 0;
     text->use_aspect = 1;
@@ -241,7 +241,7 @@ GOBJ *StadiumToggle_Create(int (**input_cb)(GOBJ *))
     // create description text
     for (int i = 0; i < GetElementsIn(gp->description); i++)
     {
-        text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+        text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
         text->kerning = 1;
         text->align = 0;
         text->use_aspect = 1;

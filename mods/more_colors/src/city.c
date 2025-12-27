@@ -21,10 +21,10 @@ extern int stc_ui_colors_num;
 // City Select
 void CitySelect_UpdatePlayer(int ply, int p_kind, int color_idx)
 {
-    if (!stc_scene_menu_common->city_select.cityselect_menu_gobj)
+    if (!stc_scene_menu_common->city_select.board_gobj)
         return;
 
-    CitySelectMenuData *md = stc_scene_menu_common->city_select.cityselect_menu_gobj->userdata;
+    CitySelectMenuData *md = stc_scene_menu_common->city_select.board_gobj->userdata;
     int *select_color_start = (int *)0x804ab608;
 
     md->ply[ply].p_kind = p_kind;
@@ -278,11 +278,11 @@ void CitySelect_LimitNonKirbyColor(int ply)
 
     if (c_kind == CKIND_DEDEDE || c_kind == CKIND_METAKNIGHT)
     {
-        if (gd->city_select_ply.color[ply] > 7)
+        if (gd->city_select_ply.ply_color[ply] > 7)
         {
-            gd->city_select_ply.color[ply] = 0;
+            gd->city_select_ply.ply_color[ply] = 0;
 
-            int anim_col = Select_ColorToAnim(gd->city_select_ply.color[ply]);
+            int anim_col = Select_ColorToAnim(gd->city_select_ply.ply_color[ply]);
 
             // update all UI elements to reflect this color
             CitySelect_UpdatePlayer(ply, PKIND_HMN, anim_col);

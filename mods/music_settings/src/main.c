@@ -59,7 +59,7 @@ ModDesc mod_desc = {
     .OnSaveInit = OnSaveInit,
     .OnSaveLoaded = OnSaveLoaded,
     .OnMainMenuLoad = OnMainMenuLoad,
-    .On3DLoad = On3DLoad,
+    .On3DLoadEnd = On3DLoad,
     .On3DPause = On3DPause,
     .On3DUnpause = On3DUnpause,
 };

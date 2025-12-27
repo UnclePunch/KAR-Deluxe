@@ -73,7 +73,6 @@ void CitySettings_OnGameStart()
 
     return;
 }
-CODEPATCH_HOOKCREATE(0x80014448, "", CitySettings_OnGameStart, "", 0)
 
 static HSD_Archive *settings_archive = 0;
 static CitySettingsData settings_data;
@@ -96,9 +95,6 @@ void CitySettings_Init()
 
         desc++;
     }
-
-    // add hook to game start code that applies patches at the beginning of every game
-    CODEPATCH_HOOKAPPLY(0x80014448);
 
     CitySettings_BackupMenuDefaults();
 
@@ -546,11 +542,11 @@ void CitySettings_Create()
     settings_data.is_intro_anim = 1;
 
     // init text
-    stc_scene_menu_common->canvas_idx = Text_CreateCanvas(0, -1, 41, 17, 0, MENUGX_2, 0, -1);
-    TextJoint_Init(stc_scene_menu_common->canvas_idx);
+    stc_scene_menu_common->text.canvas_idx = Text_CreateCanvas(0, -1, 41, 17, 0, MENUGX_2, 0, -1);
+    TextJoint_Init(stc_scene_menu_common->text.canvas_idx);
 
     // create description text
-    Text *text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+    Text *text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
     text->kerning = 1;
     text->align = 0;
     text->use_aspect = 1;
@@ -566,7 +562,7 @@ void CitySettings_Create()
     settings_data.menu.name_jobjset = Archive_GetPublicAddress(settings_archive, "ScMenSelrulePanel_scene_models");
     for (int i = 0; i < GetElementsIn(settings_data.menu.name); i++)
     {
-        text = Text_CreateText(0, stc_scene_menu_common->canvas_idx);
+        text = Text_CreateText(0, stc_scene_menu_common->text.canvas_idx);
         text->kerning = 1;
         text->align = 1;
         text->use_aspect = 1;

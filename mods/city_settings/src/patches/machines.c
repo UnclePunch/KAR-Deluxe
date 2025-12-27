@@ -130,7 +130,7 @@ void Machines_AdjustStarting()
     {
         CitySettingsSave *cs = CitySettings_SaveGet();
 
-        for (int i = 0; i < GetElementsIn(gd->ply_data); i++)
+        for (int i = 0; i < GetElementsIn(gd->ply_desc); i++)
         {
             CharacterKind ckind;
             switch (cs->settings[CITYSETTING_SAVE_MACHINESTART])
@@ -160,9 +160,9 @@ void Machines_AdjustStarting()
 
             // OSReport("assigning ply %d ckind %d. it contains machine %d and is_bike: %d\n", i, ckind, c_desc->machine, c_desc->is_bike);
 
-            gd->ply_data[i].machine_kind = c_desc->machine_kind;
-            gd->ply_data[i].is_bike = c_desc->is_bike;
-            gd->ply_data[i].rider_kind = c_desc->rider_kind;
+            gd->ply_desc[i].machine_kind = c_desc->machine_kind;
+            gd->ply_desc[i].is_bike = c_desc->is_bike;
+            gd->ply_desc[i].rider_kind = c_desc->rider_kind;
             gd->city.machine_kind[i] = c_desc->machine_kind;
             gd->city.is_bike[i] = c_desc->is_bike;
         }

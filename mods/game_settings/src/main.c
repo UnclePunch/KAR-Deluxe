@@ -234,6 +234,6 @@ ModDesc mod_desc = {
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .OnSaveLoaded = OnSaveLoaded,
-    .On3DLoad = On3DLoad,
+    .On3DLoadEnd = On3DLoad,
     .On3DPause = On3DPause,
 };

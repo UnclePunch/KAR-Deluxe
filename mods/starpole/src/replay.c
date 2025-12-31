@@ -11,6 +11,7 @@
 #include "rider.h"
 
 #include "hoshi/func.h"
+#include "hoshi/screen_cam.h"
 
 #include "starpole.h"
 #include "replay.h"
@@ -24,6 +25,53 @@ int is_active = 0;
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_PLAYBACK;
 
+int canvas_idx;
+Text *cam_text = 0;
+Text *Replay_CreateCamText()
+{
+    // display test string
+    Text *t = Text_CreateText(1, canvas_idx);
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){10, 30, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){400, 64};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+
+    return t;
+}
+Text *frame_text;
+void Replay_CreateFrameText()
+{
+    // display test string
+    Text *t = Text_CreateText(1, canvas_idx);
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){450, 30, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){260, 32};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "");
+
+    frame_text = t;
+}
+Text *desync_text;
+void Replay_CreateDesyncText(int frame)
+{
+    // display test string
+    Text *t = Text_CreateText(1, canvas_idx);
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){0, 0, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){260, 32};
+    t->color = (GXColor){255, 128, 128, 255};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "Desynced on frame %d!\n", frame);
+
+    desync_text = t;
+}
+
 int Replay_SendMatch()
 {
     // notify EXI of incoming data
@@ -33,20 +81,22 @@ int Replay_SendMatch()
         return 0;
     }
 
+    GameData *gp = Gm_GetGameData();
+
     // calculate size of frame
     int hmn_num = 0;
     for (int i = 0; i < 4; i++)
     {
-        if (Ply_GetPKind(i) == PKIND_HMN)
+        if (gp->ply_desc[i].p_kind == PKIND_HMN)
             hmn_num++;
     }
+
     replay_frame_size = sizeof(starpole_buf->frame.rng_seed) +
                         sizeof(starpole_buf->frame.frame_idx) +
                         sizeof(starpole_buf->frame.ply_num) +
                         sizeof(starpole_buf->frame.ply[0]) * hmn_num;
 
     // initialize outgoing buffer
-    GameData *gp = Gm_GetGameData();
     starpole_buf->match.rng_seed = *hsd_rand_seed;
     starpole_buf->match.frame_size = replay_frame_size;
     starpole_buf->match.stadium_kind = gp->city.stadium_kind;
@@ -183,7 +233,8 @@ void Record_OnFrameEnd(GOBJ *g)
 
     Replay_SendFrame(frame_idx);
     frame_idx++;
-    
+
+    Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
 }
 
 void Playback_OnFrameStart(GOBJ *g)
@@ -192,7 +243,11 @@ void Playback_OnFrameStart(GOBJ *g)
     Replay_ReqFrame(frame_idx);
     
     if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
-        OSReport("Random seed mismatch on frame %d!\n", frame_idx);
+    {
+        OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
+        if (!desync_text)
+            Replay_CreateDesyncText(frame_idx);
+    }
 
     // *hsd_rand_seed = starpole_buf->frame.rng_seed;
 
@@ -210,7 +265,7 @@ void Playback_OnFrameInputs(GOBJ *g)
     int ply = 0;
     for (int i = 0; i < 4; i++)
     {
-        if (Ply_GetPKind(i) != PKIND_NONE)
+        if (Ply_GetPKind(i) == PKIND_HMN)
         {
             // copy buttons
             stc_engine_pads[i].held = (int)starpole_buf->frame.ply[ply].input.held << 4;
@@ -218,15 +273,74 @@ void Playback_OnFrameInputs(GOBJ *g)
             stc_engine_pads[i].stickY = starpole_buf->frame.ply[ply].input.stickY;
             stc_engine_pads[i].substickX = starpole_buf->frame.ply[ply].input.substickX;
             stc_engine_pads[i].substickY = starpole_buf->frame.ply[ply].input.substickY;
+
+            // update float value too because rider input callback reads that instead of the byte...
+            stc_engine_pads[i].fsubstickX = (float)stc_engine_pads[i].substickX / 80.0f;
+            stc_engine_pads[i].fsubstickY = (float)stc_engine_pads[i].substickY / 80.0f;
+
             ply++;
         }
     }
 }
 void Playback_OnFrameEnd(GOBJ *g)
 { 
+
+    OSReport("Frame %d:\n", frame_idx);
+
+    // update player inputs
+    int ply = 0;
+    for (int i = 0; i < 4; i++)
+    {   
+        if (Ply_GetPKind(i) == PKIND_HMN)
+        {
+            GOBJ *r = Ply_GetRiderGObj(i);
+            RiderData *rd = r->userdata;
+
+            OSReport(" Ply %d:\n", i + 1);
+            OSReport("  State:   %d (%d)\n", rd->state_idx, rd->state_idx);
+            OSReport("  Pos:     (%.2f, %.2f, %.2f)\n", rd->pos.X, rd->pos.Y, rd->pos.Z);
+            OSReport("  Machine: %p\n", rd->machine_gobj);
+
+            ply++;
+        }
+    }
+
+    Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
+
+    // GOBJ *rider_cam = stc_ridercam_gobjs[0];
+    // if (rider_cam)
+    // {
+    //     CamData *cd = ((RiderCamData *)rider_cam->userdata)->cam_data;
+
+    //     if (cam_text)
+    //         Text_Destroy(cam_text);
+
+    //     cam_text = Replay_CreateCamText();
+
+    //     for (int i = 0; i < 2; i++)
+    //     {
+    //         Vec3 *v = (Vec3 *)&(((u8 *)cd)[0x138 + sizeof(Vec3) * i]);
+    //         Text_AddSubtext(cam_text, 0, i * 30, "X: %.2f Y: %.2f Z: %.2f", v->X, v->Y, v->Z);
+
+    //         OSReport("%p\n", v);
+    //     }
+
+    // }
+
     frame_idx++;
 }
 
+void Dismount_GetCameraPosition(CamData *cd)
+{
+    memcpy(&cd->xe8.interest, &cd->interest_pos, sizeof(cd->xe8.interest)); // interest pos
+    memcpy(&cd->xe8.eye, &cd->eye_pos, sizeof(cd->xe8.eye)); // eye pos
+}
+CODEPATCH_HOOKCREATE(0x800b7840, "mr 3, 30\n\t", Dismount_GetCameraPosition, "", 0)
+
+void Replay_OnBoot()
+{
+    CODEPATCH_HOOKAPPLY(0x800b7840);
+}
 void Replay_On3DLoadStart()
 {
     if (!Starpole_IsPresent())
@@ -275,6 +389,10 @@ void Replay_On3DLoadStart()
         GObj_AddProc(g, Playback_OnFrameInputs, RDPRI_INPUT);
         GObj_AddProc(g, Playback_OnFrameEnd, RDPRI_15 + 1);
     }
+
+    canvas_idx = Hoshi_GetScreenCanvasIndex();
+    Replay_CreateFrameText();
+
 }
 void Replay_On3DExit()
 {

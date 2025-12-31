@@ -11,6 +11,7 @@
 #include "rider.h"
 
 #include "hoshi/func.h"
+#include "hoshi/screen_cam.h"
 
 #include "starpole.h"
 #include "code_patch/code_patch.h"
@@ -149,6 +150,9 @@ void Starpole_Init()
     // allocate starpole transfer uffer
     starpole_buf = HSD_MemAlloc(sizeof(*starpole_buf));
 
+    // load asset
+    Starpole_LoadAsset();
+
     // receive test data
     StarpoleDataTest *data = Test_GetString();
     if (data)
@@ -174,11 +178,11 @@ StarpoleDataTest *Test_GetString()
 }
 void Test_DisplayString()
 {
-    if (!is_starpole)
+    // if (!is_starpole)
         return;
 
     // display test string
-    int canvas_idx = Text_CreateCanvas(1, 0, 0, 0, 0, 63, 0, 63);
+    int canvas_idx = Hoshi_GetScreenCanvasIndex();
     Text *t = Text_CreateText(1, canvas_idx);
     t->kerning = 1;
     t->use_aspect = 1;
@@ -191,4 +195,34 @@ void Test_DisplayString()
     Text_Sanitize(starpole_data_test.str, buf, sizeof(buf));
 
     Text_AddSubtext(t, 0, 0, buf);
+}
+
+// UI
+JOBJSet *starpole_jobjset = 0;
+void Starpole_LoadAsset()
+{
+    HSD_Archive *archive = Archive_LoadFile(STARPOLE_ASSET_FILE);
+    if (!archive)
+        return;
+        
+    // check if symbol exists
+    JOBJSet **set = Archive_GetPublicAddress(archive, STARPOLE_ASSET_SYMBOL);
+    if (!set)
+        return;
+
+    // save a ptr to the jobjset
+    starpole_jobjset = set[0];
+    
+}
+void Starpole_DisplayAsset()
+{
+    // didnt load
+    if (!starpole_jobjset)
+        return;
+
+    GOBJ_EZCreator(0, 0, 0,
+                    0, 0,
+                    HSD_OBJKIND_JOBJ, starpole_jobjset->jobj,
+                    GOBJ_Anim, 0,
+                    JObj_GX, HOSHI_SCREENCAM_GXLINK, 0);
 }

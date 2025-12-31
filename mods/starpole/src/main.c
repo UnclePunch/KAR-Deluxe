@@ -19,6 +19,7 @@ OptionDesc mod_settings = {
 void OnBoot()
 {
     Starpole_Init();
+    Replay_OnBoot();
 
     return;
 }
@@ -26,6 +27,7 @@ void OnBoot()
 void OnSceneChange()
 {
     Test_DisplayString();
+    Starpole_DisplayAsset();
 }
 
 void On3DLoadStart()

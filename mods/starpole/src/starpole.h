@@ -11,6 +11,9 @@
 #define STARPOLE_EXI_FREQ 5
 #define STARPOLE_DEVICE_ID 0x0A000000
 
+#define STARPOLE_ASSET_FILE "IfStarpole.dat"
+#define STARPOLE_ASSET_SYMBOL "ScInfStarpole_scene_models"
+
 typedef enum
 {
     STARPOLE_CMD_ID,
@@ -77,6 +80,9 @@ int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode);
 
 int Starpole_IsPresent();
 void Starpole_Init();
+void Starpole_LoadAsset();
+void Starpole_DisplayAsset();
+
 
 StarpoleDataTest *Test_GetString();
 void Test_DisplayString();

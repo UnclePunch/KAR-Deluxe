@@ -30,6 +30,8 @@ void OnBoot()
     if ((*stc_dblevel) < DB_DEVELOP)
         return;
 
+    Debug_Init();
+
     // // output vanilla preload files
     // for (int i = 0; i < 82; i++)
     //     OSReport("file #%d (%p):\n  %s\n  kind: %d\n",

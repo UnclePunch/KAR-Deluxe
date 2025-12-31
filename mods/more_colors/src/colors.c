@@ -69,27 +69,14 @@ void Select_UpdatePlyBoard(JOBJ *j, int p_kind, int anim_frame, ElementColorDesc
 
 void Colors_Init(char *file_name)
 {
-    
-    HSD_Archive archive;
-    int entrynum = DVDConvertPathToEntrynum(file_name);
-
-    if (entrynum == -1)
+    HSD_Archive *archive = Archive_LoadFile(file_name);
+    if (!archive)
     {
         OSReport("MoreColors: %s not found on disc, aborting.\n", file_name);
         return;
     }
-
-    DVDFileInfo dvdinfo;
-    DVDFastOpen(entrynum, &dvdinfo);
-    DVDClose(&dvdinfo);
-
-    void *buffer = HSD_MemAlloc(dvdinfo.length);
-    int out_size;
-    File_LoadSync(file_name, buffer, &out_size);   
-
-    Archive_Init(&archive, buffer, dvdinfo.length);
-
-    RdKirbyColors *kirby_colors = (RdKirbyColors *)Archive_GetPublicAddress(&archive, COLORDATA_SYMBOLNAME);
+    
+    RdKirbyColors *kirby_colors = (RdKirbyColors *)Archive_GetPublicAddress(archive, COLORDATA_SYMBOLNAME);
     if (!kirby_colors)
     {
         OSReport("MoreColors: %s does not contain symbol %s, aborting.\n", file_name, COLORDATA_SYMBOLNAME);

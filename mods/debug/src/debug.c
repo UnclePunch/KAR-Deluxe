@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "net.h"
 #include "profiler.h"
+#include "hoshi/screen_cam.h"
 #include "fst/fst.h"
 #include "code_patch/code_patch.h"
 
@@ -36,7 +37,7 @@ void Debug_OnSceneChange()
     //                0, 0, 0);
 
     // heap display
-    int canvas_idx = Text_CreateCanvas(1, 0, 0, 0, 0, 63, 0, 63);
+    int canvas_idx = Hoshi_GetScreenCanvasIndex();
     Text *t = Text_CreateText(1, canvas_idx);
     t->kerning = 0;
     t->use_aspect = 1;
@@ -184,4 +185,15 @@ void Debug_Think()
         if (Pad_GetHeld(20) & PAD_BUTTON_Y && Pad_GetDown(20) & PAD_BUTTON_DPAD_UP)
             heap_is_visible ^= 1;
     }
+}
+
+// void Rider_OnDeath(RiderData *rd)
+// {
+//     OSReport("p%d just died on their machine\n", rd->ply + 1);
+// }
+// CODEPATCH_HOOKCREATE(0x801a06d0, "mr 3, 31\n\t", Rider_OnDeath, "", 0)
+
+void Debug_Init()
+{
+    // CODEPATCH_HOOKAPPLY(0x801a06d0);
 }

@@ -94,12 +94,12 @@ void Startup_Init()
                 .x2c = 0,
             };
             memcpy(&gd->ply_desc[0], &hmn_desc, sizeof(PlayerDesc));
-            gd->ply_view_desc[0].x1 = 1;
+            gd->ply_view_desc[0].is_enabled = 1;
             gd->time_seconds = 5 * 60;
             gd->city.x398 = 1;
         }
 
-        gd->city.mode = CITYMODE_STADIUM;
+        // gd->city.mode = CITYMODE_STADIUM;
 
 
         break;

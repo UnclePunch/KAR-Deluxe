@@ -23,9 +23,9 @@ void Brake_AllowBToCharge(RiderData *rp, float lstick_x, float lstick_y)
 
     MachineData *mp = rp->machine_gobj->userdata;
 
-    mp->charge.stick.X = lstick_x;
-    mp->charge.stick.Y = lstick_y;
-    mp->charge.is = is_charge;
+    mp->input.stick.X = lstick_x;
+    mp->input.stick.Y = lstick_y;
+    mp->input.buttons = is_charge;
 
     return;
 }
@@ -36,7 +36,7 @@ int Brake_ForbidChargeForward(MachineData *mp)
         return 0;
 
     // check if held B
-    if (mp->charge.is == 2)
+    if (mp->input.buttons == 2)
         return 1;
 
     return 0;
@@ -48,7 +48,7 @@ int Brake_OnBikeBuildCharge(MachineData *mp)
         return 0;
 
     // check if held B
-    if (mp->charge.is == 2)
+    if (mp->input.buttons == 2)
         return 1;
 
     return 0;
@@ -60,7 +60,7 @@ int Brake_OnStarBuildCharge(MachineData *mp)
         return 0;
 
     // check if held B
-    if (mp->charge.is == 2)
+    if (mp->input.buttons == 2)
         return 1;
 
     return 0;

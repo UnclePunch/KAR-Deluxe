@@ -216,13 +216,15 @@ void Starpole_LoadAsset()
 }
 void Starpole_DisplayAsset()
 {
-    // didnt load
+    // ensure it loaded
     if (!starpole_jobjset)
         return;
 
-    GOBJ_EZCreator(0, 0, 0,
+    GOBJ *g = GOBJ_EZCreator(0, 0, 0,
                     0, 0,
                     HSD_OBJKIND_JOBJ, starpole_jobjset->jobj,
                     GOBJ_Anim, 0,
                     JObj_GX, HOSHI_SCREENCAM_GXLINK, 0);
+
+    JObj_AddSetAnim(g->hsd_object, 0, starpole_jobjset, 0, 1.0f);
 }

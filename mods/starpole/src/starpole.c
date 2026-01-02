@@ -182,8 +182,7 @@ void Test_DisplayString()
         return;
 
     // display test string
-    int canvas_idx = Hoshi_GetScreenCanvasIndex();
-    Text *t = Text_CreateText(1, canvas_idx);
+    Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     t->use_aspect = 1;
     t->trans = (Vec3){10, 30, 0};
@@ -205,14 +204,13 @@ void Starpole_LoadAsset()
     if (!archive)
         return;
         
-    // check if symbol exists
+    // ensure symbol exists
     JOBJSet **set = Archive_GetPublicAddress(archive, STARPOLE_ASSET_SYMBOL);
     if (!set)
         return;
 
     // save a ptr to the jobjset
     starpole_jobjset = set[0];
-    
 }
 void Starpole_DisplayAsset()
 {
@@ -220,11 +218,13 @@ void Starpole_DisplayAsset()
     if (!starpole_jobjset)
         return;
 
+    // create the UI gobj
     GOBJ *g = GOBJ_EZCreator(0, 0, 0,
                     0, 0,
                     HSD_OBJKIND_JOBJ, starpole_jobjset->jobj,
-                    GOBJ_Anim, 0,
+                    GOBJ_Anim, 0,                               // add a proc to animate it each frame
                     JObj_GX, HOSHI_SCREENCAM_GXLINK, 0);
 
+    // add its animations
     JObj_AddSetAnim(g->hsd_object, 0, starpole_jobjset, 0, 1.0f);
 }

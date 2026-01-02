@@ -25,12 +25,11 @@ int is_active = 0;
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_PLAYBACK;
 
-int canvas_idx;
 Text *cam_text = 0;
 Text *Replay_CreateCamText()
 {
     // display test string
-    Text *t = Text_CreateText(1, canvas_idx);
+    Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     t->use_aspect = 1;
     t->trans = (Vec3){10, 30, 0};
@@ -44,7 +43,7 @@ Text *frame_text;
 void Replay_CreateFrameText()
 {
     // display test string
-    Text *t = Text_CreateText(1, canvas_idx);
+    Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     t->use_aspect = 1;
     t->trans = (Vec3){450, 30, 0};
@@ -59,7 +58,7 @@ Text *desync_text;
 void Replay_CreateDesyncText(int frame)
 {
     // display test string
-    Text *t = Text_CreateText(1, canvas_idx);
+    Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     t->use_aspect = 1;
     t->trans = (Vec3){0, 0, 0};
@@ -232,9 +231,22 @@ void Record_OnFrameEnd(GOBJ *g)
     }
 
     Replay_SendFrame(frame_idx);
-    frame_idx++;
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
+    frame_idx++;
+
+    int machine_num = 0;
+    for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
+    {
+        MachineData *md = m->userdata;
+
+        OSReport("#%d: kind: %d  pos: (%.2f, %.2f, %.2f)\n", 
+                    machine_num + 1, 
+                    md->kind, 
+                    md->pos.X, md->pos.Y, md->pos.Z);
+
+        machine_num++;
+    }    
 }
 
 void Playback_OnFrameStart(GOBJ *g)
@@ -306,28 +318,8 @@ void Playback_OnFrameEnd(GOBJ *g)
     }
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
-
-    // GOBJ *rider_cam = stc_ridercam_gobjs[0];
-    // if (rider_cam)
-    // {
-    //     CamData *cd = ((RiderCamData *)rider_cam->userdata)->cam_data;
-
-    //     if (cam_text)
-    //         Text_Destroy(cam_text);
-
-    //     cam_text = Replay_CreateCamText();
-
-    //     for (int i = 0; i < 2; i++)
-    //     {
-    //         Vec3 *v = (Vec3 *)&(((u8 *)cd)[0x138 + sizeof(Vec3) * i]);
-    //         Text_AddSubtext(cam_text, 0, i * 30, "X: %.2f Y: %.2f Z: %.2f", v->X, v->Y, v->Z);
-
-    //         OSReport("%p\n", v);
-    //     }
-
-    // }
-
     frame_idx++;
+
 }
 
 void Dismount_GetCameraPosition(CamData *cd)
@@ -390,7 +382,6 @@ void Replay_On3DLoadStart()
         GObj_AddProc(g, Playback_OnFrameEnd, RDPRI_15 + 1);
     }
 
-    canvas_idx = Hoshi_GetScreenCanvasIndex();
     Replay_CreateFrameText();
 
 }

@@ -11,6 +11,31 @@
 
 #include "code_patch/code_patch.h"
 
+RiderData *PlyCam_GetRiderData(CamData *cd)
+{
+    // embark on a journey of epic proportions to find this player cam gobj
+    // because the function doesnt pass it in.
+    for (int i = 0; i < CM_CAMERA_MAX; i++)
+    {
+        GOBJ *g = stc_plycam_lookup->cam_gobjs[i];
+
+        if (!g)
+            continue;
+
+        PlayerCamData *gp = g->userdata;
+        if (gp->cam_data != cd)
+            continue;
+
+        // ok we found it
+        GOBJ *r = Ply_GetRiderGObj(gp->ply);
+        RiderData *rd = r->userdata;
+
+        return rd;
+    }
+
+    return 0;
+}
+
 // Rearview
 int rearview_enabled = 1;
 u8 rearview_is_pressing[5];
@@ -21,20 +46,22 @@ void Rearview_InitFlags()
         rearview_is_pressing[i] = 0;
 }
 
-void Rearview_Check(float *unk_cam, int controller_idx)
+void Rearview_Check(CamData *cam_data, int controller_idx)
 {
     if (!rearview_enabled)
         return;
 
-    if (stc_engine_pads[controller_idx].held & HSD_BUTTON_X)
+    RiderData *rd = PlyCam_GetRiderData(cam_data);
+
+    if (rd->input.held & HSD_BUTTON_X)
     {
-        unk_cam[0x88 / 4] = 3.1;
-        rearview_is_pressing[controller_idx] = 1;
+        cam_data->rotation_amt = 3.1;
+        rearview_is_pressing[rd->ply] = 1;
     }
-    else if (rearview_is_pressing[controller_idx] == 1)
+    else if (rearview_is_pressing[rd->ply] == 1)
     {
-        unk_cam[0x88 / 4] = 0;
-        rearview_is_pressing[controller_idx] = 0;
+        cam_data->rotation_amt = 0;
+        rearview_is_pressing[rd->ply] = 0;
     }
 
     return;

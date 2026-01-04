@@ -80,11 +80,12 @@ void Camera_InitDefaultZoom()
     if (camerazoom_kind == 0)
         return;
 
-    static float *cam_default_values = (float *)0x80557248;
-
     // init camera height for all players
     for (int i = 0; i < 4; i++)
-        stc_plycam_lookup->ply_cam_control[i].distance = 8.4;
+    {
+        stc_plycam_lookup->ply_distance[i].normal = 8.4;
+        stc_plycam_lookup->ply_distance[i].rail = 6;
+    }
 
     return;
 }

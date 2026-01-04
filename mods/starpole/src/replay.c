@@ -132,7 +132,7 @@ int Replay_SendEnd()
 int Replay_ReqMatch()
 {
     // request data
-    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) == -1)
+    if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) <= 0)
     {
         OSReport("Replay: error receiving match\n");
         return 0;
@@ -155,7 +155,7 @@ int Replay_ReqFrame(int frame_idx)
 {
     // request data
     int frame_size = Starpole_Imm(STARPOLE_CMD_REQFRAME, frame_idx);
-    if (frame_size == -1)
+    if (frame_size <= 0)
         return 0;
 
     // receive it
@@ -249,11 +249,27 @@ void Record_OnFrameEnd(GOBJ *g)
     }    
 }
 
-void Playback_OnFrameStart(GOBJ *g)
+void Playback_OnFrameStart()
 {
+    bp();
+
     // request frame
-    Replay_ReqFrame(frame_idx);
+    if (!Replay_ReqFrame(frame_idx))
+    {
+        // error getting the frame, lets end the game
+        Scene_SetDirection(PAD_BUTTON_B);
+        Scene_ExitMinor();
+        BGM_Stop();
+        FGM_StopAll();
+        Pad_StopRumbleAll();
+        Gm_Pause(1); // avoid having all the gobj proc update after this?
+
+        // OSReport("Replay: No frame received, ending game\n");
+
+        return;
+    }
     
+    // desync detection
     if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
     {
         OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
@@ -265,34 +281,34 @@ void Playback_OnFrameStart(GOBJ *g)
 
     return;
 }
-void Playback_OnFrameInputs(GOBJ *g)
+void Playback_OnRiderInput(RiderData *rd)
 {
     if (starpole_buf->frame.frame_idx != frame_idx)
     {
-        OSReport("Replay: frame index mismatch\n");
+        OSReport("Replay: frame index mismatch. Expected %d, received %d\n", frame_idx, starpole_buf->frame.frame_idx);
         assert("0");
     }
 
-    // update player inputs
-    int ply = 0;
-    for (int i = 0; i < 4; i++)
+    // find the data for this ply
+    for (int i = 0; i < starpole_buf->frame.ply_num; i++)
     {
-        if (Ply_GetPKind(i) == PKIND_HMN)
-        {
-            // copy buttons
-            stc_engine_pads[i].held = (int)starpole_buf->frame.ply[ply].input.held << 4;
-            stc_engine_pads[i].stickX = starpole_buf->frame.ply[ply].input.stickX;
-            stc_engine_pads[i].stickY = starpole_buf->frame.ply[ply].input.stickY;
-            stc_engine_pads[i].substickX = starpole_buf->frame.ply[ply].input.substickX;
-            stc_engine_pads[i].substickY = starpole_buf->frame.ply[ply].input.substickY;
+        int ply = starpole_buf->frame.ply[i].idx;
 
-            // update float value too because rider input callback reads that instead of the byte...
-            stc_engine_pads[i].fsubstickX = (float)stc_engine_pads[i].substickX / 80.0f;
-            stc_engine_pads[i].fsubstickY = (float)stc_engine_pads[i].substickY / 80.0f;
+        if (ply != rd->ply)
+            continue;
 
-            ply++;
-        }
+        // copy inputs
+        rd->input.held = (int)starpole_buf->frame.ply[ply].input.held << 4; // game code will update down for us (8018f178)
+        rd->input.stickX = starpole_buf->frame.ply[ply].input.stickX;       // game code will convert to float and update the Vec2 (8018f154)
+        rd->input.stickY = starpole_buf->frame.ply[ply].input.stickY;
+        rd->input.rstick.X = (float)starpole_buf->frame.ply[ply].input.substickX / 80.0f;
+        rd->input.rstick.Y = (float)starpole_buf->frame.ply[ply].input.substickY / 80.0f;
+
+        return;
     }
+
+    OSReport("Replay: ERROR no frame data found for ply %d\n", rd->ply);
+    assert("0");
 }
 void Playback_OnFrameEnd(GOBJ *g)
 { 
@@ -322,6 +338,141 @@ void Playback_OnFrameEnd(GOBJ *g)
 
 }
 
+RiderData *PlyCam_GetRiderData(CamData *cd)
+{
+    // embark on a journey of epic proportions to find this player cam gobj
+    // because the function doesnt pass it in.
+    for (int i = 0; i < CM_CAMERA_MAX; i++)
+    {
+        GOBJ *g = stc_plycam_lookup->cam_gobjs[i];
+
+        if (!g)
+            continue;
+
+        PlayerCamData *gp = g->userdata;
+        if (gp->cam_data != cd)
+            continue;
+
+        // ok we found it
+        GOBJ *r = Ply_GetRiderGObj(gp->ply);
+        RiderData *rd = r->userdata;
+
+        return rd;
+    }
+
+    return 0;
+}
+float PlyCam_ClampStick(float val)
+{
+    float min = 0.4;
+
+    if (val < -min)
+            val += min; 
+    else if (val > min)
+        val -= min; 
+        
+    return val / (1.0 - min);
+}
+void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int controller_idx, float *limits)
+{
+    if (!cam_data->x94)
+    {
+        cam_data->x84_80 = 0;
+        return;
+    }
+
+    cam_data->x84_80 = 1;
+
+    RiderData *rd = PlyCam_GetRiderData(cam_data);
+    float rstickX = PlyCam_ClampStick(rd->input.rstick.X);
+    float rstickY = PlyCam_ClampStick(rd->input.rstick.Y);
+
+    float *tuning = (float *)stc_plycam_lookup->x234;
+
+    /* ---------- ROTATION (YAW) ---------- */
+
+    float desired = -rstickX * limits[0]; // yaw speed scalar
+    float cur = cam_data->rotation_amt;
+    float max_step = M_1DEGREE * tuning[0x334/4];
+    float delta = (desired - cur) * tuning[0x330/4];
+
+    if (delta > max_step)
+        cam_data->rotation_amt = cur + max_step;
+    else if (delta < -max_step)
+        cam_data->rotation_amt = cur - max_step;
+    else
+        cam_data->rotation_amt = cur + delta;
+
+    // zoom and pitch
+
+    if (rstickY != 0.0f)
+        cam_data->zoom_amt += -rstickY * tuning[0x32c/4];; // inferred
+
+    // clamp zoom
+    float z = cam_data->zoom_amt;
+    if (z < limits[1])
+        z = limits[1];
+    else if (z > limits[2])
+        z = limits[2];
+    cam_data->zoom_amt = z;
+
+    // normalized ratio
+    if (z < 0.0f)
+    {
+        cam_data->x90 = 0.0f;
+        return;
+    }
+
+    cam_data->x90 = limits[3] * (z / limits[2]);
+}
+
+////////////////
+// Injections //
+////////////////
+
+// Injection to fetch the frame
+void Playback_GetFrame()
+{
+    if (is_active && replay_mode == REPLAY_PLAYBACK)
+        Playback_OnFrameStart();
+    
+    return;
+}
+CODEPATCH_HOOKCREATE(0x80012e74, "", Playback_GetFrame, "", 0)
+
+// Injection to write inputs directly to rider data
+int Playback_RiderInputRestore(RiderData *rd)
+{
+    if (is_active && replay_mode == REPLAY_PLAYBACK)
+    {
+        Playback_OnRiderInput(rd);
+        return 1;
+    }
+    
+    return 0;
+}
+CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
+
+
+// Injection to make the kirby on foot camera use the rider input data (we restore this)
+float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
+{
+    RiderData *rd = PlyCam_GetRiderData(cam_data);
+
+    float rstickX = rd->input.rstick.X;
+    float min = 0.4;
+
+    if (rstickX < -min)
+            rstickX += min; 
+    else if (rstickX > min)
+        rstickX -= min; 
+        
+    return rstickX / (1.0 - min);
+}
+CODEPATCH_HOOKCREATE(0x800cb4c8, "mr 3, 29\n\t", PlyCam_UseRiderInputsForOnFootCameraControl, "fmr 2, 1\n\t", 0)
+
+// Injection to avoid directly referencing the current cobj's position when dismounting a machine
+// (the active cobj should not impact gameplay, this allows us to freecam)
 void Dismount_GetCameraPosition(CamData *cd)
 {
     memcpy(&cd->xe8.interest, &cd->interest_pos, sizeof(cd->xe8.interest)); // interest pos
@@ -329,9 +480,14 @@ void Dismount_GetCameraPosition(CamData *cd)
 }
 CODEPATCH_HOOKCREATE(0x800b7840, "mr 3, 30\n\t", Dismount_GetCameraPosition, "", 0)
 
+// Mod Callbacks
 void Replay_OnBoot()
 {
     CODEPATCH_HOOKAPPLY(0x800b7840);
+    CODEPATCH_HOOKAPPLY(0x8018ef34);
+    CODEPATCH_HOOKAPPLY(0x800cb4c8);
+    CODEPATCH_HOOKAPPLY(0x80012e74);
+    CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
 }
 void Replay_On3DLoadStart()
 {
@@ -378,8 +534,12 @@ void Replay_On3DLoadStart()
     else if (replay_mode == REPLAY_PLAYBACK)
     {
         GObj_AddProc(g, Playback_OnFrameStart, RDPRI_0);
-        GObj_AddProc(g, Playback_OnFrameInputs, RDPRI_INPUT);
+        // GObj_AddProc(g, Playback_OnFrameInputs, RDPRI_INPUT);
         GObj_AddProc(g, Playback_OnFrameEnd, RDPRI_15 + 1);
+
+        // use live view camera
+        GameData *gd = Gm_GetGameData();
+        gd->ply_view_desc[0].flag = PLYCAM_ON;
     }
 
     Replay_CreateFrameText();

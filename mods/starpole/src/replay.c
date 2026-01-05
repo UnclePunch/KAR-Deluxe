@@ -71,6 +71,23 @@ void Replay_CreateDesyncText(int frame)
     desync_text = t;
 }
 
+s8 denormalize_signed(float val)
+{
+    return (s8)(val * 127.0f);
+}
+float normalize_signed(s8 val)
+{
+    return (float)val / 127.0f;
+}
+u8 denormalize_unsigned(float val)
+{
+    return (u8)(val * 255.0f);
+}
+float normalize_unsigned(u8 val)
+{
+    return (float)val / 255.0f;
+}
+
 int Replay_SendMatch()
 {
     // notify EXI of incoming data
@@ -168,39 +185,35 @@ int Replay_ReqFrame(int frame_idx)
 void Record_OnFrameStart(GOBJ *g)
 {
     starpole_buf->frame.rng_seed = *hsd_rand_seed;
+    starpole_buf->frame.ply_num = 0;
     return;
 }
-void Record_OnFrameInputs(GOBJ *g)
+void Record_OnRiderInput(RiderData *rd)
 {
-    // log player inputs
-    int ply = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        if (Ply_GetPKind(i) == PKIND_HMN)
-        {
-            GOBJ *r = Ply_GetRiderGObj(i);
-            RiderData *rd = r->userdata;
+    int record_ply_index = starpole_buf->frame.ply_num;
 
-            // index of this player
-            starpole_buf->frame.ply[ply].idx = ply;
+    // index of this player
+    starpole_buf->frame.ply[record_ply_index].idx = rd->ply;
 
-            // copy buttons
-            starpole_buf->frame.ply[ply].input.held = (stc_engine_pads[i].held & 0x00000FF0) >> 4;
-            starpole_buf->frame.ply[ply].input.stickX = stc_engine_pads[i].stickX;
-            starpole_buf->frame.ply[ply].input.stickY = stc_engine_pads[i].stickY;
-            starpole_buf->frame.ply[ply].input.substickX = stc_engine_pads[i].substickX;
-            starpole_buf->frame.ply[ply].input.substickY = stc_engine_pads[i].substickY;
+    int buttons_to_copy = (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y |
+                            PAD_TRIGGER_L | PAD_TRIGGER_L | PAD_TRIGGER_Z |
+                            PAD_BUTTON_DPAD_UP | PAD_BUTTON_DPAD_DOWN | PAD_BUTTON_DPAD_LEFT | PAD_BUTTON_DPAD_RIGHT);
 
-            ply++;
-        }
-    }
+    // copy buttons
+    starpole_buf->frame.ply[record_ply_index].input.held = (rd->input.held & buttons_to_copy);
+    starpole_buf->frame.ply[record_ply_index].input.stickX = rd->input.stickX;
+    starpole_buf->frame.ply[record_ply_index].input.stickY = rd->input.stickY;
+    starpole_buf->frame.ply[record_ply_index].input.substickX = denormalize_signed(rd->input.rstick.X);
+    starpole_buf->frame.ply[record_ply_index].input.substickY = denormalize_signed(rd->input.rstick.Y);
+    starpole_buf->frame.ply[record_ply_index].input.trigger = denormalize_unsigned(rd->input.trigger);
 
-    // log amount of players we have data for
-    starpole_buf->frame.ply_num = ply;
-    starpole_buf->frame.frame_idx = frame_idx;
+    starpole_buf->frame.ply_num++;
 }
 void Record_OnFrameEnd(GOBJ *g)
 {
+    // log amount of players we have data for
+    starpole_buf->frame.frame_idx = frame_idx;
+
     // log player state
     int ply = 0;
     for (int i = 0; i < 4; i++)
@@ -238,8 +251,6 @@ void Record_OnFrameEnd(GOBJ *g)
 
 void Playback_OnFrameStart()
 {
-    bp();
-
     // request frame
     if (!Replay_ReqFrame(frame_idx))
     {
@@ -289,11 +300,12 @@ void Playback_OnRiderInput(RiderData *rd)
             continue;
 
         // copy inputs
-        rd->input.held = (int)starpole_buf->frame.ply[ply].input.held << 4; // game code will update down for us (8018f178)
+        rd->input.held = (int)starpole_buf->frame.ply[ply].input.held;      // game code will update down for us (8018f178)
         rd->input.stickX = starpole_buf->frame.ply[ply].input.stickX;       // game code will convert to float and update the Vec2 (8018f154)
         rd->input.stickY = starpole_buf->frame.ply[ply].input.stickY;
-        rd->input.rstick.X = (float)starpole_buf->frame.ply[ply].input.substickX / 80.0f;
-        rd->input.rstick.Y = (float)starpole_buf->frame.ply[ply].input.substickY / 80.0f;
+        rd->input.rstick.X = normalize_signed(starpole_buf->frame.ply[ply].input.substickX);
+        rd->input.rstick.Y = normalize_signed(starpole_buf->frame.ply[ply].input.substickY);
+        rd->input.trigger = normalize_unsigned(starpole_buf->frame.ply[ply].input.trigger);
 
         return;
     }
@@ -406,6 +418,17 @@ void Playback_GetFrame()
 }
 CODEPATCH_HOOKCREATE(0x80012e74, "", Playback_GetFrame, "", 0)
 
+
+// Injection to read inputs directly from rider data
+int Record_RiderInputBackup(RiderData *rd)
+{
+    if (is_active && replay_mode == REPLAY_RECORD)
+        Record_OnRiderInput(rd);
+
+    return 0;
+}
+CODEPATCH_HOOKCREATE(0x8018effc, "mr 3, 31\n\t", Record_RiderInputBackup, "", 0)
+
 // Injection to write inputs directly to rider data
 int Playback_RiderInputRestore(RiderData *rd)
 {
@@ -417,7 +440,7 @@ int Playback_RiderInputRestore(RiderData *rd)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
+CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018efd8)
 
 // Injection to make the kirby on foot camera use the rider input data (we restore this)
 float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
@@ -455,6 +478,7 @@ void Replay_OnBoot()
     CODEPATCH_HOOKAPPLY(0x8018ef34);
     CODEPATCH_HOOKAPPLY(0x800cb4c8);
     CODEPATCH_HOOKAPPLY(0x80012e74);
+    CODEPATCH_HOOKAPPLY(0x8018effc);
     CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
 }
 void Replay_On3DLoadStart()
@@ -496,7 +520,7 @@ void Replay_On3DLoadStart()
     if (replay_mode == REPLAY_RECORD)
     {
         GObj_AddProc(g, Record_OnFrameStart, RDPRI_0);
-        GObj_AddProc(g, Record_OnFrameInputs, RDPRI_INPUT + 1);
+        // GObj_AddProc(g, Record_OnFrameInputs, RDPRI_INPUT + 1);
         GObj_AddProc(g, Record_OnFrameEnd, RDPRI_15 + 1);
     }
     else if (replay_mode == REPLAY_PLAYBACK)

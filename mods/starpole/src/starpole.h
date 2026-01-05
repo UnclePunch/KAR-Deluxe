@@ -52,11 +52,13 @@ typedef struct
         u8 idx;
         struct
         {
-            u8 held;
+
+            u16 held;
             s8 stickX;
             s8 stickY;
             s8 substickX;
             s8 substickY;
+            u8 trigger;
         } input;
         // int rd_state;
         // MachineKind machine_kind;

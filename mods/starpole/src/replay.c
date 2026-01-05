@@ -234,19 +234,6 @@ void Record_OnFrameEnd(GOBJ *g)
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
     frame_idx++;
-
-    int machine_num = 0;
-    for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
-    {
-        MachineData *md = m->userdata;
-
-        OSReport("#%d: kind: %d  pos: (%.2f, %.2f, %.2f)\n", 
-                    machine_num + 1, 
-                    md->kind, 
-                    md->pos.X, md->pos.Y, md->pos.Z);
-
-        machine_num++;
-    }    
 }
 
 void Playback_OnFrameStart()
@@ -272,7 +259,7 @@ void Playback_OnFrameStart()
 
         return;
     }
-    
+
     // desync detection
     if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
     {
@@ -315,7 +302,7 @@ void Playback_OnRiderInput(RiderData *rd)
     assert("0");
 }
 void Playback_OnFrameEnd(GOBJ *g)
-{ 
+{
     OSReport("Frame %d:\n", frame_idx);
 
     // int ply = 0;
@@ -344,10 +331,10 @@ float PlyCam_ClampStick(float val)
     float min = 0.4;
 
     if (val < -min)
-            val += min; 
+        val += min;
     else if (val > min)
-        val -= min; 
-        
+        val -= min;
+
     return val / (1.0 - min);
 }
 void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int controller_idx, float *limits)
@@ -371,8 +358,8 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 
     float desired = -rstickX * limits[0]; // yaw speed scalar
     float cur = cam_data->rotation_amt;
-    float max_step = M_1DEGREE * tuning[0x334/4];
-    float delta = (desired - cur) * tuning[0x330/4];
+    float max_step = M_1DEGREE * tuning[0x334 / 4];
+    float delta = (desired - cur) * tuning[0x330 / 4];
 
     if (delta > max_step)
         cam_data->rotation_amt = cur + max_step;
@@ -384,7 +371,8 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
     // zoom and pitch
 
     if (rstickY != 0.0f)
-        cam_data->zoom_amt += -rstickY * tuning[0x32c/4];; // inferred
+        cam_data->zoom_amt += -rstickY * tuning[0x32c / 4];
+    ; // inferred
 
     // clamp zoom
     float z = cam_data->zoom_amt;
@@ -413,7 +401,7 @@ void Playback_GetFrame()
 {
     if (is_active && replay_mode == REPLAY_PLAYBACK)
         Playback_OnFrameStart();
-    
+
     return;
 }
 CODEPATCH_HOOKCREATE(0x80012e74, "", Playback_GetFrame, "", 0)
@@ -426,7 +414,7 @@ int Playback_RiderInputRestore(RiderData *rd)
         Playback_OnRiderInput(rd);
         return 1;
     }
-    
+
     return 0;
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
@@ -443,10 +431,10 @@ float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
     float min = 0.4;
 
     if (rstickX < -min)
-            rstickX += min; 
+        rstickX += min;
     else if (rstickX > min)
-        rstickX -= min; 
-        
+        rstickX -= min;
+
     return rstickX / (1.0 - min);
 }
 CODEPATCH_HOOKCREATE(0x800cb4c8, "mr 3, 29\n\t", PlyCam_UseRiderInputsForOnFootCameraControl, "fmr 2, 1\n\t", 0)
@@ -456,7 +444,7 @@ CODEPATCH_HOOKCREATE(0x800cb4c8, "mr 3, 29\n\t", PlyCam_UseRiderInputsForOnFootC
 void Dismount_GetCameraPosition(CamData *cd)
 {
     memcpy(&cd->xe8.interest, &cd->interest_pos, sizeof(cd->xe8.interest)); // interest pos
-    memcpy(&cd->xe8.eye, &cd->eye_pos, sizeof(cd->xe8.eye)); // eye pos
+    memcpy(&cd->xe8.eye, &cd->eye_pos, sizeof(cd->xe8.eye));                // eye pos
 }
 CODEPATCH_HOOKCREATE(0x800b7840, "mr 3, 30\n\t", Dismount_GetCameraPosition, "", 0)
 
@@ -477,7 +465,7 @@ void Replay_On3DLoadStart()
     // debug
     if (stc_engine_pads[0].held & PAD_BUTTON_A)
         replay_mode = REPLAY_RECORD;
-    else 
+    else
         replay_mode = REPLAY_PLAYBACK;
 
     // send/receive initial match data
@@ -497,11 +485,11 @@ void Replay_On3DLoadStart()
     is_active = 1;
 
     // create a gobj to transmit per frame match data
-    GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0, 
-                    0, 0,
-                    0, 0, 
-                    0, 0,
-                    0, 0, 0);
+    GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0,
+                             0, 0,
+                             0, 0,
+                             0, 0,
+                             0, 0, 0);
 
     frame_idx = 0;
 
@@ -523,7 +511,6 @@ void Replay_On3DLoadStart()
     }
 
     Replay_CreateFrameText();
-
 }
 void Replay_On3DExit()
 {

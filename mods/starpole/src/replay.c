@@ -256,6 +256,10 @@ void Playback_OnFrameStart()
     // request frame
     if (!Replay_ReqFrame(frame_idx))
     {
+        // couldn't get frame, if the game is frozen, its likely at the time up screen so do noth8ing
+        if (Gm_GetGameData()->update.pause_kind & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3)))
+            return;
+
         // error getting the frame, lets end the game
         Scene_SetDirection(PAD_BUTTON_B);
         Scene_ExitMinor();
@@ -312,56 +316,29 @@ void Playback_OnRiderInput(RiderData *rd)
 }
 void Playback_OnFrameEnd(GOBJ *g)
 { 
-
     OSReport("Frame %d:\n", frame_idx);
 
-    // update player inputs
-    int ply = 0;
-    for (int i = 0; i < 4; i++)
-    {   
-        if (Ply_GetPKind(i) == PKIND_HMN)
-        {
-            GOBJ *r = Ply_GetRiderGObj(i);
-            RiderData *rd = r->userdata;
+    // int ply = 0;
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     if (Ply_GetPKind(i) == PKIND_HMN)
+    //     {
+    //         GOBJ *r = Ply_GetRiderGObj(i);
+    //         RiderData *rd = r->userdata;
 
-            OSReport(" Ply %d:\n", i + 1);
-            OSReport("  State:   %d (%d)\n", rd->state_idx, rd->state_idx);
-            OSReport("  Pos:     (%.2f, %.2f, %.2f)\n", rd->pos.X, rd->pos.Y, rd->pos.Z);
-            OSReport("  Machine: %p\n", rd->machine_gobj);
+    //         OSReport(" Ply %d:\n", i + 1);
+    //         OSReport("  State:   %d (%d)\n", rd->state_idx, rd->state_idx);
+    //         OSReport("  Pos:     (%.2f, %.2f, %.2f)\n", rd->pos.X, rd->pos.Y, rd->pos.Z);
+    //         OSReport("  Machine: %p\n", rd->machine_gobj);
 
-            ply++;
-        }
-    }
+    //         ply++;
+    //     }
+    // }
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
     frame_idx++;
-
 }
 
-RiderData *PlyCam_GetRiderData(CamData *cd)
-{
-    // embark on a journey of epic proportions to find this player cam gobj
-    // because the function doesnt pass it in.
-    for (int i = 0; i < CM_CAMERA_MAX; i++)
-    {
-        GOBJ *g = stc_plycam_lookup->cam_gobjs[i];
-
-        if (!g)
-            continue;
-
-        PlayerCamData *gp = g->userdata;
-        if (gp->cam_data != cd)
-            continue;
-
-        // ok we found it
-        GOBJ *r = Ply_GetRiderGObj(gp->ply);
-        RiderData *rd = r->userdata;
-
-        return rd;
-    }
-
-    return 0;
-}
 float PlyCam_ClampStick(float val)
 {
     float min = 0.4;
@@ -375,7 +352,7 @@ float PlyCam_ClampStick(float val)
 }
 void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int controller_idx, float *limits)
 {
-    if (!cam_data->x94)
+    if (!cam_data->target)
     {
         cam_data->x84_80 = 0;
         return;
@@ -383,7 +360,8 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 
     cam_data->x84_80 = 1;
 
-    RiderData *rd = PlyCam_GetRiderData(cam_data);
+    RiderData *rd = Ply_GetRiderGObj(cam_data->target->ply)->userdata;
+
     float rstickX = PlyCam_ClampStick(rd->input.rstick.X);
     float rstickY = PlyCam_ClampStick(rd->input.rstick.Y);
 
@@ -453,11 +431,13 @@ int Playback_RiderInputRestore(RiderData *rd)
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
 
-
 // Injection to make the kirby on foot camera use the rider input data (we restore this)
 float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
 {
-    RiderData *rd = PlyCam_GetRiderData(cam_data);
+    if (!cam_data->target)
+        return 0;
+
+    RiderData *rd = Ply_GetRiderGObj(cam_data->target->ply)->userdata;
 
     float rstickX = rd->input.rstick.X;
     float min = 0.4;
@@ -539,7 +519,7 @@ void Replay_On3DLoadStart()
 
         // use live view camera
         GameData *gd = Gm_GetGameData();
-        gd->ply_view_desc[0].flag = PLYCAM_ON;
+        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     Replay_CreateFrameText();

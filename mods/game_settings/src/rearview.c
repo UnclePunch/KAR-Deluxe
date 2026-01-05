@@ -21,20 +21,25 @@ void Rearview_InitFlags()
         rearview_is_pressing[i] = 0;
 }
 
-void Rearview_Check(float *unk_cam, int controller_idx)
+void Rearview_Check(CamData *cam_data, int controller_idx)
 {
     if (!rearview_enabled)
         return;
 
-    if (stc_engine_pads[controller_idx].held & HSD_BUTTON_X)
+    if (!cam_data->target || cam_data->target->ply == 5)
+        return;
+
+    RiderData *rd = Ply_GetRiderGObj(cam_data->target->ply)->userdata;
+
+    if (rd->input.held & HSD_BUTTON_X)
     {
-        unk_cam[0x88 / 4] = 3.1;
-        rearview_is_pressing[controller_idx] = 1;
+        cam_data->rotation_amt = 3.1;
+        rearview_is_pressing[rd->ply] = 1;
     }
-    else if (rearview_is_pressing[controller_idx] == 1)
+    else if (rearview_is_pressing[rd->ply] == 1)
     {
-        unk_cam[0x88 / 4] = 0;
-        rearview_is_pressing[controller_idx] = 0;
+        cam_data->rotation_amt = 0;
+        rearview_is_pressing[rd->ply] = 0;
     }
 
     return;
@@ -53,11 +58,12 @@ void Camera_InitDefaultZoom()
     if (camerazoom_kind == 0)
         return;
 
-    static float *cam_default_values = (float *)0x80557248;
-
     // init camera height for all players
     for (int i = 0; i < 4; i++)
-        cam_default_values[(0x240 / 4) + (i * 2)] = 8.4;
+    {
+        stc_plycam_lookup->ply_distance[i].normal = 8.4;
+        stc_plycam_lookup->ply_distance[i].rail = 6;
+    }
 
     return;
 }

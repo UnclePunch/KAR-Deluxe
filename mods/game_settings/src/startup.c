@@ -79,10 +79,13 @@ void Startup_Init()
                 .is_bike = 0,
                 .machine_kind = VCKIND_COMPACT,
                 .color = 0,
-                .x5 = 1,
+                .rumble = 1,
                 .ply = 0,
                 .x7 = -1,
-                .x8 = 0x08ff0000,
+                .cpu_level = 8,
+                .x9 = -1,
+                .xa = 0,
+                .xb = 0,
                 .xc = 0,
                 .x10 = 0,
                 .x14 = 0,
@@ -94,7 +97,7 @@ void Startup_Init()
                 .x2c = 0,
             };
             memcpy(&gd->ply_desc[0], &hmn_desc, sizeof(PlayerDesc));
-            gd->ply_view_desc[0].is_enabled = 1;
+            gd->ply_view_desc[0].flag = PLYCAM_ON;
             gd->time_seconds = 5 * 60;
             gd->city.x398 = 1;
         }

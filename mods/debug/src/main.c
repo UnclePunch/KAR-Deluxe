@@ -51,6 +51,11 @@ void OnSceneChange()
     return;
 }
 
+void On3DLoadEnd()
+{
+    Debug_On3DLoadEnd();
+}
+
 ModDesc mod_desc = {
     .name = "Debug",
     .author = "UnclePunch",
@@ -58,4 +63,5 @@ ModDesc mod_desc = {
     .version.minor = 0,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
+    .On3DLoadEnd = On3DLoadEnd,
 };

@@ -37,8 +37,7 @@ void Debug_OnSceneChange()
     //                0, 0, 0);
 
     // heap display
-    int canvas_idx = Hoshi_GetScreenCanvasIndex();
-    Text *t = Text_CreateText(1, canvas_idx);
+    Text *t = Hoshi_CreateScreenText();
     t->kerning = 0;
     t->use_aspect = 1;
     t->trans = (Vec3){10, 30, 0};
@@ -192,6 +191,59 @@ void Debug_Think()
 //     OSReport("p%d just died on their machine\n", rd->ply + 1);
 // }
 // CODEPATCH_HOOKCREATE(0x801a06d0, "mr 3, 31\n\t", Rider_OnDeath, "", 0)
+
+
+int timer = 0;
+void Debug3D_Think(GOBJ *g)
+{
+    if (++timer >= 120)
+    {
+        timer = 0;
+
+        // make all compact stars play a sound
+        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
+        {
+            MachineData *md = g->userdata;
+            int audio_source = Machine_AllocAudioSource(128);
+            int audio_track = AudioTrack_Alloc();
+
+            AudioSource_SetPosition(audio_source, &md->pos, 0);
+            AudioSource_InitUnk(audio_source);
+            AudioSource_Play(0x130025, audio_track, audio_source);
+            OSReport("played sound with source %d and track %d %p\n", audio_source, audio_track, &audio_source_table->sources[audio_source]);
+                
+            // free it
+            if (AudioSource_CheckUnk(audio_source) == 0)
+            {
+                AudioSource_Free(audio_source);
+                AudioTrack_Free(audio_track);
+            }
+            else
+                OSReport("ERROR: IT DIDNT WANT TO FREE\n");
+
+            ItemDesc desc;
+            Vec3 pos = {
+                .X = md->pos.X + md->forward.X * 30, 
+                .Y = md->pos.Y + md->forward.Y * 30,
+                .Z = md->pos.Z + md->forward.Z * 30, 
+            };
+            Item_InitDesc(&desc, ITKIND_ALLUP, 1.0, 0, &pos, &(Vec3){0,1,0}, &md->forward, -1, -1);
+            desc.is_airborne = 1;
+            Item_Create(&desc);
+        }
+    }
+}
+void Debug_On3DLoadEnd()
+{
+    return;
+    
+    GOBJ_EZCreator(0,0,0,
+                    0, 0,
+                    0, 0,
+                    Debug3D_Think, 10,
+                    0, 0, 0);
+    timer = 0;
+}
 
 void Debug_Init()
 {

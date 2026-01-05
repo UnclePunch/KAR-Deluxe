@@ -196,7 +196,6 @@ void Debug_Think()
 int timer = 0;
 void Debug3D_Think(GOBJ *g)
 {
-
     if (++timer >= 120)
     {
         timer = 0;
@@ -205,32 +204,38 @@ void Debug3D_Think(GOBJ *g)
         for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
         {
             MachineData *md = g->userdata;
-            // if (md->kind == VCKIND_COMPACT)
-            {
-                int audio_source = Machine_AllocAudioSource(128);
-                int audio_track = AudioTrack_Alloc();
+            int audio_source = Machine_AllocAudioSource(128);
+            int audio_track = AudioTrack_Alloc();
 
-                AudioSource_SetPosition(audio_source, &md->pos, 0);
-                AudioSource_InitUnk(audio_source);
-                AudioSource_Play(0x130025, audio_track, audio_source);
-                OSReport("played sound with source %d and track %d %p\n", audio_source, audio_track, &audio_source_table->sources[audio_source]);
+            AudioSource_SetPosition(audio_source, &md->pos, 0);
+            AudioSource_InitUnk(audio_source);
+            AudioSource_Play(0x130025, audio_track, audio_source);
+            OSReport("played sound with source %d and track %d %p\n", audio_source, audio_track, &audio_source_table->sources[audio_source]);
                 
-                // free it
-                if (AudioSource_CheckUnk(audio_source) == 0)
-                {
-                    AudioSource_Free(audio_source);
-                    AudioTrack_Free(audio_track);
-                }
-                else
-                    OSReport("ERROR: IT DIDNT WANT TO FREE\n");
+            // free it
+            if (AudioSource_CheckUnk(audio_source) == 0)
+            {
+                AudioSource_Free(audio_source);
+                AudioTrack_Free(audio_track);
             }
-            
+            else
+                OSReport("ERROR: IT DIDNT WANT TO FREE\n");
+
+            ItemDesc desc;
+            Vec3 pos = {
+                .X = md->pos.X + md->forward.X * 30, 
+                .Y = md->pos.Y + md->forward.Y * 30,
+                .Z = md->pos.Z + md->forward.Z * 30, 
+            };
+            Item_InitDesc(&desc, ITKIND_ALLUP, 1.0, 0, &pos, &(Vec3){0,1,0}, &md->forward, -1, -1);
+            desc.is_airborne = 1;
+            Item_Create(&desc);
         }
     }
 }
 void Debug_On3DLoadEnd()
 {
-    return; 
+    return;
     
     GOBJ_EZCreator(0,0,0,
                     0, 0,

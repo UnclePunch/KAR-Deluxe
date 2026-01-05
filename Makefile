@@ -216,7 +216,7 @@ install: $(MOD_BIN_FILES) hoshi assets
 patch: $(OUT_DIR) $(MOD_BIN_FILES) hoshi assets
 	@echo ""
 	@echo "--- Creating ISO Patch... ---"
-	python $(SCRIPT_DIR) $(ISO_PATH) $(ROOT_DIR) $(OUT_DIR)/patch.xdelta
+	python $(ISOPATCH_SCRIPT) $(ISO_PATH) $(ROOT_DIR) $(OUT_DIR)/patch.xdelta
 
 riivolution: $(OUT_DIR) $(MOD_BIN_FILES) hoshi assets
 	@echo ""

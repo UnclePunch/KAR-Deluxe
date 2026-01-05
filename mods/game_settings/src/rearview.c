@@ -26,10 +26,10 @@ void Rearview_Check(CamData *cam_data, int controller_idx)
     if (!rearview_enabled)
         return;
 
-    if (!cam_data->ply_link || cam_data->ply_link->ply == 5)
+    if (!cam_data->target || cam_data->target->ply == 5)
         return;
 
-    RiderData *rd = Ply_GetRiderGObj(cam_data->ply_link->ply)->userdata;
+    RiderData *rd = Ply_GetRiderGObj(cam_data->target->ply)->userdata;
 
     if (rd->input.held & HSD_BUTTON_X)
     {

@@ -20,25 +20,10 @@
 
 extern StarpoleBuffer *starpole_buf;
 int frame_idx;
-int is_active = 0;
 
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_PLAYBACK;
 
-Text *cam_text = 0;
-Text *Replay_CreateCamText()
-{
-    // display test string
-    Text *t = Hoshi_CreateScreenText();
-    t->kerning = 1;
-    t->use_aspect = 1;
-    t->trans = (Vec3){10, 30, 0};
-    t->viewport_scale = (Vec2){0.5, 0.5};
-    t->aspect = (Vec2){400, 64};
-    t->viewport_color = (GXColor){0, 0, 0, 128};
-
-    return t;
-}
 Text *frame_text;
 void Replay_CreateFrameText()
 {
@@ -70,7 +55,6 @@ void Replay_CreateDesyncText(int frame)
 
     desync_text = t;
 }
-
 Text *debug_text;
 void Replay_Debug(GOBJ *g)
 {
@@ -89,8 +73,8 @@ void Replay_Debug(GOBJ *g)
     Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     // t->use_aspect = 1;
-    t->trans = (Vec3){0, 0, 0};
-    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->viewport_scale = (Vec2){0.3, 0.3};
+    t->trans = (Vec3){0, t->viewport_scale.Y * 30, 0};
     // t->aspect = (Vec2){260, 32};
     t->color = (GXColor){255, 255, 255, 255};
     t->viewport_color = (GXColor){0, 0, 0, 128};
@@ -160,28 +144,6 @@ int Replay_SendMatch()
         return 0;
     }
 
-    GameData *gp = Gm_GetGameData();
-
-    // calculate size of frame
-    int hmn_num = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        if (gp->ply_desc[i].p_kind == PKIND_HMN)
-            hmn_num++;
-    }
-
-    replay_frame_size = sizeof(starpole_buf->frame.rng_seed) +
-                        sizeof(starpole_buf->frame.frame_idx) +
-                        sizeof(starpole_buf->frame.ply_num) +
-                        sizeof(starpole_buf->frame.ply[0]) * hmn_num;
-
-    // initialize outgoing buffer
-    starpole_buf->match.rng_seed = *hsd_rand_seed;
-    starpole_buf->match.frame_size = replay_frame_size;
-    starpole_buf->match.stadium_kind = gp->city.stadium_kind;
-    memcpy(starpole_buf->match.misc, &gp->city_kind, sizeof(starpole_buf->match.misc));
-    memcpy(starpole_buf->match.ply_desc, gp->ply_desc, sizeof(starpole_buf->match.ply_desc));
-
     // send it
     if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->match), EXI_WRITE))
         return 0;
@@ -222,13 +184,6 @@ int Replay_ReqMatch()
     if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->match), EXI_READ))
         return 0;
 
-    // copy to game struct
-    GameData *gp = Gm_GetGameData();
-    *hsd_rand_seed = starpole_buf->match.rng_seed;
-    gp->city.stadium_kind = starpole_buf->match.stadium_kind;
-    memcpy(&gp->city_kind, starpole_buf->match.misc, sizeof(starpole_buf->match.misc));
-    memcpy(gp->ply_desc, starpole_buf->match.ply_desc, sizeof(starpole_buf->match.ply_desc));
-
     return 1;
 }
 int Replay_ReqFrame(int frame_idx)
@@ -245,7 +200,7 @@ int Replay_ReqFrame(int frame_idx)
     return 1;
 }
 
-void Record_OnFrameStart(GOBJ *g)
+void Record_OnFrameStart()
 {
     starpole_buf->frame.rng_seed = *hsd_rand_seed;
     starpole_buf->frame.ply_num = 0;
@@ -337,9 +292,11 @@ void Playback_OnFrameStart()
     // desync detection
     if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
     {
-        OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
         if (!desync_text)
+        {
+            OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
             Replay_CreateDesyncText(frame_idx);
+        }
     }
 
     // *hsd_rand_seed = starpole_buf->frame.rng_seed;
@@ -373,29 +330,12 @@ void Playback_OnRiderInput(RiderData *rd)
         return;
     }
 
-    OSReport("Replay: ERROR no frame data found for ply %d\n", rd->ply);
+    OSReport("Replay: ERROR no frame data found for ply %d on frame %d (%p)\n", rd->ply, frame_idx, &starpole_buf->frame);
     assert("0");
 }
 void Playback_OnFrameEnd(GOBJ *g)
 {
-    OSReport("Frame %d:\n", frame_idx);
-
-    // int ply = 0;
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     if (Ply_GetPKind(i) == PKIND_HMN)
-    //     {
-    //         GOBJ *r = Ply_GetRiderGObj(i);
-    //         RiderData *rd = r->userdata;
-
-    //         OSReport(" Ply %d:\n", i + 1);
-    //         OSReport("  State:   %d (%d)\n", rd->state_idx, rd->state_idx);
-    //         OSReport("  Pos:     (%.2f, %.2f, %.2f)\n", rd->pos.X, rd->pos.Y, rd->pos.Z);
-    //         OSReport("  Machine: %p\n", rd->machine_gobj);
-
-    //         ply++;
-    //     }
-    // }
+    // OSReport("Frame %d:\n", frame_idx);
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
     frame_idx++;
@@ -403,14 +343,14 @@ void Playback_OnFrameEnd(GOBJ *g)
 
 float PlyCam_ClampStick(float val)
 {
-    float min = 0.4;
+    const float dead = 0.4f;
 
-    if (val < -min)
-        val += min;
-    else if (val > min)
-        val -= min;
-
-    return val / (1.0 - min);
+    if (val > dead)
+        return (val - dead) / (1.0f - dead);
+    else if (val < -dead)
+        return (val + dead) / (1.0f - dead);
+    else
+        return 0.0f;
 }
 void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int controller_idx, float *limits)
 {
@@ -472,20 +412,21 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 ////////////////
 
 // Injection to fetch the frame
-void Playback_GetFrame()
+void Replay_OnFrameStart()
 {
-    if (is_active && replay_mode == REPLAY_PLAYBACK)
+    if (replay_mode == REPLAY_PLAYBACK)
         Playback_OnFrameStart();
+    else if (replay_mode == REPLAY_RECORD)
+        Record_OnFrameStart();
 
     return;
 }
-CODEPATCH_HOOKCREATE(0x80012e74, "", Playback_GetFrame, "", 0)
-
+CODEPATCH_HOOKCREATE(0x80012e74, "", Replay_OnFrameStart, "", 0)
 
 // Injection to read inputs directly from rider data
 int Record_RiderInputBackup(RiderData *rd)
 {
-    if (is_active && replay_mode == REPLAY_RECORD)
+    if (replay_mode == REPLAY_RECORD)
         Record_OnRiderInput(rd);
 
     return 0;
@@ -495,7 +436,7 @@ CODEPATCH_HOOKCREATE(0x8018effc, "mr 3, 31\n\t", Record_RiderInputBackup, "", 0)
 // Injection to write inputs directly to rider data
 int Playback_RiderInputRestore(RiderData *rd)
 {
-    if (is_active && replay_mode == REPLAY_PLAYBACK)
+    if (replay_mode == REPLAY_PLAYBACK)
     {
         Playback_OnRiderInput(rd);
         return 1;
@@ -505,6 +446,91 @@ int Playback_RiderInputRestore(RiderData *rd)
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018efd8)
 
+// Injection to send the match's data
+void Playback_BackupMatch()
+{
+    if (replay_mode == REPLAY_RECORD)
+    {
+        GameData *gp = Gm_GetGameData();
+
+        // calculate size of frame
+        int hmn_num = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (gp->ply_desc[i].p_kind == PKIND_HMN)
+                hmn_num++;
+        }
+
+        replay_frame_size = sizeof(starpole_buf->frame.rng_seed) +
+                            sizeof(starpole_buf->frame.frame_idx) +
+                            sizeof(starpole_buf->frame.ply_num) +
+                            sizeof(starpole_buf->frame.ply[0]) * hmn_num;
+
+        // initialize outgoing buffer
+        starpole_buf->match.rng_seed = *hsd_rand_seed;
+        starpole_buf->match.frame_size = replay_frame_size;
+        starpole_buf->match.stage_kind = gp->stage_kind;
+        starpole_buf->match.stadium_kind = gp->city.stadium_kind;
+        // starpole_buf->match.city_kind = gp->city_kind;
+        // starpole_buf->match.time_seconds = gp->time_seconds;
+        // starpole_buf->match.tempo = gp->tempo;
+        // starpole_buf->match.is_enable_events = gp->is_enable_events;
+        for (int i = 0; i < GetElementsIn(starpole_buf->match.stadium.ply_stats); i++)
+        {
+            starpole_buf->match.stadium.is_bike[i] = gp->city.is_bike[i];
+            starpole_buf->match.stadium.machine_kind[i] = gp->city.machine_kind[i];
+
+            for (int j = 0; j < GetElementsIn(starpole_buf->match.stadium.ply_stats[0]); j++)
+            {
+                starpole_buf->match.stadium.ply_stats[i][j] = (s8)gp->city.ply_stats[i][j];
+            }
+        }
+        memcpy(starpole_buf->match.misc, &gp->city_kind, sizeof(starpole_buf->match.misc));
+        memcpy(starpole_buf->match.ply_desc, gp->ply_desc, sizeof(starpole_buf->match.ply_desc));
+
+        Replay_SendMatch();
+    }
+
+    return;
+}
+CODEPATCH_HOOKCREATE(0x800144d4, "mr 3, 31\n\t", Playback_BackupMatch, "", 0)
+
+// Injection to write the replay's match data
+int Playback_RestoreMatch()
+{
+    if (replay_mode == REPLAY_PLAYBACK)
+    {
+        // copy to game struct
+        GameData *gp = Gm_GetGameData();
+        *hsd_rand_seed = starpole_buf->match.rng_seed;
+        gp->city.stadium_kind = starpole_buf->match.stadium_kind;
+        gp->stage_kind = starpole_buf->match.stage_kind;
+        // gp->city_kind = starpole_buf->match.city_kind;
+        // gp->time_seconds = starpole_buf->match.time_seconds;
+        // gp->xaa6_20 = 1;
+        // gp->xaa6_10 = 1;
+        // gp->tempo = starpole_buf->match.tempo;
+        // gp->is_enable_events = starpole_buf->match.is_enable_events;
+        for (int i = 0; i < GetElementsIn(gp->city.ply_stats); i++)
+        {
+            gp->city.is_bike[i] = starpole_buf->match.stadium.is_bike[i];
+            gp->city.machine_kind[i] = starpole_buf->match.stadium.machine_kind[i];
+
+            for (int j = 0; j < GetElementsIn(gp->city.ply_stats[0]); j++)
+            {
+                gp->city.ply_stats[i][j] = (float)starpole_buf->match.stadium.ply_stats[i][j];
+            }
+        }
+        memcpy(&gp->city_kind, starpole_buf->match.misc, sizeof(starpole_buf->match.misc));
+        memcpy(gp->ply_desc, starpole_buf->match.ply_desc, sizeof(starpole_buf->match.ply_desc));
+
+        return 1;
+    }
+
+    return 0;
+}
+CODEPATCH_HOOKCONDITIONALCREATE(0x800144cc, "mr 3, 31\n\t", Playback_RestoreMatch, "", 0, 0x800144d4)
+
 // Injection to make the kirby on foot camera use the rider input data (we restore this)
 float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
 {
@@ -513,15 +539,17 @@ float PlyCam_UseRiderInputsForOnFootCameraControl(CamData *cam_data)
 
     RiderData *rd = Ply_GetRiderGObj(cam_data->target->ply)->userdata;
 
-    float rstickX = rd->input.rstick.X;
-    float min = 0.4;
+    float x = rd->input.rstick.X;
+    const float dead = 0.4f;
 
-    if (rstickX < -min)
-        rstickX += min;
-    else if (rstickX > min)
-        rstickX -= min;
+    if (x > dead)
+        x = (x - dead) / (1.0f - dead);
+    else if (x < -dead)
+        x = (x + dead) / (1.0f - dead);
+    else
+        x = 0.0f;
 
-    return rstickX / (1.0 - min);
+    return x;
 }
 CODEPATCH_HOOKCREATE(0x800cb4c8, "mr 3, 29\n\t", PlyCam_UseRiderInputsForOnFootCameraControl, "fmr 2, 1\n\t", 0)
 
@@ -542,6 +570,10 @@ void Replay_OnBoot()
     CODEPATCH_HOOKAPPLY(0x800cb4c8);
     CODEPATCH_HOOKAPPLY(0x80012e74);
     CODEPATCH_HOOKAPPLY(0x8018effc);
+
+    CODEPATCH_HOOKAPPLY(0x800144cc);
+    CODEPATCH_HOOKAPPLY(0x800144d4);
+
     CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
 }
 void Replay_On3DLoadStart()
@@ -549,11 +581,11 @@ void Replay_On3DLoadStart()
     if (!Starpole_IsPresent())
         return;
 
-    // debug
-    if (stc_engine_pads[0].held & PAD_BUTTON_A)
-        replay_mode = REPLAY_RECORD;
-    else
+    // playback hotkey
+    if ((stc_engine_pads[0].held & (PAD_BUTTON_A | PAD_TRIGGER_R)) == (PAD_BUTTON_A | PAD_TRIGGER_R))
         replay_mode = REPLAY_PLAYBACK;
+    else
+        replay_mode = REPLAY_RECORD;
 
     // send/receive initial match data
     int result;
@@ -564,12 +596,9 @@ void Replay_On3DLoadStart()
 
     if (!result)
     {
-        is_active = 0;
+        replay_mode = REPLAY_NONE;
         return;
     }
-
-    // proceed with EXI comms throughout this match
-    is_active = 1;
 
     // create a gobj to transmit per frame match data
     GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0,
@@ -582,19 +611,15 @@ void Replay_On3DLoadStart()
 
     if (replay_mode == REPLAY_RECORD)
     {
-        GObj_AddProc(g, Record_OnFrameStart, RDPRI_0);
-        // GObj_AddProc(g, Record_OnFrameInputs, RDPRI_INPUT + 1);
-        GObj_AddProc(g, Record_OnFrameEnd, RDPRI_15 + 1);
+        GObj_AddProc(g, Record_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
     }
     else if (replay_mode == REPLAY_PLAYBACK)
     {
-        GObj_AddProc(g, Playback_OnFrameStart, RDPRI_0);
-        // GObj_AddProc(g, Playback_OnFrameInputs, RDPRI_INPUT);
-        GObj_AddProc(g, Playback_OnFrameEnd, RDPRI_15 + 1);
+        GObj_AddProc(g, Playback_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
 
         // use live view camera
         GameData *gd = Gm_GetGameData();
-        gd->ply_view_desc[0].flag = PLYCAM_ON;
+        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     // debug display
@@ -604,10 +629,11 @@ void Replay_On3DLoadStart()
         GObj_AddProc(g, Replay_Debug, 20);
     }
 
+    desync_text = 0;
     Replay_CreateFrameText();
 }
 void Replay_On3DExit()
 {
-    if (is_active && replay_mode == REPLAY_RECORD)
+    if (replay_mode == REPLAY_RECORD)
         Replay_SendEnd();
 }

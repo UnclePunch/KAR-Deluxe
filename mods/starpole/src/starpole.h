@@ -36,8 +36,20 @@ typedef struct
 {
     int rng_seed;
     u16 frame_size;
-    u16 stadium_kind;
+    u16 stage_kind;
+    u8 stadium_kind;
+    // u8 city_kind;
+    // u16 time_seconds;
+    // u8 is_enable_events : 1;
+    // u8 padding : 4;
+    // u8 tempo : 2;
     u8 misc[0xac4 - 0xa94];
+    struct 
+    {
+        s8 ply_stats[5][9];
+        u8 is_bike[5];
+        u8 machine_kind[5];
+    } stadium;
     PlayerDesc ply_desc[4];
 } StarpoleDataMatch;
 

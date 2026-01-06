@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdarg.h>
 
 #include "text.h"
 #include "os.h"
@@ -176,6 +177,37 @@ StarpoleDataTest *Test_GetString()
 
     return (StarpoleDataTest *)starpole_buf;
 }
+
+// onscreen console
+TextConsole console;
+void TextConsole_Init()
+{
+    // create test string
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){10, 30, 0};
+    t->viewport_scale = (Vec2){0.3, 0.3};
+    t->aspect = (Vec2){300, 0};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+
+    console.t = t;
+    console.y = 0;
+}
+void TextConsole_AddString(float x, float y, char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char buf[256];
+    int ret = vsnprintf(buf, sizeof(buf), fmt, args);
+
+    Text_AddSubtext(console.t, x, console.y + y, buf);
+
+    console.y += y + 30;
+    console.t->aspect.Y = console.y * console.t->scale.Y;
+}
+
 void Test_DisplayString()
 {
     // if (!is_starpole)
@@ -193,7 +225,7 @@ void Test_DisplayString()
     char buf[256];
     Text_Sanitize(starpole_data_test.str, buf, sizeof(buf));
 
-    Text_AddSubtext(t, 0, 0, buf);
+    TextConsole_AddString(0, 0, buf);
 }
 
 // UI

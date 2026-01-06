@@ -18,13 +18,17 @@ typedef enum
 {
     STARPOLE_CMD_ID,
     STARPOLE_CMD_TEST,
+
     STARPOLE_CMD_MATCH,
     STARPOLE_CMD_FRAME,
     STARPOLE_CMD_END,
     
     STARPOLE_CMD_REQMATCH,
     STARPOLE_CMD_REQFRAME,
-    STARPOLE_CMD_NUM,
+
+    STARPOLE_CMD_NETPLAY,
+
+    STARPOLE_CMD_NUM,    
 } StarpoleCmd;
 
 typedef struct
@@ -89,6 +93,12 @@ typedef struct
     };
 } StarpoleBuffer;
 
+typedef struct
+{
+    Text *t;
+    float y;
+} TextConsole;
+
 int Starpole_Imm(StarpoleCmd cmd, int args);
 int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode);
 
@@ -97,6 +107,8 @@ void Starpole_Init();
 void Starpole_LoadAsset();
 void Starpole_DisplayAsset();
 
+void TextConsole_Init();
+void TextConsole_AddString(float x, float y, char *fmt, ...);
 
 StarpoleDataTest *Test_GetString();
 void Test_DisplayString();

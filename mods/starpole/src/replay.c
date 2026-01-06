@@ -71,21 +71,84 @@ void Replay_CreateDesyncText(int frame)
     desync_text = t;
 }
 
+Text *debug_text;
+void Replay_Debug(GOBJ *g)
+{
+    if (debug_text)
+        Text_Destroy(debug_text);
+
+    // get p1 camera
+    GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[0];
+    if (!plycam_gobj)
+        return;
+
+    PlayerCamData *plycam_data = plycam_gobj->userdata;
+    CamData *cd = plycam_data->cam_data;
+
+    // display string
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    // t->use_aspect = 1;
+    t->trans = (Vec3){0, 0, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    // t->aspect = (Vec2){260, 32};
+    t->color = (GXColor){255, 255, 255, 255};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+
+    CameraParam *param = (CameraParam *)&cd->xc0;
+    float y_pos = 0;
+    for (int i = 0; i < 4; i++)
+    {   
+        Text_AddSubtext(t, 0, y_pos, "0x%x:", 0xc0 + (i * sizeof(CameraParam)));
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "eye:");
+        Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].eye.X, param[i].eye.Y, param[i].eye.Z);
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "int:");
+        Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].interest.X, param[i].interest.Y, param[i].interest.Z);
+        y_pos += 30;
+    }
+
+    GOBJ *r = Ply_GetRiderGObj(0);
+    RiderData *rd = r->userdata;
+
+    y_pos += 30;
+    Text_AddSubtext(t, 0, y_pos, "inputs:");
+    y_pos += 30;
+    Text_AddSubtext(t, 30, y_pos, "held:");
+    Text_AddSubtext(t, 170, y_pos, "0x%08X", rd->input.held);
+    y_pos += 30;
+    Text_AddSubtext(t, 30, y_pos, "lstick:");
+    Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.lstick.X, rd->input.lstick.Y);
+    y_pos += 30;
+    Text_AddSubtext(t, 30, y_pos, "rstick:");
+    Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.rstick.X, rd->input.rstick.Y);
+    y_pos += 30;
+    Text_AddSubtext(t, 30, y_pos, "trigger:");
+    Text_AddSubtext(t, 170, y_pos, "%.2f", rd->input.trigger);
+    y_pos += 30;
+
+    t->aspect = (Vec2){650, y_pos};
+
+
+    debug_text = t;
+}
+
 s8 denormalize_signed(float val)
 {
-    return (s8)(val * 127.0f);
+    return (s8)(val * 80.0f);
 }
 float normalize_signed(s8 val)
 {
-    return (float)val / 127.0f;
+    return (float)val / 80.0f;
 }
 u8 denormalize_unsigned(float val)
 {
-    return (u8)(val * 255.0f);
+    return (u8)(val * 140.0f);
 }
 float normalize_unsigned(u8 val)
 {
-    return (float)val / 255.0f;
+    return (float)val / 140.0f;
 }
 
 int Replay_SendMatch()
@@ -531,7 +594,14 @@ void Replay_On3DLoadStart()
 
         // use live view camera
         GameData *gd = Gm_GetGameData();
-        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+        gd->ply_view_desc[0].flag = PLYCAM_ON;
+    }
+
+    // debug display
+    if (0)
+    {
+        debug_text = 0;
+        GObj_AddProc(g, Replay_Debug, 20);
     }
 
     Replay_CreateFrameText();

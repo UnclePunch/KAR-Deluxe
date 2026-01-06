@@ -18,7 +18,7 @@
 #include "text_joint/text_joint.h"
 
 extern StarpoleBuffer *starpole_buf;
-int netplay_ply;
+int netplay_ply = -1;
 
 int Netplay_ReqPlayerIndex()
 {
@@ -35,6 +35,9 @@ void Netplay_DisplayPlayer()
 
 void Netplay_Init()
 {
+    if (!Starpole_IsPresent())
+        return;
+
     netplay_ply = Netplay_ReqPlayerIndex();
     OSReport("netplay player is %d\n", netplay_ply);
 }

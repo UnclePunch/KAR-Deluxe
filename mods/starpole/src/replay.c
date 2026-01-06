@@ -617,9 +617,9 @@ void Replay_On3DLoadStart()
     {
         GObj_AddProc(g, Playback_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
 
-        // use live view camera
-        GameData *gd = Gm_GetGameData();
-        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+        // // use live view camera
+        // GameData *gd = Gm_GetGameData();
+        // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     // debug display

@@ -44,7 +44,6 @@ void Netplay_Init()
 
 void Netplay_OverridePlayerView()
 {
-    bp();
     if (netplay_ply == -1)
         return;
 

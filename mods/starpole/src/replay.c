@@ -55,67 +55,68 @@ void Replay_CreateDesyncText(int frame)
 
     desync_text = t;
 }
-Text *debug_text;
+Text *debug_text[4];
 void Replay_Debug(GOBJ *g)
 {
-    if (debug_text)
-        Text_Destroy(debug_text);
+    for (int ply = 0; ply < 4; ply++)
+    {
+        GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[ply];
+        if (!plycam_gobj)
+            continue;
 
-    // get p1 camera
-    GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[0];
-    if (!plycam_gobj)
-        return;
+        if (debug_text[ply])
+            Text_Destroy(debug_text[ply]);
 
-    PlayerCamData *plycam_data = plycam_gobj->userdata;
-    CamData *cd = plycam_data->cam_data;
+        PlayerCamData *plycam_data = plycam_gobj->userdata;
+        CamData *cd = plycam_data->cam_data;
 
-    // display string
-    Text *t = Hoshi_CreateScreenText();
-    t->kerning = 1;
-    // t->use_aspect = 1;
-    t->viewport_scale = (Vec2){0.3, 0.3};
-    t->trans = (Vec3){0, t->viewport_scale.Y * 30, 0};
-    // t->aspect = (Vec2){260, 32};
-    t->color = (GXColor){255, 255, 255, 255};
-    t->viewport_color = (GXColor){0, 0, 0, 128};
+        // display string
+        Text *t = Hoshi_CreateScreenText();
+        t->kerning = 1;
+        // t->use_aspect = 1;
+        t->viewport_scale = (Vec2){0.2, 0.2};
+        t->trans = (Vec3){0, (ply * 250) + (15), 0};
+        // t->aspect = (Vec2){260, 32};
+        t->color = (GXColor){255, 255, 255, 255};
+        t->viewport_color = (GXColor){0, 0, 0, 128};
 
-    CameraParam *param = (CameraParam *)&cd->xc0;
-    float y_pos = 0;
-    for (int i = 0; i < 4; i++)
-    {   
-        Text_AddSubtext(t, 0, y_pos, "0x%x:", 0xc0 + (i * sizeof(CameraParam)));
+        CameraParam *param = (CameraParam *)&cd->xc0;
+        float y_pos = 0;
+        for (int i = 0; i < 4; i++)
+        {   
+            Text_AddSubtext(t, 0, y_pos, "0x%x:", 0xc0 + (i * sizeof(CameraParam)));
+            y_pos += 30;
+            Text_AddSubtext(t, 30, y_pos, "eye:");
+            Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].eye.X, param[i].eye.Y, param[i].eye.Z);
+            y_pos += 30;
+            Text_AddSubtext(t, 30, y_pos, "int:");
+            Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].interest.X, param[i].interest.Y, param[i].interest.Z);
+            y_pos += 30;
+        }
+
+        GOBJ *r = Ply_GetRiderGObj(ply);
+        RiderData *rd = r->userdata;
+
         y_pos += 30;
-        Text_AddSubtext(t, 30, y_pos, "eye:");
-        Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].eye.X, param[i].eye.Y, param[i].eye.Z);
+        Text_AddSubtext(t, 0, y_pos, "inputs:");
         y_pos += 30;
-        Text_AddSubtext(t, 30, y_pos, "int:");
-        Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].interest.X, param[i].interest.Y, param[i].interest.Z);
+        Text_AddSubtext(t, 30, y_pos, "held:");
+        Text_AddSubtext(t, 170, y_pos, "0x%08X", rd->input.held);
         y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "lstick:");
+        Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.lstick.X, rd->input.lstick.Y);
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "rstick:");
+        Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.rstick.X, rd->input.rstick.Y);
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "trigger:");
+        Text_AddSubtext(t, 170, y_pos, "%.2f", rd->input.trigger);
+        y_pos += 30;
+
+        t->aspect = (Vec2){650, y_pos};
+
+        debug_text[ply] = t;
     }
-
-    GOBJ *r = Ply_GetRiderGObj(0);
-    RiderData *rd = r->userdata;
-
-    y_pos += 30;
-    Text_AddSubtext(t, 0, y_pos, "inputs:");
-    y_pos += 30;
-    Text_AddSubtext(t, 30, y_pos, "held:");
-    Text_AddSubtext(t, 170, y_pos, "0x%08X", rd->input.held);
-    y_pos += 30;
-    Text_AddSubtext(t, 30, y_pos, "lstick:");
-    Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.lstick.X, rd->input.lstick.Y);
-    y_pos += 30;
-    Text_AddSubtext(t, 30, y_pos, "rstick:");
-    Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f", rd->input.rstick.X, rd->input.rstick.Y);
-    y_pos += 30;
-    Text_AddSubtext(t, 30, y_pos, "trigger:");
-    Text_AddSubtext(t, 170, y_pos, "%.2f", rd->input.trigger);
-    y_pos += 30;
-
-    t->aspect = (Vec2){650, y_pos};
-
-
-    debug_text = t;
 }
 
 s8 denormalize_signed(float val)
@@ -444,7 +445,7 @@ int Playback_RiderInputRestore(RiderData *rd)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018efd8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
 
 // Injection to send the match's data
 void Playback_BackupMatch()
@@ -619,13 +620,18 @@ void Replay_On3DLoadStart()
 
         // // use live view camera
         // GameData *gd = Gm_GetGameData();
+        // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+        //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
+
         // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     // debug display
     if (0)
     {
-        debug_text = 0;
+        for (int i = 0; i < GetElementsIn(debug_text); i++)
+            debug_text[i] = 0;
+
         GObj_AddProc(g, Replay_Debug, 20);
     }
 

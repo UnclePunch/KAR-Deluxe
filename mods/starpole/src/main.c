@@ -31,14 +31,13 @@ void OnSceneChange()
     TextConsole_Init();
 
     Test_DisplayString();
-    Netplay_DisplayPlayer();
     Starpole_DisplayAsset();
 }
 
 void On3DLoadStart()
 {
-    Netplay_OverridePlayerView();
     Replay_On3DLoadStart();
+    Netplay_OverridePlayerView();
 }
 
 void On3DExit()

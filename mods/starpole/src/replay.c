@@ -203,7 +203,6 @@ int Replay_ReqFrame(int frame_idx)
 
 void Record_OnFrameStart()
 {
-    starpole_buf->frame.rng_seed = *hsd_rand_seed;
     starpole_buf->frame.ply_num = 0;
     return;
 }
@@ -232,35 +231,7 @@ void Record_OnFrameEnd(GOBJ *g)
 {
     // log amount of players we have data for
     starpole_buf->frame.frame_idx = frame_idx;
-
-    // log player state
-    int ply = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        if (Ply_GetPKind(i) != PKIND_NONE)
-        {
-            GOBJ *r = Ply_GetRiderGObj(i);
-            RiderData *rd = r->userdata;
-
-            // get machine
-            GOBJ *m = rd->machine_gobj;
-            int machine_kind;
-            if (m)
-            {
-                MachineData *md = m->userdata;
-                machine_kind = md->kind;
-            }
-            else
-                machine_kind = -1;
-
-            // // copy state
-            // starpole_buf->frame.ply[ply].rd_state = rd->state_idx;
-            // starpole_buf->frame.ply[ply].machine_kind = machine_kind;
-            // starpole_buf->frame.ply[ply].pos = rd->pos;
-
-            ply++;
-        }
-    }
+    starpole_buf->frame.rng_seed = (*hsd_rand_seed);
 
     Replay_SendFrame(frame_idx);
 
@@ -289,18 +260,6 @@ void Playback_OnFrameStart()
 
         return;
     }
-
-    // desync detection
-    if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
-    {
-        if (!desync_text)
-        {
-            OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
-            Replay_CreateDesyncText(frame_idx);
-        }
-    }
-
-    // *hsd_rand_seed = starpole_buf->frame.rng_seed;
 
     return;
 }
@@ -331,12 +290,22 @@ void Playback_OnRiderInput(RiderData *rd)
         return;
     }
 
-    OSReport("Replay: ERROR no frame data found for ply %d on frame %d (%p)\n", rd->ply, frame_idx, &starpole_buf->frame);
-    assert("0");
+    OSReport("Replay: WARNING no frame data found for ply %d on frame %d (%p)\n", rd->ply, frame_idx, &starpole_buf->frame);
+    // assert("0");
 }
 void Playback_OnFrameEnd(GOBJ *g)
 {
     // OSReport("Frame %d:\n", frame_idx);
+
+    // desync detection
+    if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
+    {
+        if (!desync_text)
+        {
+            OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
+            Replay_CreateDesyncText(frame_idx);
+        }
+    }
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
     frame_idx++;

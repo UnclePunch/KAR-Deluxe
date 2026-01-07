@@ -19,18 +19,11 @@
 
 extern StarpoleBuffer *starpole_buf;
 int netplay_ply = -1;
+extern ReplayMode replay_mode;
 
 int Netplay_ReqPlayerIndex()
 {
     return Starpole_Imm(STARPOLE_CMD_NETPLAY, 0);
-}
-
-void Netplay_DisplayPlayer()
-{
-    if (netplay_ply == -1)
-        TextConsole_AddString(0, 0, "Netplay not detected.");
-    else
-        TextConsole_AddString(0, 0, "Netplay player %d", netplay_ply + 1);
 }
 
 void Netplay_Init()
@@ -44,7 +37,7 @@ void Netplay_Init()
 
 void Netplay_OverridePlayerView()
 {
-    if (netplay_ply == -1)
+    if (netplay_ply == -1 || replay_mode == REPLAY_PLAYBACK)
         return;
 
     GameData *gd = Gm_GetGameData();

@@ -1,0 +1,3 @@
+there may be a race condition happening when loading RdKirbyMore with disc speed unlocked.
+
+can i more efficiently load RdKirbyMore? it seems to be loaded on stadium select and then again in player select

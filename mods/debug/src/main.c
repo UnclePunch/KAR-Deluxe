@@ -61,6 +61,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 0,
+    .option_desc = &ModSettings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .On3DLoadEnd = On3DLoadEnd,

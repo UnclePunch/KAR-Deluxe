@@ -8,6 +8,7 @@
 #include "starpole.h"
 #include "replay.h"
 #include "netplay.h"
+#include "playback.h"
 
 OptionDesc mod_settings = {
     .name = "Starpole",
@@ -20,8 +21,10 @@ OptionDesc mod_settings = {
 void OnBoot()
 {
     Starpole_Init();
+
     Replay_OnBoot();
     Netplay_Init();
+    Playback_Init();
 
     return;
 }
@@ -30,8 +33,14 @@ void OnSceneChange()
 {
     TextConsole_Init();
 
+    Replay_OnSceneChange();
     Test_DisplayString();
     Starpole_DisplayAsset();
+}
+
+void OnFrameEnd()
+{
+    Playback_Listen();
 }
 
 void On3DLoadStart()
@@ -53,4 +62,5 @@ ModDesc mod_desc = {
     .OnSceneChange = OnSceneChange,
     .On3DLoadStart = On3DLoadStart,
     .On3DExit = On3DExit,
+    .OnFrameEnd = OnFrameEnd,
 };

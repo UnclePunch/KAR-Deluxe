@@ -74,8 +74,8 @@ CLEANUP:
     EXIUnlock(STARPOLE_EXI_CHAN);
 
     // OSReport("Starpole: imm response (0x%x)\n", resp);
-    return resp;
 
+    return resp;
 }
 int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode)
 {
@@ -92,7 +92,6 @@ int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode)
         OSReport("Starpole: incoming DMA too large for buffer\n");
         assert("0");
     }
-
 
     // static char *exi_mode_names[] = {"reading", "writing"};
     // OSReport("Starpole: %s payload of size 0x%x bytes\n", exi_mode_names[mode], size);
@@ -140,8 +139,11 @@ int Starpole_IsPresent()
 }
 void Starpole_Init()
 {
+    // request device to id itself
+    int id = Starpole_Imm(STARPOLE_CMD_ID, 0);
+
     // check if starpole is present
-    if (Starpole_Imm(STARPOLE_CMD_ID, 0) != STARPOLE_DEVICE_ID)
+    if (id != STARPOLE_DEVICE_ID)
         return;
 
     is_starpole = 1;
@@ -161,21 +163,30 @@ void Starpole_Init()
         strncpy(starpole_data_test.str, data->str, sizeof(starpole_data_test.str));
         OSReport("Received test data: %s\n", &starpole_data_test.str);
     }
+    
+    return;
 }
 
 // test functions
 StarpoleDataTest *Test_GetString()
 {
+    int enable = OSDisableInterrupts();
+    StarpoleDataTest* result = NULL;
+
     // get size of incoming data
     int recv_size = Starpole_Imm(STARPOLE_CMD_TEST, 0);
     if (recv_size == -1)
-        return 0;
+        goto CLEANUP;
 
     // receive it
     if (!Starpole_DMA(starpole_buf, recv_size, EXI_READ))
-        return 0;
+        goto CLEANUP;
 
-    return (StarpoleDataTest *)starpole_buf;
+    result = (StarpoleDataTest *)starpole_buf;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 
 // onscreen console

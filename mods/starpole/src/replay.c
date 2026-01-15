@@ -15,6 +15,7 @@
 
 #include "starpole.h"
 #include "replay.h"
+#include "playback.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -22,7 +23,7 @@ extern StarpoleBuffer *starpole_buf;
 int frame_idx;
 
 int replay_frame_size;
-ReplayMode replay_mode = REPLAY_PLAYBACK;
+ReplayMode replay_mode = REPLAY_NONE;
 
 Text *frame_text;
 void Replay_CreateFrameText()
@@ -58,7 +59,7 @@ void Replay_CreateDesyncText(int frame)
 Text *debug_text[4];
 void Replay_Debug(GOBJ *g)
 {
-    for (int ply = 0; ply < 4; ply++)
+    for (int ply = 0; ply < 1; ply++)
     {
         GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[ply];
         if (!plycam_gobj)
@@ -79,25 +80,25 @@ void Replay_Debug(GOBJ *g)
         // t->aspect = (Vec2){260, 32};
         t->color = (GXColor){255, 255, 255, 255};
         t->viewport_color = (GXColor){0, 0, 0, 128};
-
-        CameraParam *param = (CameraParam *)&cd->xc0;
         float y_pos = 0;
-        for (int i = 0; i < 4; i++)
-        {   
-            Text_AddSubtext(t, 0, y_pos, "0x%x:", 0xc0 + (i * sizeof(CameraParam)));
-            y_pos += 30;
-            Text_AddSubtext(t, 30, y_pos, "eye:");
-            Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].eye.X, param[i].eye.Y, param[i].eye.Z);
-            y_pos += 30;
-            Text_AddSubtext(t, 30, y_pos, "int:");
-            Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].interest.X, param[i].interest.Y, param[i].interest.Z);
-            y_pos += 30;
-        }
+
+        // CameraParam *param = (CameraParam *)&cd->xc0;
+        // for (int i = 0; i < 4; i++)
+        // {   
+        //     Text_AddSubtext(t, 0, y_pos, "0x%x:", 0xc0 + (i * sizeof(CameraParam)));
+        //     y_pos += 30;
+        //     Text_AddSubtext(t, 30, y_pos, "eye:");
+        //     Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].eye.X, param[i].eye.Y, param[i].eye.Z);
+        //     y_pos += 30;
+        //     Text_AddSubtext(t, 30, y_pos, "int:");
+        //     Text_AddSubtext(t, 130, y_pos, "%.2f, %.2f, %.2f", param[i].interest.X, param[i].interest.Y, param[i].interest.Z);
+        //     y_pos += 30;
+        // }
+        // y_pos += 30;
 
         GOBJ *r = Ply_GetRiderGObj(ply);
         RiderData *rd = r->userdata;
 
-        y_pos += 30;
         Text_AddSubtext(t, 0, y_pos, "inputs:");
         y_pos += 30;
         Text_AddSubtext(t, 30, y_pos, "held:");
@@ -113,7 +114,7 @@ void Replay_Debug(GOBJ *g)
         Text_AddSubtext(t, 170, y_pos, "%.2f", rd->input.trigger);
         y_pos += 30;
 
-        t->aspect = (Vec2){650, y_pos};
+        t->aspect = (Vec2){450, y_pos};
 
         debug_text[ply] = t;
     }
@@ -138,30 +139,44 @@ float normalize_unsigned(u8 val)
 
 int Replay_SendMatch()
 {
+    int result = 0;
+    int enable = OSDisableInterrupts();
+    
     // notify EXI of incoming data
     if (Starpole_Imm(STARPOLE_CMD_MATCH, 0) == -1)
     {
         OSReport("Replay: error sending match\n");
-        return 0;
+        goto CLEANUP;
     }
 
     // send it
     if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->match), EXI_WRITE))
-        return 0;
+        goto CLEANUP;
 
-    return 1;
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 int Replay_SendFrame(int frame_idx)
 {
+    int result = 0;
+    int enable = OSDisableInterrupts();
+
     // notify EXI of incoming data
     if (Starpole_Imm(STARPOLE_CMD_FRAME, frame_idx) == -1)
-        return 0;
+        goto CLEANUP;
 
     // send it
     if (!Starpole_DMA(starpole_buf, replay_frame_size, EXI_WRITE))
-        return 0;
+        goto CLEANUP;
 
-    return 1;
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 int Replay_SendEnd()
 {
@@ -174,31 +189,47 @@ int Replay_SendEnd()
 
 int Replay_ReqMatch()
 {
+    int result = 0;
+    int enable = OSDisableInterrupts();
+
     // request data
     if (Starpole_Imm(STARPOLE_CMD_REQMATCH, 0) <= 0)
     {
         OSReport("Replay: error receiving match\n");
-        return 0;
+        goto CLEANUP;
     }
 
     // receive it
     if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->match), EXI_READ))
-        return 0;
+        goto CLEANUP;
 
-    return 1;
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 int Replay_ReqFrame(int frame_idx)
 {
+    // OSReport("Starpole: Requesting Frame %d\n", frame_idx);
+
+    int result = 0;
+    int enable = OSDisableInterrupts();
+
     // request data
     int frame_size = Starpole_Imm(STARPOLE_CMD_REQFRAME, frame_idx);
     if (frame_size <= 0)
-        return 0;
+        goto CLEANUP;
 
     // receive it
     if (!Starpole_DMA(starpole_buf, frame_size, EXI_READ))
-        return 0;
+        goto CLEANUP;
 
-    return 1;
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 
 void Record_OnFrameStart()
@@ -384,6 +415,10 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 // Injection to fetch the frame
 void Replay_OnFrameStart()
 {
+    // dont run on start pause
+    if (Gm_GetGameData()->update.pause_kind & (1 << 1))
+        return;
+
     if (replay_mode == REPLAY_PLAYBACK)
         Playback_OnFrameStart();
     else if (replay_mode == REPLAY_RECORD)
@@ -546,16 +581,29 @@ void Replay_OnBoot()
 
     CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
 }
+void Replay_OnSceneChange()
+{
+    replay_mode = REPLAY_NONE;
+}
 void Replay_On3DLoadStart()
 {
+    // ensure starpole is active
     if (!Starpole_IsPresent())
         return;
-
-    // playback hotkey
-    if ((stc_engine_pads[0].held & (PAD_BUTTON_A | PAD_TRIGGER_R)) == (PAD_BUTTON_A | PAD_TRIGGER_R))
-        replay_mode = REPLAY_PLAYBACK;
-    else
+    
+    // decide replay mode
+    if (Scene_GetCurrentMajor() == MJRKIND_CITY || Scene_GetCurrentMajor() == MJRKIND_AIR)
         replay_mode = REPLAY_RECORD;
+    else if (Playback_IsMajor())
+    {
+        replay_mode = REPLAY_PLAYBACK;
+        Gm_GetGameData()->major_cur = MJRKIND_CITY; // need to spoof this??
+    }
+    else
+    {
+        replay_mode = REPLAY_NONE;
+        return;
+    }
 
     // send/receive initial match data
     int result;
@@ -587,16 +635,16 @@ void Replay_On3DLoadStart()
     {
         GObj_AddProc(g, Playback_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
 
-        // // use live view camera
-        // GameData *gd = Gm_GetGameData();
-        // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
-        //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
+        // use live view camera
+        GameData *gd = Gm_GetGameData();
+        for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+            gd->ply_view_desc[i].flag = PLYCAM_OFF;
 
-        // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+        gd->ply_view_desc[0].flag = PLYCAM_ON;
     }
 
     // debug display
-    if (0)
+    if (1)
     {
         for (int i = 0; i < GetElementsIn(debug_text); i++)
             debug_text[i] = 0;

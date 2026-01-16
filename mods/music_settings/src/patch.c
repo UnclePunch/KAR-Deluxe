@@ -199,7 +199,7 @@ CODEPATCH_HOOKCREATE(0x8014ba08, "mr 3,29\n\t", Hook_MusicPrompt_Create, "", 0)
 // adjust stat size
 void Hook_MusicChange_AdjustStatSize(int ply)
 {
-    if (Ply_CheckIfHMN(ply))
+    if (Ply_IsViewOn(ply))
     {
         int ply_view_num = Gm_GetPlyViewNum();
         if (ply_view_num > 1)

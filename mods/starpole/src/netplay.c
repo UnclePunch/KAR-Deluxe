@@ -4,7 +4,7 @@
 #include "os.h"
 #include "hsd.h"
 #include "game.h"
-#include "exi.h"
+#include "hud.h"
 #include "scene.h"
 #include "inline.h"
 #include "scene.h"
@@ -14,6 +14,7 @@
 
 #include "starpole.h"
 #include "replay.h"
+#include "netplay.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -46,4 +47,143 @@ void Netplay_OverridePlayerView()
         gd->ply_view_desc[i].flag = PLYCAM_OFF;
     
     gd->ply_view_desc[netplay_ply].flag = PLYCAM_ON;
+}
+
+// Player Tags
+static char *test_names[] = {
+    "UnclePunch",
+    "charity",
+    "ThePulsarLegend",
+    "Taco",
+};
+void Netplay_CreatePlayerTags()
+{
+    // if (netplay_ply == -1)
+    //     return;
+
+    Game3dData *g3d = Gm_Get3dData();
+    int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUD, 1, 0);
+
+    // loop through all player views
+    for (int i = 0; i < 4; i++)
+    {
+        if (Ply_GetPKind(i) == PKIND_NONE || !Ply_IsViewOn(i))
+            continue;
+
+        // create a gobj to render the tags for this viewport
+        GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_HUD, 0,
+                        sizeof(PlayerTagViewData), Netplay_DestroyPlayerTagViewGObj,
+                        0, 0,
+                        0, 0, 
+                        Netplay_PlayerTagGX, GAMEGX_HUD, 1);
+
+        // init data
+        PlayerTagViewData *gp = g->userdata;
+        gp->ply = i;
+        for (int i = 0; i < GetElementsIn(gp->t); i++)
+            gp->t[i] = 0;
+
+        // loop through all other players
+        for (int ply = 0; ply < 4; ply++)
+        {
+            if (Ply_GetPKind(ply) != PKIND_HMN || ply == i)
+                continue;
+
+            // create a name for them
+            Text *t = Text_CreateText(0, canvas_idx);
+            t->gobj->gx_cb = 0;
+            t->viewport_scale = (Vec2){0.05, 0.05};
+            t->trans = (Vec3){320 * t->viewport_scale.X, 240 * t->viewport_scale.Y, 0};
+            t->viewport_color = (GXColor){0,0,0,0};
+            t->aspect = (Vec2){100,32};
+            t->use_aspect = 1;
+            t->align = 1;
+            t->kerning = 1;
+
+            // name outline
+            t->color = (GXColor){0, 0, 0, 255};
+            Text_AddSubtext(t, -2, -2, test_names[ply]);
+            Text_AddSubtext(t, -2, 2, test_names[ply]);
+            Text_AddSubtext(t, 2, -2, test_names[ply]);
+            Text_AddSubtext(t, 2, 2, test_names[ply]);
+
+            // set name color
+            GOBJ *plynum_gobj = g3d->plynum_gobj[i][ply];
+            if (plynum_gobj)
+            {
+                DOBJ *plynum_dobj = JObj_GetDObjIndex(plynum_gobj->hsd_object, 0, 0);
+                if (plynum_dobj)
+                    t->color = plynum_dobj->mobj->mat->diffuse;
+            }
+            else
+                t->color = (GXColor){255, 255, 255, 255};
+            Text_AddSubtext(t, 0, 0, test_names[ply]);
+
+            gp->t[ply] = t;
+        }
+    
+    }
+}
+void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp)
+{
+    for (int i = 0; i < GetElementsIn(gp->t); i++)
+    {
+        if (gp->t[i])
+            Text_Destroy(gp->t[i]);
+    }
+}
+void Netplay_PlayerTagGX(GOBJ *g, int pass)
+{
+    if (pass != 2)
+        return; 
+
+    Game3dData *g3d = Gm_Get3dData();
+
+    PlayerTagViewData *gp = g->userdata;
+    for (int i = 0; i < GetElementsIn(gp->t); i++)
+    {
+        Text *t = gp->t[i];
+        if (!t)
+            continue;;
+
+        // get plynum hud gobj
+        GOBJ *plynum_gobj = g3d->plynum_gobj[gp->ply][i];
+        if (!plynum_gobj)
+            continue;
+
+        HudPlyNumData *plynum_data = plynum_gobj->userdata;
+        if (!plynum_data->is_visible || !plynum_data->x8_02)
+            t->hidden = 1;
+        else
+        {
+            t->hidden = 0;
+            JOBJ *plynum_jobj = plynum_gobj->hsd_object;
+
+            // move text to PlyNum
+            t->trans.X = plynum_jobj->trans.X;
+            t->trans.Y = -(plynum_jobj->trans.Y + 6.3);
+        }
+
+        if (Gm_Get3dData()->plyview_num >= 2)
+        {
+            CamScissor view_scissor;
+            PlyCam_GetViewIndexScissor(Ply_GetViewIndex(plynum_data->ply), &view_scissor);
+            GXSetScissor(view_scissor.left, 
+                        view_scissor.bottom, 
+                        view_scissor.right - view_scissor.left,
+                        view_scissor.top - view_scissor.bottom);
+        }
+
+        // call render func
+        Text_GX(t->gobj, pass);
+    }
+
+    // restore scissor
+    CamScissor full_scissor;
+    PlyCam_GetFullscreenScissor(&full_scissor);
+    GXSetScissor(full_scissor.left, 
+                full_scissor.bottom, 
+                full_scissor.right - full_scissor.left,
+                full_scissor.top - full_scissor.bottom);
+
 }

@@ -9,6 +9,7 @@
 #include "starpole.h"
 
 extern StarpoleBuffer *starpole_buf;
+extern int netplay_ply;
 OSThread playback_thread;
 
 MajorSceneDesc playback_major_desc = {
@@ -45,12 +46,18 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
+    if (!Starpole_IsPresent() || netplay_ply != -1)
+        return;
+
     if (Playback_CheckForMatch())
     {
         SFX_Play(FGMMENU_CS_KETTEI);
         BGM_Stop();
         Scene_SetNextMajor(playback_major_desc.major_id);
+
+        Scene_SetDirection(0);
         Scene_ExitMinor();
+        
         Scene_ExitMajor();
     }
 }
@@ -68,7 +75,7 @@ void PlaybackMajor_Enter()
 void PlaybackMajor_ExitMinor()
 {
     int dir = Scene_GetDirection();
-    if (dir == PAD_BUTTON_B)
+    if (dir)
     {
         Scene_SetNextMajor(MJRKIND_MENU);
         Scene_ExitMajor();

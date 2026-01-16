@@ -48,6 +48,10 @@ void On3DLoadStart()
     Replay_On3DLoadStart();
     Netplay_OverridePlayerView();
 }
+void On3DLoadEnd()
+{
+    Netplay_CreatePlayerTags();
+}
 
 void On3DExit()
 {
@@ -61,6 +65,7 @@ ModDesc mod_desc = {
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .On3DLoadStart = On3DLoadStart,
+    .On3DLoadEnd = On3DLoadEnd,
     .On3DExit = On3DExit,
     .OnFrameEnd = OnFrameEnd,
 };

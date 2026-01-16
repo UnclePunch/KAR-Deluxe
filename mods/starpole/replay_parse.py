@@ -76,7 +76,7 @@ def dump_starpole(input_path, output_path):
 
         out.write("=== StarpoleDataFrame ===\n")
 
-        for i in range(6000):
+        for i in range(4360):
             out.write(f"\n-- Frame {i} --\n")
 
             frame_idx, = read(">I", f)
@@ -87,7 +87,7 @@ def dump_starpole(input_path, output_path):
             out.write(f"rng_seed  : {rng_seed:08X}\n")
             out.write(f"ply_num   : {ply_num}\n")
 
-            for p in range(FRAME_PLAYER_COUNT):
+            for p in range((frame_size - 9) // 8):
                 idx, = read(">B", f)
                 held, stickX, stickY, subX, subY, trigger = read(">HbbbbB", f)
 

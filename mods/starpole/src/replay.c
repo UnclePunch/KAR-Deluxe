@@ -32,8 +32,8 @@ void Replay_CreateFrameText()
     Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
     t->use_aspect = 1;
-    t->trans = (Vec3){450, 30, 0};
-    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->trans = (Vec3){300, 0, 0};
+    t->viewport_scale = (Vec2){0.2, 0.2};
     t->aspect = (Vec2){260, 32};
     t->viewport_color = (GXColor){0, 0, 0, 128};
     Text_AddSubtext(t, 0, 0, "");
@@ -59,25 +59,45 @@ void Replay_CreateDesyncText(int frame)
 Text *debug_text[4];
 void Replay_Debug(GOBJ *g)
 {
-    for (int ply = 0; ply < 1; ply++)
+    int ply_num = 0;
+    for (int ply = 0; ply < 4; ply++)
     {
-        GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[ply];
-        if (!plycam_gobj)
+        if (Ply_GetPKind(ply) != PKIND_NONE)
+            ply_num++;
+    }
+
+    int this_ply = 0;
+    for (int ply = 0; ply < 4; ply++)
+    {
+        // if (!Ply_IsViewOn(ply))
+        //     continue;
+
+        // GOBJ *plycam_gobj = stc_plycam_lookup->cam_gobjs[ply];
+        // if (!plycam_gobj)
+        //     continue;
+
+        // PlayerCamData *plycam_data = plycam_gobj->userdata;
+        // CamData *cd = plycam_data->cam_data;
+
+        if (Ply_GetPKind(ply) == PKIND_NONE)
             continue;
+
+        GOBJ *r = Ply_GetRiderGObj(ply);
+        RiderData *rd = r->userdata;
 
         if (debug_text[ply])
             Text_Destroy(debug_text[ply]);
 
-        PlayerCamData *plycam_data = plycam_gobj->userdata;
-        CamData *cd = plycam_data->cam_data;
+        float text_size = 0.2;
+        float box_width = 136;
+
+        float x_pos = (320 - ((box_width * ply_num) / 2)) + (box_width * this_ply);
 
         // display string
         Text *t = Hoshi_CreateScreenText();
         t->kerning = 1;
-        // t->use_aspect = 1;
-        t->viewport_scale = (Vec2){0.2, 0.2};
-        t->trans = (Vec3){0, (ply * 250) + (15), 0};
-        // t->aspect = (Vec2){260, 32};
+        t->viewport_scale = (Vec2){text_size, text_size};
+        t->trans = (Vec3){x_pos, 10, 0};
         t->color = (GXColor){255, 255, 255, 255};
         t->viewport_color = (GXColor){0, 0, 0, 128};
         float y_pos = 0;
@@ -96,9 +116,16 @@ void Replay_Debug(GOBJ *g)
         // }
         // y_pos += 30;
 
-        GOBJ *r = Ply_GetRiderGObj(ply);
-        RiderData *rd = r->userdata;
+        Text_AddSubtext(t, 0, y_pos, "player %d:", ply + 1);
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "state:");
+        Text_AddSubtext(t, 170, y_pos, "idx %d - frame %d", rd->state_idx, rd->state_frame);
+        y_pos += 30;
+        Text_AddSubtext(t, 30, y_pos, "pos:");
+        Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f, %.2f", rd->pos.X, rd->pos.Y, rd->pos.Z);
+        y_pos += 30;
 
+        y_pos += 30;
         Text_AddSubtext(t, 0, y_pos, "inputs:");
         y_pos += 30;
         Text_AddSubtext(t, 30, y_pos, "held:");
@@ -113,10 +140,12 @@ void Replay_Debug(GOBJ *g)
         Text_AddSubtext(t, 30, y_pos, "trigger:");
         Text_AddSubtext(t, 170, y_pos, "%.2f", rd->input.trigger);
         y_pos += 30;
-
-        t->aspect = (Vec2){450, y_pos};
+        
+        t->aspect = (Vec2){box_width / text_size, y_pos};
 
         debug_text[ply] = t;
+
+        this_ply++;
     }
 }
 
@@ -305,18 +334,16 @@ void Playback_OnRiderInput(RiderData *rd)
     // find the data for this ply
     for (int i = 0; i < starpole_buf->frame.ply_num; i++)
     {
-        int ply = starpole_buf->frame.ply[i].idx;
-
-        if (ply != rd->ply)
+        if (starpole_buf->frame.ply[i].idx != rd->ply)
             continue;
 
         // copy inputs
-        rd->input.held = (int)starpole_buf->frame.ply[ply].input.held;      // game code will update down for us (8018f178)
-        rd->input.stickX = starpole_buf->frame.ply[ply].input.stickX;       // game code will convert to float and update the Vec2 (8018f154)
-        rd->input.stickY = starpole_buf->frame.ply[ply].input.stickY;
-        rd->input.rstick.X = normalize_signed(starpole_buf->frame.ply[ply].input.substickX);
-        rd->input.rstick.Y = normalize_signed(starpole_buf->frame.ply[ply].input.substickY);
-        rd->input.trigger = normalize_unsigned(starpole_buf->frame.ply[ply].input.trigger);
+        rd->input.held = (int)starpole_buf->frame.ply[i].input.held;      // game code will update down for us (8018f178)
+        rd->input.stickX = starpole_buf->frame.ply[i].input.stickX;       // game code will convert to float and update the Vec2 (8018f154)
+        rd->input.stickY = starpole_buf->frame.ply[i].input.stickY;
+        rd->input.rstick.X = normalize_signed(starpole_buf->frame.ply[i].input.substickX);
+        rd->input.rstick.Y = normalize_signed(starpole_buf->frame.ply[i].input.substickY);
+        rd->input.trigger = normalize_unsigned(starpole_buf->frame.ply[i].input.trigger);
 
         return;
     }
@@ -428,28 +455,15 @@ void Replay_OnFrameStart()
 }
 CODEPATCH_HOOKCREATE(0x80012e74, "", Replay_OnFrameStart, "", 0)
 
-// Injection to read inputs directly from rider data
-int Record_RiderInputBackup(RiderData *rd)
-{
-    if (replay_mode == REPLAY_RECORD)
-        Record_OnRiderInput(rd);
-
-    return 0;
-}
-CODEPATCH_HOOKCREATE(0x8018effc, "mr 3, 31\n\t", Record_RiderInputBackup, "", 0)
-
 // Injection to write inputs directly to rider data
-int Playback_RiderInputRestore(RiderData *rd)
+int Replay_RiderInput(RiderData *rd)
 {
     if (replay_mode == REPLAY_PLAYBACK)
-    {
         Playback_OnRiderInput(rd);
-        return 1;
-    }
-
-    return 0;
+    else if (replay_mode == REPLAY_RECORD)
+        Record_OnRiderInput(rd);
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x8018ef34, "mr 3, 31\n\t", Playback_RiderInputRestore, "", 0, 0x8018effc)
+CODEPATCH_HOOKCONDITIONALCREATE(0x8018f0cc, "mr 3, 31\n\t", Replay_RiderInput, "", 0, 0)
 
 // Injection to send the match's data
 void Playback_BackupMatch()
@@ -571,10 +585,9 @@ CODEPATCH_HOOKCREATE(0x800b7840, "mr 3, 30\n\t", Dismount_GetCameraPosition, "",
 void Replay_OnBoot()
 {
     CODEPATCH_HOOKAPPLY(0x800b7840);
-    CODEPATCH_HOOKAPPLY(0x8018ef34);
+    CODEPATCH_HOOKAPPLY(0x8018f0cc);
     CODEPATCH_HOOKAPPLY(0x800cb4c8);
     CODEPATCH_HOOKAPPLY(0x80012e74);
-    CODEPATCH_HOOKAPPLY(0x8018effc);
 
     CODEPATCH_HOOKAPPLY(0x800144cc);
     CODEPATCH_HOOKAPPLY(0x800144d4);
@@ -592,7 +605,7 @@ void Replay_On3DLoadStart()
         return;
     
     // decide replay mode
-    if (Scene_GetCurrentMajor() == MJRKIND_CITY || Scene_GetCurrentMajor() == MJRKIND_AIR)
+    if ((Scene_GetCurrentMajor() == MJRKIND_CITY || Scene_GetCurrentMajor() == MJRKIND_AIR) && !Gm_IsReplay())
         replay_mode = REPLAY_RECORD;
     else if (Playback_IsMajor())
     {
@@ -640,11 +653,11 @@ void Replay_On3DLoadStart()
         for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
             gd->ply_view_desc[i].flag = PLYCAM_OFF;
 
-        gd->ply_view_desc[0].flag = PLYCAM_ON;
+        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     // debug display
-    if (1)
+    if (0)
     {
         for (int i = 0; i < GetElementsIn(debug_text); i++)
             debug_text[i] = 0;

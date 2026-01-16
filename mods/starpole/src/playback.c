@@ -9,7 +9,7 @@
 #include "starpole.h"
 
 extern StarpoleBuffer *starpole_buf;
-extern int netplay_ply;
+extern StarpoleDataNetplay *netplay_data;
 OSThread playback_thread;
 
 MajorSceneDesc playback_major_desc = {
@@ -46,7 +46,7 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
-    if (!Starpole_IsPresent() || netplay_ply != -1)
+    if (!Starpole_IsPresent() || netplay_data->ply != -1)
         return;
 
     if (Playback_CheckForMatch())

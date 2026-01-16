@@ -40,6 +40,12 @@ typedef struct
 
 typedef struct
 {
+    int ply;
+    char usernames[4][31];
+} StarpoleDataNetplay;
+
+typedef struct
+{
     int rng_seed;
     u16 frame_size;
     u16 stage_kind;

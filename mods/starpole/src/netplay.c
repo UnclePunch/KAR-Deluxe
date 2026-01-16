@@ -18,13 +18,30 @@
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
-extern StarpoleBuffer *starpole_buf;
-int netplay_ply = -1;
+StarpoleDataNetplay *netplay_data;
 extern ReplayMode replay_mode;
 
-int Netplay_ReqPlayerIndex()
+int Netplay_ReqData()
 {
-    return Starpole_Imm(STARPOLE_CMD_NETPLAY, 0);
+    int result = 0;
+    int enable = OSDisableInterrupts();
+
+    // request data
+    if (Starpole_Imm(STARPOLE_CMD_NETPLAY, 0) <= 0)
+    {
+        OSReport("Netplay: not active\n");
+        goto CLEANUP;
+    }
+
+    // receive it
+    if (!Starpole_DMA((StarpoleBuffer *)netplay_data, sizeof(*netplay_data), EXI_READ))
+        goto CLEANUP;
+
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 
 void Netplay_Init()
@@ -32,13 +49,22 @@ void Netplay_Init()
     if (!Starpole_IsPresent())
         return;
 
-    netplay_ply = Netplay_ReqPlayerIndex();
-    OSReport("netplay player is %d\n", netplay_ply);
+    // alloc buffer
+    netplay_data = HSD_MemAlloc(sizeof(*netplay_data));
+    netplay_data->ply = -1;
+
+    // get data
+    if(Netplay_ReqData())
+    {
+        OSReport("Netplay: you are player %d \"%s\"\n", 
+            netplay_data->ply, 
+            netplay_data->usernames[netplay_data->ply]);
+    }
 }
 
 void Netplay_OverridePlayerView()
 {
-    if (netplay_ply == -1 || replay_mode == REPLAY_PLAYBACK)
+    if (netplay_data->ply == -1 || replay_mode == REPLAY_PLAYBACK)
         return;
 
     GameData *gd = Gm_GetGameData();
@@ -46,19 +72,13 @@ void Netplay_OverridePlayerView()
     for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
         gd->ply_view_desc[i].flag = PLYCAM_OFF;
     
-    gd->ply_view_desc[netplay_ply].flag = PLYCAM_ON;
+    gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_ON;
 }
 
 // Player Tags
-static char *test_names[] = {
-    "UnclePunch",
-    "charity",
-    "ThePulsarLegend",
-    "Taco",
-};
 void Netplay_CreatePlayerTags()
 {
-    // if (netplay_ply == -1)
+    // if (netplay_data->ply == -1)
     //     return;
 
     Game3dData *g3d = Gm_Get3dData();
@@ -102,10 +122,10 @@ void Netplay_CreatePlayerTags()
 
             // name outline
             t->color = (GXColor){0, 0, 0, 255};
-            Text_AddSubtext(t, -2, -2, test_names[ply]);
-            Text_AddSubtext(t, -2, 2, test_names[ply]);
-            Text_AddSubtext(t, 2, -2, test_names[ply]);
-            Text_AddSubtext(t, 2, 2, test_names[ply]);
+            Text_AddSubtext(t, -2, -2, netplay_data->usernames[ply]);
+            Text_AddSubtext(t, -2, 2, netplay_data->usernames[ply]);
+            Text_AddSubtext(t, 2, -2, netplay_data->usernames[ply]);
+            Text_AddSubtext(t, 2, 2, netplay_data->usernames[ply]);
 
             // set name color
             GOBJ *plynum_gobj = g3d->plynum_gobj[i][ply];
@@ -117,7 +137,7 @@ void Netplay_CreatePlayerTags()
             }
             else
                 t->color = (GXColor){255, 255, 255, 255};
-            Text_AddSubtext(t, 0, 0, test_names[ply]);
+            Text_AddSubtext(t, 0, 0, netplay_data->usernames[ply]);
 
             gp->t[ply] = t;
         }

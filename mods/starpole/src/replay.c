@@ -9,6 +9,9 @@
 #include "inline.h"
 #include "scene.h"
 #include "rider.h"
+#include "machine.h"
+#include "item.h"
+#include "enemy.h"
 
 #include "hoshi/func.h"
 #include "hoshi/screen_cam.h"
@@ -43,6 +46,9 @@ void Replay_CreateFrameText()
 Text *desync_text;
 void Replay_CreateDesyncText(int frame)
 {
+    if (desync_text)
+        Text_Destroy(desync_text);
+
     // display test string
     Text *t = Hoshi_CreateScreenText();
     t->kerning = 1;
@@ -166,6 +172,78 @@ float normalize_unsigned(u8 val)
     return (float)val / 140.0f;
 }
 
+u32 Replay_HashGameState()
+{
+    int object_num;
+
+    typedef struct
+    {
+        u16 kind;
+        u16 state;
+        u16 frame;
+        Vec3 pos;
+    } ObjectState;
+
+    // count number of objects to backup
+    object_num = 0;
+    for (GOBJ *r = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; r; r = r->next)
+        object_num++;
+    for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
+        object_num++;
+    for (GOBJ *e = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; e; e = e->next)
+        object_num++;
+    for (GOBJ *i = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; i; i = i->next)
+        object_num++;
+
+    // alloc temp buffer
+    ObjectState *states = HSD_MemAlloc(sizeof(ObjectState) * object_num);
+    memset(states, 0, sizeof(ObjectState) * object_num);
+    object_num = 0;
+
+    // begin collecting data
+    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; g; g = g->next)
+    {
+        RiderData *rd = g->userdata;
+        ObjectState *this_state = &states[object_num++];
+        this_state->kind = rd->kind;
+        this_state->state = rd->state_idx;
+        this_state->frame = rd->state_frame;
+        this_state->pos = rd->pos;
+    }
+    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
+    {
+        MachineData *gp = g->userdata;
+        ObjectState *this_state = &states[object_num++];
+        this_state->kind = gp->kind;
+        this_state->state = 0;
+        this_state->frame = 0;
+        this_state->pos = gp->pos;
+    }
+    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; g; g = g->next)
+    {
+        EnemyData *gp = g->userdata;
+        ObjectState *this_state = &states[object_num++];
+        this_state->kind = gp->kind;
+        this_state->state = gp->state_idx;
+        this_state->frame = gp->state_frame;
+        this_state->pos = gp->pos;
+    }
+    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; g; g = g->next)
+    {
+        ItemData *gp = g->userdata;
+        ObjectState *this_state = &states[object_num++];
+        this_state->kind = gp->kind;
+        this_state->state = gp->state;
+        this_state->frame = gp->state_frame;
+        this_state->pos = gp->pos;
+    }
+
+    u32 hash = hash_32(states, sizeof(ObjectState) * object_num);
+    HSD_Free(states);
+
+    return hash;
+}
+
 int Replay_SendMatch()
 {
     int result = 0;
@@ -264,6 +342,7 @@ CLEANUP:
 void Record_OnFrameStart()
 {
     starpole_buf->frame.ply_num = 0;
+    starpole_buf->frame.rng_seed = (*hsd_rand_seed);
     return;
 }
 void Record_OnRiderInput(RiderData *rd)
@@ -289,9 +368,8 @@ void Record_OnRiderInput(RiderData *rd)
 }
 void Record_OnFrameEnd(GOBJ *g)
 {
-    // log amount of players we have data for
     starpole_buf->frame.frame_idx = frame_idx;
-    starpole_buf->frame.rng_seed = (*hsd_rand_seed);
+    starpole_buf->frame.hash = Replay_HashGameState();
 
     Replay_SendFrame(frame_idx);
 
@@ -320,6 +398,9 @@ void Playback_OnFrameStart()
 
         return;
     }
+
+    // restore rng seed
+    (*hsd_rand_seed) = starpole_buf->frame.rng_seed;
 
     return;
 }
@@ -356,14 +437,14 @@ void Playback_OnFrameEnd(GOBJ *g)
     // OSReport("Frame %d:\n", frame_idx);
 
     // desync detection
-    if (starpole_buf->frame.rng_seed != *hsd_rand_seed)
+    if (Replay_HashGameState() != starpole_buf->frame.hash)
     {
         if (!desync_text)
         {
-            OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
-            OSReport("have 0x%08X but expected 0x%08X\n", *hsd_rand_seed, starpole_buf->frame.rng_seed);
+            OSReport("Replay: ERROR hash mismatch on frame %d!\n", frame_idx);
             Replay_CreateDesyncText(frame_idx);
         }
+        
     }
 
     Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
@@ -483,6 +564,7 @@ void Playback_BackupMatch()
 
         replay_frame_size = sizeof(starpole_buf->frame.rng_seed) +
                             sizeof(starpole_buf->frame.frame_idx) +
+                            sizeof(starpole_buf->frame.hash) +
                             sizeof(starpole_buf->frame.ply_num) +
                             sizeof(starpole_buf->frame.ply[0]) * hmn_num;
 

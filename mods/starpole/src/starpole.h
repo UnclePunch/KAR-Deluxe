@@ -70,7 +70,8 @@ typedef struct
 typedef struct
 {
     int frame_idx;
-    int rng_seed;
+    u32 rng_seed;
+    u32 hash;
     u8 ply_num;
     struct
     {

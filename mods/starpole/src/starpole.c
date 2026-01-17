@@ -31,24 +31,30 @@ int Starpole_Imm(StarpoleCmd cmd, int args)
     //  else = EXI reponse 
 
     if (cmd >= STARPOLE_CMD_NUM)
-        return 0;
+        return -1;
 
     // OSReport("Starpole: sending imm cmd %d\n", cmd);
 
     u32 resp = 0;
-    u32 buf = ((args & 0xFFFFFF) << 16) | cmd & 0xFFFF; // shove args into payload
+    u32 buf = ((args & 0xFFFFFF) << 16) | (cmd & 0xFFFF); // shove args into payload
 
-    if (!EXIProbe(STARPOLE_EXI_CHAN))
-        return 0;
-    
+    // ensure a device is inserted before waiting for probe
+    volatile EXIChannelReg *exi_reg = (EXIChannelReg *)0xCC006800;
+    if (!(exi_reg[STARPOLE_EXI_CHAN].BR & 0x1000))
+        return -1;
+        
+    int is_probed;
+    do { is_probed = EXIProbe(STARPOLE_EXI_CHAN);
+    } while (!is_probed);
+
     if (!EXILock(STARPOLE_EXI_CHAN, 0))
-        return 0;
+        return -1;
 
-    if (!EXISelect(STARPOLE_EXI_CHAN, 0, STARPOLE_EXI_FREQ))
+    if (!EXISelect(STARPOLE_EXI_CHAN, STARPOLE_DEVICE, STARPOLE_EXI_FREQ))
         goto FAIL;
 
     // send
-    if (!EXIImm(STARPOLE_EXI_CHAN, &buf, 4, EXI_WRITE))
+    if (!EXIImm(STARPOLE_EXI_CHAN, &buf, 4, EXI_WRITE, NULL))
         goto FAIL;
 
     // block until DMA completes
@@ -56,7 +62,7 @@ int Starpole_Imm(StarpoleCmd cmd, int args)
         goto FAIL;
 
     // get response
-    if (!EXIImm(STARPOLE_EXI_CHAN, &resp, 4, EXI_READ))
+    if (!EXIImm(STARPOLE_EXI_CHAN, &resp, 4, EXI_READ, NULL))
         goto FAIL;
 
     // block until DMA completes
@@ -67,6 +73,7 @@ int Starpole_Imm(StarpoleCmd cmd, int args)
     goto CLEANUP;
 
 FAIL:
+    OSReport("Starpole: EXI Imm Failed!\n");
     resp = -1;
 
 CLEANUP:
@@ -87,7 +94,7 @@ int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode)
     }
 
     // ensure buffer is large enough to receive this data
-    if (size > sizeof(*starpole_buf))
+    if (size > sizeof(StarpoleBuffer))
     {
         OSReport("Starpole: incoming DMA too large for buffer\n");
         assert("0");
@@ -98,30 +105,41 @@ int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode)
 
     int result;
 
-    DCFlushRange(buf, size); // Flush cache so EXI sees correct data
+    if (mode == EXI_WRITE)
+        DCFlushRange(buf, size); // Flush cache so EXI sees correct data
 
-    if (!EXIProbe(STARPOLE_EXI_CHAN))
-        return 0;
+    // ensure a device is inserted before waiting for probe
+    volatile EXIChannelReg *exi_reg = (EXIChannelReg *)0xCC006800;
+    if (!(exi_reg[STARPOLE_EXI_CHAN].BR & 0x1000))
+        return -1;
+        
+    int is_probed;
+    do { is_probed = EXIProbe(STARPOLE_EXI_CHAN);
+    } while (!is_probed);
     
     if (!EXILock(STARPOLE_EXI_CHAN, 0))
         return 0;
 
-    if (!EXISelect(STARPOLE_EXI_CHAN, 0, STARPOLE_EXI_FREQ))
+    if (!EXISelect(STARPOLE_EXI_CHAN, STARPOLE_DEVICE, STARPOLE_EXI_FREQ))
         goto FAIL;
 
     // start DMA
-    if (!EXIDma(STARPOLE_EXI_CHAN, buf, size, mode))
+    if (!EXIDma(STARPOLE_EXI_CHAN, buf, size, mode, NULL))
         goto FAIL;
 
     // block until DMA completes
     if (!EXISync(STARPOLE_EXI_CHAN))
         goto FAIL;
 
+    if (mode == EXI_READ)
+        DCInvalidateRange(buf, size); // Flush cache so cpu sees correct data
+
     // if we get here everything succeeded
     result = 1;
     goto CLEANUP;
 
 FAIL:
+    OSReport("Starpole: EXI DMA Failed!\n");
     result = 0;
 
 CLEANUP:

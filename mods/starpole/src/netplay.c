@@ -18,6 +18,7 @@
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
+int is_netplay = 0;
 StarpoleDataNetplay *netplay_data;
 extern ReplayMode replay_mode;
 
@@ -51,11 +52,12 @@ void Netplay_Init()
 
     // alloc buffer
     netplay_data = HSD_MemAlloc(sizeof(*netplay_data));
-    netplay_data->ply = -1;
 
     // get data
-    if(Netplay_ReqData())
+    if (Netplay_ReqData())
     {
+        is_netplay = 1;
+
         OSReport("Netplay: you are player %d \"%s\"\n", 
             netplay_data->ply, 
             netplay_data->usernames[netplay_data->ply]);
@@ -64,7 +66,7 @@ void Netplay_Init()
 
 void Netplay_OverridePlayerView()
 {
-    if (netplay_data->ply == -1 || replay_mode == REPLAY_PLAYBACK)
+    if (!is_netplay || replay_mode == REPLAY_PLAYBACK)
         return;
 
     GameData *gd = Gm_GetGameData();
@@ -72,14 +74,26 @@ void Netplay_OverridePlayerView()
     for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
         gd->ply_view_desc[i].flag = PLYCAM_OFF;
     
-    gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_ON;
+    // if its a netplay game and we are not plugged in, force p1 cam
+    if (netplay_data->ply == -1)
+        gd->ply_view_desc[0].flag = PLYCAM_ON;
+    else
+    {
+        // // if we are plugged in and in this game, force our cam on
+        // if (Gm_GetGameData()->ply_desc[netplay_data->ply].p_kind == PKIND_HMN)
+            gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_ON;
+
+        // // plugged in and not present, give us live cam to spectate with
+        // else
+        //     gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_LIVE;
+    }
 }
 
 // Player Tags
 void Netplay_CreatePlayerTags()
 {
-    // if (netplay_data->ply == -1)
-    //     return;
+    if (!is_netplay)
+        return;
 
     Game3dData *g3d = Gm_Get3dData();
     int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUD, 1, 0);

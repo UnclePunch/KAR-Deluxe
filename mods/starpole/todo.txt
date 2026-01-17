@@ -1,0 +1,5 @@
+something is required to be in slot A for starpole to be detected?
+limit tag to 8 characters
+detect a netplay spectator and give them live cam
+stadium round 2 needs to be backed up
+back up kardx settings

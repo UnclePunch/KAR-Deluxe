@@ -9,6 +9,7 @@
 #include "starpole.h"
 
 extern StarpoleBuffer *starpole_buf;
+extern int is_netplay;
 extern StarpoleDataNetplay *netplay_data;
 OSThread playback_thread;
 
@@ -46,7 +47,7 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
-    if (!Starpole_IsPresent() || netplay_data->ply != -1)
+    if (!Starpole_IsPresent() || is_netplay)
         return;
 
     if (Playback_CheckForMatch())

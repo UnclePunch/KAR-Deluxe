@@ -22,6 +22,7 @@ int is_netplay = 0;
 StarpoleDataNetplay *netplay_data;
 extern ReplayMode replay_mode;
 
+// EXI
 int Netplay_ReqData()
 {
     int result = 0;
@@ -45,16 +46,32 @@ CLEANUP:
     return result;
 }
 
+// Init
 void Netplay_Init()
 {
-    if (!Starpole_IsPresent())
+    if (!Starpole_IsPresent() && !NETPLAY_DEBUG)
         return;
 
     // alloc buffer
     netplay_data = HSD_MemAlloc(sizeof(*netplay_data));
 
+    if (NETPLAY_DEBUG)
+    {
+        static char *test_names[] = {
+            "UnclePunch",
+            "charity",
+            "Taco",
+            "ThePulsarLegend",
+        };
+
+        is_netplay = 1;
+        netplay_data->ply = 0;
+        for (int i = 0; i < GetElementsIn(netplay_data->usernames); i++)
+            strcpy(netplay_data->usernames[i], test_names[i]);
+    }
+
     // get data
-    if (Netplay_ReqData())
+    else if (Netplay_ReqData())
     {
         is_netplay = 1;
 
@@ -62,8 +79,10 @@ void Netplay_Init()
             netplay_data->ply, 
             netplay_data->usernames[netplay_data->ply]);
     }
+
 }
 
+// Fullscreen
 void Netplay_OverridePlayerView()
 {
     if (!is_netplay || replay_mode == REPLAY_PLAYBACK)
@@ -123,6 +142,10 @@ void Netplay_CreatePlayerTags()
             if (Ply_GetPKind(ply) != PKIND_HMN || ply == i)
                 continue;
 
+            char name[NETPLAY_TAGMAX + 1];
+            strncpy(name, netplay_data->usernames[ply], NETPLAY_TAGMAX);
+            name[NETPLAY_TAGMAX] = '\0';
+
             // create a name for them
             Text *t = Text_CreateText(0, canvas_idx);
             t->gobj->gx_cb = 0;
@@ -134,24 +157,29 @@ void Netplay_CreatePlayerTags()
             t->align = 1;
             t->kerning = 1;
 
-            // name outline
-            t->color = (GXColor){0, 0, 0, 255};
-            Text_AddSubtext(t, -2, -2, netplay_data->usernames[ply]);
-            Text_AddSubtext(t, -2, 2, netplay_data->usernames[ply]);
-            Text_AddSubtext(t, 2, -2, netplay_data->usernames[ply]);
-            Text_AddSubtext(t, 2, 2, netplay_data->usernames[ply]);
-
-            // set name color
+            // get text color
+            GXColor *text_color;
             GOBJ *plynum_gobj = g3d->plynum_gobj[i][ply];
             if (plynum_gobj)
             {
                 DOBJ *plynum_dobj = JObj_GetDObjIndex(plynum_gobj->hsd_object, 0, 0);
                 if (plynum_dobj)
-                    t->color = plynum_dobj->mobj->mat->diffuse;
+                    text_color = &plynum_dobj->mobj->mat->diffuse;
             }
-            else
+
+            // name outline
+            int y = (text_color->r * 299 + text_color->g * 587 + text_color->b * 114) / 1000;
+            if (y < 80)
                 t->color = (GXColor){255, 255, 255, 255};
-            Text_AddSubtext(t, 0, 0, netplay_data->usernames[ply]);
+            else
+                t->color = (GXColor){0, 0, 0, 255};
+            Text_AddSubtext(t, -2, -2, name);
+            Text_AddSubtext(t, -2, 2, name);
+            Text_AddSubtext(t, 2, -2, name);
+            Text_AddSubtext(t, 2, 2, name);
+
+            t->color = *text_color;
+            Text_AddSubtext(t, 0, 0, name);
 
             gp->t[ply] = t;
         }
@@ -168,12 +196,14 @@ void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp)
 }
 void Netplay_PlayerTagGX(GOBJ *g, int pass)
 {
+    // only on transparency pass
     if (pass != 2)
         return; 
 
     Game3dData *g3d = Gm_Get3dData();
-
     PlayerTagViewData *gp = g->userdata;
+
+    // loop through tags for this viewport
     for (int i = 0; i < GetElementsIn(gp->t); i++)
     {
         Text *t = gp->t[i];
@@ -186,6 +216,8 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
             continue;
 
         HudPlyNumData *plynum_data = plynum_gobj->userdata;
+
+        // check if plynum was rendered
         if (!plynum_data->is_visible || !plynum_data->x8_02)
             t->hidden = 1;
         else
@@ -198,6 +230,7 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
             t->trans.Y = -(plynum_jobj->trans.Y + 6.3);
         }
 
+        // splitscreen logic
         if (Gm_Get3dData()->plyview_num >= 2)
         {
             CamScissor view_scissor;

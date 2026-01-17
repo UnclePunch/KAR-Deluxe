@@ -1,6 +1,9 @@
 #ifndef STARPOLE_NETPLAY
 #define STARPOLE_NETPLAY
 
+#define NETPLAY_DEBUG 0
+#define NETPLAY_TAGMAX 10
+
 typedef struct PlayerTagViewData
 {
     int ply;

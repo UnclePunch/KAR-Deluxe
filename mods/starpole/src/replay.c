@@ -361,6 +361,7 @@ void Playback_OnFrameEnd(GOBJ *g)
         if (!desync_text)
         {
             OSReport("Replay: ERROR Random seed mismatch on frame %d!\n", frame_idx);
+            OSReport("have 0x%08X but expected 0x%08X\n", *hsd_rand_seed, starpole_buf->frame.rng_seed);
             Replay_CreateDesyncText(frame_idx);
         }
     }

@@ -135,7 +135,7 @@ $(ORIG_DOL):
 
 # --- hoshi target ---
 hoshi: $(ORIG_DOL)
-	$(MAKE) -C $(HOSHI_DIR)
+	$(MAKE) -C $(HOSHI_DIR) MOD_NAME=KirbyAirRideDeluxe
 
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.

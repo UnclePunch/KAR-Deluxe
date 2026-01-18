@@ -1,3 +1,4 @@
 detect a netplay spectator and give them live cam
+look into how human cam applies the zoom_amt and do it for live cam
 stadium round 2 needs to be backed up
 back up kardx settings

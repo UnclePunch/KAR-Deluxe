@@ -676,6 +676,10 @@ void Replay_OnBoot()
     CODEPATCH_HOOKAPPLY(0x800144d4);
 
     CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
+
+    // temp patches
+    float *reduce_ratio = (float *)0x805df274; // fullscreen live cam
+    (*reduce_ratio) = 0;
 }
 void Replay_OnSceneChange()
 {

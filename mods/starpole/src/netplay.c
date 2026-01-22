@@ -115,7 +115,7 @@ void Netplay_CreatePlayerTags()
         return;
 
     Game3dData *g3d = Gm_Get3dData();
-    int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUD, 1, 0);
+    int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUDORTHO, 1, 0);
 
     // loop through all player views
     for (int i = 0; i < 4; i++)
@@ -128,7 +128,7 @@ void Netplay_CreatePlayerTags()
                         sizeof(PlayerTagViewData), Netplay_DestroyPlayerTagViewGObj,
                         0, 0,
                         0, 0, 
-                        Netplay_PlayerTagGX, GAMEGX_HUD, 1);
+                        Netplay_PlayerTagGX, GAMEGX_HUDORTHO, 1);
 
         // init data
         PlayerTagViewData *gp = g->userdata;

@@ -195,6 +195,9 @@ u32 Replay_HashGameState()
     for (GOBJ *i = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; i; i = i->next)
         object_num++;
 
+    if (object_num == 0)
+        return 0;
+
     // alloc temp buffer
     ObjectState *states = HSD_MemAlloc(sizeof(ObjectState) * object_num);
     memset(states, 0, sizeof(ObjectState) * object_num);

@@ -688,6 +688,7 @@ void CitySettings_CameraThink(GOBJ *gobj) // 8022BA1C
 
     // rotate camera 8022bbe0
     COBJ_Init(gobj->hsd_object, stc_cobj_desc);
+    CObj_SetAspect(gobj->hsd_object, *stc_cobj_aspect);
     COBJ_GetEyeVector(gobj->hsd_object, &cobj_eye);
     COBJ_GetInterest(gobj->hsd_object, &cobj_interest);
     VECCrossProduct(&identity, &cobj_eye, &cross);

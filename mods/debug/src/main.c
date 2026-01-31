@@ -27,10 +27,10 @@ void OnBoot()
 {
     // Profiler_Init();
 
+    Debug_Init();
+
     if ((*stc_dblevel) < DB_DEVELOP)
         return;
-
-    Debug_Init();
 
     // // output vanilla preload files
     // for (int i = 0; i < 82; i++)

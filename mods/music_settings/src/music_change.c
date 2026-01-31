@@ -8,6 +8,7 @@
 #include "hud.h"
 
 #include "hoshi/func.h"
+#include "hoshi/wide.h"
 
 #include "music_change.h"
 #include "music_database.h"
@@ -45,7 +46,10 @@ void MusicChange_On3DLoad()
     MusicChangeTextParams *param = MusicChange_GetTextParam();
 
     COBJ *c = g->hsd_object;
-    CObj_SetScissor(c, param->scissor_left, param->scissor_right, 0, 480);
+    CObj_SetScissor(c, 
+                    param->scissor_left, 
+                    param->scissor_left + param->scissor_width, 
+                    0, 480);
 
     music_text_canvas_idx = Text_CreateCanvas(0, -1, 28, GAMEPLINK_CAMHUD, 0, SONGNAME_GXLINK, 0, 0);
 }
@@ -63,10 +67,15 @@ GOBJ *MusicChange_Create()
                              sizeof(MusicChangeData), HSD_Free,
                              HSD_OBJKIND_JOBJ, set->jobj,
                              MusicChange_Think, 20,
-                             JObj_GX, 21, gx_pri);
+                             JObj_GX, GAMEGX_HUD, gx_pri);
 
     // add animations
-    JObj_AddSetAnim(g->hsd_object, 0, set, 0, 1);
+    JOBJ *j = g->hsd_object;
+    JObj_AddSetAnim(j, 0, set, 0, 1);
+
+    // widescreen shift
+    j->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
+    JObj_SetMtxDirtySub(j);
 
     // init data
     MusicChangeData *gp = g->userdata;
@@ -232,8 +241,10 @@ void MusicChange_Think(GOBJ *g)
     }
     }
 
+
     // update text pos
     text->trans.X = gp->param->pos.X + gp->offset.X; // original pos + offset
+    text->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
 }
 
 void MusicChange_TextCObj(GOBJ *g)
@@ -297,7 +308,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.045, 0.055},
             .aspect = {800, 32},
             .scissor_left = 330,
-            .scissor_right = 555,
+            .scissor_width = 225,
             .textbox_width = 20.0,
         },
         // 1p (city)
@@ -306,7 +317,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.045, 0.055},
             .aspect = {800, 32},
             .scissor_left = 330,
-            .scissor_right = 555,
+            .scissor_width = 225,
             .textbox_width = 20.0,
         },
         // 2p (air ride)
@@ -315,7 +326,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.045, 0.055},
             .aspect = {950, 32},
             .scissor_left = 215,
-            .scissor_right = 550,
+            .scissor_width = 335,
             .textbox_width = 30.0,
         },
         // 2p (city)
@@ -324,7 +335,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.045, 0.055},
             .aspect = {950, 32},
             .scissor_left = 100,
-            .scissor_right = 420,
+            .scissor_width = 320,
             .textbox_width = 29.0,
         },
         // 4p (air ride)
@@ -333,7 +344,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.75 * 0.045, 0.75 * 0.055},
             .aspect = {1200, 32},
             .scissor_left = 70,
-            .scissor_right = 465,
+            .scissor_width = 395,
             .textbox_width = 37.0,
         },
         // 4p (city)
@@ -342,7 +353,7 @@ MusicChangeTextParams *MusicChange_GetTextParam()
             .scale = {0.75 * 0.045, 0.75 * 0.055},
             .aspect = {1200, 32},
             .scissor_left = 70,
-            .scissor_right = 465,
+            .scissor_width = 395,
             .textbox_width = 37.0,
         },
     };
@@ -418,7 +429,6 @@ void MusicChange_ScaleStats(int ply, float scale, Vec2 offsets)
     {
         GOBJ *bar_gobj = g3d->cityui_statbar_gobj[ply][i];
         JOBJ *bar_jobj = bar_gobj->hsd_object;
-        HUDCityStatBarData *bar_data = bar_gobj->userdata;
 
         bar_jobj->scale = (Vec3){scale,
                                  scale,

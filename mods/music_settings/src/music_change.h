@@ -37,7 +37,7 @@ typedef struct MusicChangeTextParams
     Vec2 scale;
     Vec2 aspect;
     u16 scissor_left;
-    u16 scissor_right;
+    u16 scissor_width;
     float textbox_width;
 } MusicChangeTextParams;
 

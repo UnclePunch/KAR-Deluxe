@@ -221,13 +221,13 @@ CODEPATCH_HOOKCREATE(0x80112d9c, "", Game_OverloadIfAll, "", 0)
 
 void Game_ReplacePlIconAnim(GOBJ *g)
 {
-    HudPliconData *gp = g->userdata;
+    HUDElementData *gp = g->userdata;
     Game3dData *gd = Gm_Get3dData();
     JOBJ *j = g->hsd_object;
 
     JOBJSet **set;
     int frame;
-    RiderKind kind = Ply_GetRiderKind2(gp->ply);
+    RiderKind kind = Ply_GetRiderKind2(gp->plicon.ply);
 
     // get jobjset
     switch (kind)
@@ -250,10 +250,10 @@ void Game_ReplacePlIconAnim(GOBJ *g)
     }
 
     // get frame
-    if (Ply_CheckIfCPU(gp->ply))
+    if (Ply_CheckIfCPU(gp->plicon.ply))
         frame = 50;
     else
-        frame = Select_ColorToAnim(Ply_GetColor(gp->ply));
+        frame = Select_ColorToAnim(Ply_GetColor(gp->plicon.ply));
 
     // add anim
     JObj_AddSetAnim(j, 0, set[0], frame, 0);
@@ -274,12 +274,12 @@ void Game_ReplacePlIconAnim(GOBJ *g)
 CODEPATCH_HOOKCREATE(0x80120ffc, "mr 3,30\n\t", Game_ReplacePlIconAnim, "", 0x80121074) // init
 CODEPATCH_HOOKCREATE(0x801201e0, "mr 3,27\n\t", Game_ReplacePlIconAnim, "", 0x801202ac) // after hit
 
-void HUD_SetHPBarColor(HudHpBarData *hd)
+void HUD_SetHPBarColor(HUDElementData *hd)
 {
     if (Ply_GetRiderKind2(hd->ply) != RDKIND_KIRBY)
         return;
 
-    Select_SetUIColor(hd->kirby_jobj, 0, 0, stc_ui_colors[Select_ColorToAnim(Ply_GetColor(hd->ply))].hud);
+    Select_SetUIColor(hd->hp_bar.kirby_jobj, 0, 0, stc_ui_colors[Select_ColorToAnim(Ply_GetColor(hd->ply))].hud);
 }
 CODEPATCH_HOOKCREATE(0x8011ee00, "mr 3,30\n\t", HUD_SetHPBarColor, "", 0)
 

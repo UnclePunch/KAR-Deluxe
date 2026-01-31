@@ -59,7 +59,7 @@ void QuickStat_Think(GOBJ *r)
         {
             for (int stat_kind = 0; stat_kind < 9; stat_kind++)
             {
-                HUDCityStatBarData *bar_data = g3d->cityui_statbar_gobj[rp->ply][stat_kind]->userdata;
+                HUDElementData *hp = g3d->cityui_statbar_gobj[rp->ply][stat_kind]->userdata;
                 int stat_num = Ply_GetCityStatNum(rp->ply, stat_kind, 0);
 
                 if (stat_kind != 8)
@@ -67,15 +67,15 @@ void QuickStat_Think(GOBJ *r)
 
                 // update bar length
                 if (stat_num > 0)
-                    HUD_UpdateElement(bar_data->bar_j, stat_num); // 8012931c
+                    HUD_UpdateElement(hp->city_stat_bar.bar_j, stat_num); // 8012931c
                 else
-                    HUD_UpdateElement(bar_data->bar_j, 0);
+                    HUD_UpdateElement(hp->city_stat_bar.bar_j, 0);
 
                 // 80129328
                 if (stat_num > -10)
-                    JObj_SetFlagsAll(bar_data->sign_j, JOBJ_HIDDEN);
+                    JObj_SetFlagsAll(hp->city_stat_bar.sign_j, JOBJ_HIDDEN);
                 else
-                    JObj_ClearFlagsAll(bar_data->sign_j, JOBJ_HIDDEN);
+                    JObj_ClearFlagsAll(hp->city_stat_bar.sign_j, JOBJ_HIDDEN);
 
                 // 8012933c
                 if (stat_num < 10 && stat_num > -10)
@@ -83,24 +83,24 @@ void QuickStat_Think(GOBJ *r)
                     // 80129394
                     if (stat_num < 0 && stat_num > -10)
                     {
-                        HUD_UpdateElement(bar_data->num_left_j, 10);           // 801293a4
-                        JObj_ClearFlagsAll(bar_data->num_left_j, JOBJ_HIDDEN); // 801293b4
+                        HUD_UpdateElement(hp->city_stat_bar.num_left_j, 10);           // 801293a4
+                        JObj_ClearFlagsAll(hp->city_stat_bar.num_left_j, JOBJ_HIDDEN); // 801293b4
                     }
                     else
-                        JObj_SetFlagsAll(bar_data->num_left_j, JOBJ_HIDDEN); // 801293b4
+                        JObj_SetFlagsAll(hp->city_stat_bar.num_left_j, JOBJ_HIDDEN); // 801293b4
                 }
                 else
                 {
                     int left_digit = (stat_num > 0) ? ((int)((float)stat_num / 10.0)) : ((int)(((float)stat_num * -1) / 10.0));
 
                     // 8012934c
-                    HUD_UpdateElement(bar_data->num_left_j, left_digit);
-                    JObj_ClearFlagsAll(bar_data->num_left_j, JOBJ_HIDDEN);
+                    HUD_UpdateElement(hp->city_stat_bar.num_left_j, left_digit);
+                    JObj_ClearFlagsAll(hp->city_stat_bar.num_left_j, JOBJ_HIDDEN);
                 }
 
                 // 801293c0
                 int right_digit = (stat_num > 0) ? (stat_num % 10) : ((stat_num * -1) % 10);
-                HUD_UpdateElement(bar_data->num_right_j, right_digit);
+                HUD_UpdateElement(hp->city_stat_bar.num_right_j, right_digit);
             }
         }
     }

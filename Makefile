@@ -2,6 +2,12 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment.")
 endif
 
+ifeq ($(OS),Windows_NT)
+    PYTHON := python
+else
+    PYTHON := python3
+endif
+
 # --- Compiler and Flags ---
 CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc
 LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
@@ -131,7 +137,7 @@ $(OBJ_DIRS):
 
 # Rule to extract the original dol from the iso
 $(ORIG_DOL):
-	python $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
+	$(PYTHON) $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
 
 # --- hoshi target ---
 hoshi: $(ORIG_DOL)
@@ -181,7 +187,7 @@ $(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)
 	@echo ""
 	@echo "--- Creating '$(1)' bin file ---"
 	@echo ""
-	python $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
+	$(PYTHON) $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
 
 endef
 

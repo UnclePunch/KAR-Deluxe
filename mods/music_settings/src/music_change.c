@@ -418,7 +418,6 @@ void MusicChange_ScaleStats(int ply, float scale, Vec2 offsets)
     {
         GOBJ *bar_gobj = g3d->cityui_statbar_gobj[ply][i];
         JOBJ *bar_jobj = bar_gobj->hsd_object;
-        HUDCityStatBarData *bar_data = bar_gobj->userdata;
 
         bar_jobj->scale = (Vec3){scale,
                                  scale,

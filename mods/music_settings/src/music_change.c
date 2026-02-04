@@ -8,12 +8,13 @@
 #include "hud.h"
 
 #include "hoshi/func.h"
-#include "hoshi/wide.h"
 
 #include "music_change.h"
 #include "music_database.h"
 #include "fst/fst.h"
 #include "text_joint/text_joint.h"
+
+#include "../../wide/src/wide_export.h"
 
 static GOBJ *stc_music_change_gobj;
 static Text *stc_text;
@@ -23,6 +24,7 @@ static int music_text_canvas_idx;
 extern int stc_song_num;
 extern SongData *stc_song_data;
 extern PlaylistData stc_playlist_data[PLAYLIST_NUM];
+extern WideExport *wide_export;
 
 void MusicChange_Init()
 {
@@ -74,8 +76,10 @@ GOBJ *MusicChange_Create()
     JObj_AddSetAnim(j, 0, set, 0, 1);
 
     // widescreen shift
-    j->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
-    JObj_SetMtxDirtySub(j);
+    if (wide_export)
+        wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT);
+    // j->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
+    // JObj_SetMtxDirtySub(j);
 
     // init data
     MusicChangeData *gp = g->userdata;
@@ -244,7 +248,7 @@ void MusicChange_Think(GOBJ *g)
 
     // update text pos
     text->trans.X = gp->param->pos.X + gp->offset.X; // original pos + offset
-    text->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
+    // text->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
 }
 
 void MusicChange_TextCObj(GOBJ *g)

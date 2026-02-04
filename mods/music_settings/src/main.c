@@ -9,6 +9,10 @@
 #include "musicsettings.h"
 #include "music_change.h"
 
+#include "../../wide/src/wide_export.h"
+
+WideExport *wide_export;
+
 void OnBoot()
 {
     MusicSettings_Init();
@@ -22,6 +26,9 @@ void OnSceneChange()
 void OnSaveInit()
 {
     MusicSettings_SaveSetDefault();
+
+    // get exports from widescreen mod
+    wide_export = (WideExport *)Hoshi_ImportMod("Widescreen", WIDE_VERSION_MAJOR, WIDE_VERSION_MINOR);
     return;
 }
 void OnSaveLoaded()

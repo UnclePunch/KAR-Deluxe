@@ -8,11 +8,19 @@
 
 #include "wide.h"
 #include "gamehud.h"
+#include "wide_export.h"
+
+WideExport wide_export = {
+    .HUDAdjust_Element = HUDAdjust_Element,
+};
 
 void OnBoot()
 {
     Wide_Init();
     HUDAdjust_Init();
+
+    Hoshi_ExportMod((void *)&wide_export);
+
     return;
 }
 void OnSceneChange()
@@ -46,8 +54,8 @@ OptionDesc mod_settings = {
 ModDesc mod_desc = {
     .name = "Widescreen",
     .author = "UnclePunch",
-    .version.major = VERSION_MAJOR,
-    .version.minor = VERSION_MINOR,
+    .version.major = WIDE_VERSION_MAJOR,
+    .version.minor = WIDE_VERSION_MINOR,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

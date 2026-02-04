@@ -2,7 +2,6 @@
 #include "os.h"
 #include "hsd.h"
 
-#include "hoshi/wide.h"
 #include "hoshi/screen_cam.h"
 #include "wide.h"
 
@@ -114,6 +113,11 @@ float Wide_GetInverseScale()
 {
     return ORIG_ASPECT / (*stc_cobj_aspect);
 }
+
+float Wide_GetAspectMult()
+{
+    return (*stc_cobj_aspect) / ORIG_ASPECT;
+}
 void Wide_OnOptionChange(int val)
 {
     WideKind kind = (WideKind)val;
@@ -121,48 +125,47 @@ void Wide_OnOptionChange(int val)
     // set global aspect ratio
     *stc_cobj_aspect = wide_kind_fractions[kind];
 
-    if (Scene_GetCurrentMinor() != MNRKIND_MAINMENU)
-        return;
-
-    // adjust menu camera
-    ScMenuCommon *md = Gm_GetMenuData();
-    if (md->cam_gobj)
+    // adjust main menu camera
+    if (Scene_GetCurrentMinor() == MNRKIND_MAINMENU)
     {
-        COBJ *c = md->cam_gobj->hsd_object;
-        c->projection_param.perspective.aspect = *stc_cobj_aspect;
-    }
-    
-    // adjust menu text camera
-    COBJ *c = 0;
-    int idx = 0;
-    int target_canvas_idx = md->text.canvas_idx;
-    for (TextCanvas *tc = *stc_textcanvas_first; tc; tc = tc->next)
-    {
-        if (tc->sis_idx == 0)
+        ScMenuCommon *md = Gm_GetMenuData();
+        if (md->cam_gobj)
         {
-            if (idx == target_canvas_idx)
-            {
-                c = tc->cam_gobj->hsd_object;
-
-                c->projection_param.ortho.left = 0;
-                c->projection_param.ortho.right = 640;
-                CObj_AdjustWideOrtho(c);
-                CObj_SetMtxDirty(c);
-                break;
-            }
-
-            idx++;
-        }
-    }
-
-    // adjust hoshi settings camera
-    bp();
-    for (GOBJ *g = (*stc_gobj_lookup)[17]; g; g = g->next)
-    {
-        if (g->obj_kind == HSD_OBJKIND_COBJ && g->cobj_links == (1ULL << 4))
-        {
-            COBJ *c = g->hsd_object;
+            COBJ *c = md->cam_gobj->hsd_object;
             c->projection_param.perspective.aspect = *stc_cobj_aspect;
+        }
+        
+        // adjust menu text camera
+        COBJ *c = 0;
+        int idx = 0;
+        int target_canvas_idx = md->text.canvas_idx;
+        for (TextCanvas *tc = *stc_textcanvas_first; tc; tc = tc->next)
+        {
+            if (tc->sis_idx == 0)
+            {
+                if (idx == target_canvas_idx)
+                {
+                    c = tc->cam_gobj->hsd_object;
+
+                    c->projection_param.ortho.left = 0;
+                    c->projection_param.ortho.right = 640;
+                    CObj_AdjustWideOrtho(c);
+                    CObj_SetMtxDirty(c);
+                    break;
+                }
+
+                idx++;
+            }
+        }
+
+        // adjust hoshi settings camera
+        for (GOBJ *g = (*stc_gobj_lookup)[17]; g; g = g->next)
+        {
+            if (g->obj_kind == HSD_OBJKIND_COBJ && g->cobj_links == (1ULL << 4))
+            {
+                COBJ *c = g->hsd_object;
+                c->projection_param.perspective.aspect = *stc_cobj_aspect;
+            }
         }
     }
 }
@@ -170,7 +173,7 @@ void Wide_OnOptionChange(int val)
 // wide
 void CObj_AdjustWideOrtho(COBJ *c)
 {
-    float adjust_ratio = Hoshi_GetWideMult();
+    float adjust_ratio = Wide_GetAspectMult();
     float orig_width = c->projection_param.ortho.right;
 
     // widen bounds
@@ -208,20 +211,17 @@ void Wide_PillarboxGX(GOBJ *g, int pass)
     if (pass != 2)
         return;
 
-    float mult = Hoshi_GetWideMult();
+    float mult = Wide_GetAspectMult();
     float width_4_3 = 640.f / mult; 
 
-    if (1)
-    {
-        static GXColor edge_color = (GXColor){0, 0, 0, 255};
-        GX_DrawRect(&(Vec3){0, 480.f, 0}, 
-                    &(Vec3){0 + ((640.f - width_4_3) / 2.f), 0, 0}, 
-                    &edge_color);
+    static GXColor edge_color = (GXColor){0, 0, 0, 255};
+    GX_DrawRect(&(Vec3){0, 480.f, 0}, 
+                &(Vec3){0 + ((640.f - width_4_3) / 2.f), 0, 0}, 
+                &edge_color);
 
-        GX_DrawRect(&(Vec3){640.f - ((640.f - width_4_3) / 2.f), 480.f, 0}, 
-                    &(Vec3){640.f, 0, 0}, 
-                    &edge_color);
-    }
+    GX_DrawRect(&(Vec3){640.f - ((640.f - width_4_3) / 2.f), 480.f, 0}, 
+                &(Vec3){640.f, 0, 0}, 
+                &edge_color);
 
     // float edge_x = 0;
     // if (mult > 1.33333333333)
@@ -290,8 +290,6 @@ void Wide_CreateTestGObj()
 
 void Wide_Init()
 {
-    *stc_cobj_aspect *= 1.33333333333;
-
     // text
     CODEPATCH_HOOKAPPLY(0x8044f778);    // text cobj
     CODEPATCH_HOOKAPPLY(0x800ab218);    // develop text cobj

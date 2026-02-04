@@ -1,8 +1,13 @@
 #ifndef MOD_H_WIDE
 #define MOD_H_WIDE
 
-#define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define WIDE_VERSION_MAJOR 1
+#define WIDE_VERSION_MINOR 0
+
+// this is the width of the original perspective screen camera
+#define ORIG_WIDTH (60.68)
+#define ORIG_HEIGHT (48.36)
+#define ORIG_ASPECT (1.255375)
 
 typedef enum WideKind
 {
@@ -13,6 +18,7 @@ typedef enum WideKind
 } WideKind;
 
 void Wide_Init();
+float Wide_GetAspectMult();
 void Wide_OnOptionChange(int val);
 void Wide_CreateTestGObj();
 void CObj_AdjustWideOrtho(COBJ *c);

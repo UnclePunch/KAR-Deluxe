@@ -3,7 +3,6 @@
 #include "hsd.h"
 #include "hud.h"
 
-#include "hoshi/wide.h"
 #include "wide.h"
 #include "gamehud.h"
 
@@ -182,14 +181,17 @@ CamScissor ply_viewport_4[] = {
         .bottom = 460,
     },
 };
-void HUDAdjust_Element(GOBJ *g, int joint_index, WideAlign align)
+void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign align)
 {
     Game3dData *g3d = Gm_Get3dData();
     HUDElementData *gp = g->userdata;
 
+    // if not a player view element, use fullscreen region
+    int plyview_num = (is_ply_element) ? g3d->plyview_num : 1;
+
     CamScissor viewport;
     CamScissor *orig_viewport;
-    switch (g3d->plyview_num)
+    switch (plyview_num)
     {
         case (1):
             PlyCam_GetFullscreenScissor(&viewport);
@@ -232,7 +234,7 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, WideAlign align)
 // speedometer
 void HUDAdjust_Speedometer(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, WIDEALIGN_RIGHT);
+    HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT);
 }
 CODEPATCH_HOOKCREATE(0x80118e70, "mr 3,28\n\t", HUDAdjust_Speedometer, "", 0)
 CODEPATCH_HOOKCREATE(0x801181d4, "mr 3,27\n\t", HUDAdjust_Speedometer, "", 0)
@@ -246,7 +248,7 @@ CODEPATCH_HOOKCREATE(0x8012c464, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) //
 
 void HUDAdjust_LeftAlign(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, WIDEALIGN_LEFT);
+    HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT);
 }
 CODEPATCH_HOOKCREATE(0x8012b5f0, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x8012a8fc, "mr 3,31\n\t", HUDAdjust_LeftAlign, "", 0) // kirby hit
@@ -259,25 +261,25 @@ CODEPATCH_HOOKCREATE(0x801306c4, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // d
 // pause
 void HUDAdjust_PauseStats(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, WIDEALIGN_LEFT);
+    HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT);
 }
 CODEPATCH_HOOKCREATE(0x80128fd0, "mr 3,29\n\t", HUDAdjust_PauseStats, "", 0)
 CODEPATCH_HOOKCREATE(0x80129430, "mr 3,28\n\t", HUDAdjust_PauseStats, "", 0)
 void HUDAdjust_PauseOptions(GOBJ *g)
 {
     // line
-    HUDAdjust_Element(g, 1, WIDEALIGN_LEFT);
+    HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT);
     // options
-    HUDAdjust_Element(g, 2, WIDEALIGN_RIGHT);
+    HUDAdjust_Element(g, 2, false, WIDEALIGN_RIGHT);
     // player indicator
-    HUDAdjust_Element(g, 6, WIDEALIGN_LEFT);
+    HUDAdjust_Element(g, 6, false, WIDEALIGN_LEFT);
 }
 CODEPATCH_HOOKCREATE(0x80128a50, "mr 3,29\n\t", HUDAdjust_PauseOptions, "", 0)
 
 // hp bar
 GOBJ *Hook_HPBarHUD(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, WIDEALIGN_RIGHT);
+    HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT);
     return g;
 }
 CODEPATCH_HOOKCREATE(0x8011f670, "mr 3,30\n\t", Hook_HPBarHUD, "", 0)
@@ -331,9 +333,9 @@ void HUDAdjust_PositionModel(GOBJ *g)
         hp->ply_hud.pos[ply].X = offset->X + (normalized_center.X * (width/2));
         hp->ply_hud.pos[ply].Y = offset->Y + (normalized_center.Y * (ORIG_HEIGHT/2));
     
-        OSReport("ply %d:\n", ply);
-        OSReport(" normalized: (%.2f, %.2f)\n", normalized_center.X, normalized_center.Y);
-        OSReport(" hud_center: (%.2f, %.2f)\n", hp->ply_hud.pos[ply].X, hp->ply_hud.pos[ply].Y);
+        // OSReport("ply %d:\n", ply);
+        // OSReport(" normalized: (%.2f, %.2f)\n", normalized_center.X, normalized_center.Y);
+        // OSReport(" hud_center: (%.2f, %.2f)\n", hp->ply_hud.pos[ply].X, hp->ply_hud.pos[ply].Y);
     }
 }
 CODEPATCH_HOOKCREATE(0x80125d8c, "mr 3,28\n\t", HUDAdjust_PositionModel, "", 0)
@@ -373,14 +375,14 @@ static WideAdjustData wide_adjust_data[] = {
 // indicator HUD
 void GXProject_AdjustWidth(float *arr)
 {
-    float aspect_mult = Hoshi_GetWideMult();
+    float aspect_mult = Wide_GetAspectMult();
     arr[0x0 / 4] *= aspect_mult;
     arr[0x8 / 4] *= aspect_mult;
 }
 CODEPATCH_HOOKCREATE(0x800646b8, "addi	3, 1, 80\n\t", GXProject_AdjustWidth, "", 0)
 void IndicatorCam_Adjust(COBJ *c)
 {
-    float mult = Hoshi_GetWideMult();
+    float mult = Wide_GetAspectMult();
 
     c->projection_param.ortho.left *= mult;
     c->projection_param.ortho.right *= mult;
@@ -389,7 +391,7 @@ void IndicatorCam_Adjust(COBJ *c)
 CODEPATCH_HOOKCREATE(0x80115a48, "mr 3, 29\n\t", IndicatorCam_Adjust, "", 0)
 void CObj_CheckVisibleAdjust(CamScissor *scissor)
 {
-    float aspect_mult = Hoshi_GetWideMult();
+    float aspect_mult = Wide_GetAspectMult();
     scissor->left *= aspect_mult;
     scissor->right *= aspect_mult;
 }
@@ -398,7 +400,7 @@ CODEPATCH_HOOKCREATE(0x800674fc, "addi 3, 1, 0x8\n\t", CObj_CheckVisibleAdjust, 
 // mini map
 void Minimap_AdjustViewport(COBJ *c)
 {
-    float aspect_mult = Hoshi_GetWideMult();
+    float aspect_mult = Wide_GetAspectMult();
 
     float center_x_normalized = ((c->viewport_right + c->viewport_left) / 2) / 640.0f;
 
@@ -439,7 +441,7 @@ CODEPATCH_HOOKCREATE(0x80067364, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
 CODEPATCH_HOOKCREATE(0x800672e4, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
 void MiniMapDotsCam_Adjust(COBJ *c)
 {
-    float aspect_mult = Hoshi_GetWideMult();
+    float aspect_mult = Wide_GetAspectMult();
     c->projection_param.ortho.left *= aspect_mult;
     c->projection_param.ortho.right *= aspect_mult;
 }
@@ -457,7 +459,7 @@ void Wide_CreateDebugHUDGObj()
 }
 void Wide_AdjustConstants()
 {
-    float mult = Hoshi_GetWideMult();
+    float mult = Wide_GetAspectMult();
     
     // adjust hardcoded values for current aspect
     for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
@@ -468,9 +470,10 @@ void HUDAdjust_Init()
 {
     // CODEPATCH_HOOKAPPLY(0x801a06d0);
 
-    CODEPATCH_HOOKAPPLY(0x80114b8c);
-    CODEPATCH_HOOKAPPLY(0x80114cf0);
-    CODEPATCH_HOOKAPPLY(0x80114858);
+    // debug osreports on hud element creation
+    // CODEPATCH_HOOKAPPLY(0x80114b8c);
+    // CODEPATCH_HOOKAPPLY(0x80114cf0);
+    // CODEPATCH_HOOKAPPLY(0x80114858);
 
     // adjust speedometer hud
     CODEPATCH_HOOKAPPLY(0x80119c20);

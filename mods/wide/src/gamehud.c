@@ -117,12 +117,12 @@ GOBJ *HUDMain_Create(GOBJ *g)
     return g;
 }
 CODEPATCH_HOOKCREATE(0x80114b8c, "mr 3,31\n\t", HUDMain_Create, "", 0)
-GOBJ *HUDUnk_Create(GOBJ *g)
+GOBJ *HUDPlayer_Create(GOBJ *g)
 {
-    OSReport("created unk hud element with p_link %d, gx_link %d\n", g->p_link, g->gx_link);
+    OSReport("created player hud element with p_link %d, gx_link %d\n", g->p_link, g->gx_link);
     return g;
 }
-CODEPATCH_HOOKCREATE(0x80114cf0, "mr 3,30\n\t", HUDUnk_Create, "", 0)
+CODEPATCH_HOOKCREATE(0x80114cf0, "mr 3,30\n\t", HUDPlayer_Create, "", 0)
 GOBJ *HUDMisc_Create(GOBJ *g)
 {
     OSReport("created misc hud element with p_link %d, gx_link %d\n", g->p_link, g->gx_link);
@@ -240,6 +240,21 @@ CODEPATCH_HOOKCREATE(0x80119c20, "mr 3,26\n\t", HUDAdjust_Speedometer, "", 0)
 CODEPATCH_HOOKCREATE(0x8011a060, "mr 3,26\n\t", HUDAdjust_Speedometer, "", 0)
 CODEPATCH_HOOKCREATE(0x80123e18, "mr 3,30\n\t", HUDAdjust_Speedometer, "", 0)
 CODEPATCH_HOOKCREATE(0x80124650, "mr 3,30\n\t", HUDAdjust_Speedometer, "", 0)
+CODEPATCH_HOOKCREATE(0x80127fd8, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // event compass
+CODEPATCH_HOOKCREATE(0x8012d28c, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // flight distance
+CODEPATCH_HOOKCREATE(0x8012c464, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // air glider points
+
+void HUDAdjust_LeftAlign(GOBJ *g)
+{
+    HUDAdjust_Element(g, 0, WIDEALIGN_LEFT);
+}
+CODEPATCH_HOOKCREATE(0x8012b5f0, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x8012a8fc, "mr 3,31\n\t", HUDAdjust_LeftAlign, "", 0) // kirby hit
+CODEPATCH_HOOKCREATE(0x8011a4b4, "mr 3,28\n\t", HUDAdjust_LeftAlign, "", 0) // placement number
+CODEPATCH_HOOKCREATE(0x80130070, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // target flight points
+CODEPATCH_HOOKCREATE(0x8012fb60, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // high jump previous points
+CODEPATCH_HOOKCREATE(0x8012e92c, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // kirby melee points
+CODEPATCH_HOOKCREATE(0x801306c4, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // destruction derby points
 
 // pause
 void HUDAdjust_PauseStats(GOBJ *g)
@@ -358,24 +373,25 @@ static WideAdjustData wide_adjust_data[] = {
 // indicator HUD
 void GXProject_AdjustWidth(float *arr)
 {
-    arr[0x8 / 4] *= Hoshi_GetWideMult();
+    float aspect_mult = Hoshi_GetWideMult();
+    arr[0x0 / 4] *= aspect_mult;
+    arr[0x8 / 4] *= aspect_mult;
 }
 CODEPATCH_HOOKCREATE(0x800646b8, "addi	3, 1, 80\n\t", GXProject_AdjustWidth, "", 0)
 void IndicatorCam_Adjust(COBJ *c)
 {
     float mult = Hoshi_GetWideMult();
 
+    c->projection_param.ortho.left *= mult;
     c->projection_param.ortho.right *= mult;
     // c->scissor_right = c->viewport_right;
-
-    // adjust hardcoded values for current aspect
-    for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
-        *wide_adjust_data[i].ptr = wide_adjust_data[i].orig * mult;
 }
 CODEPATCH_HOOKCREATE(0x80115a48, "mr 3, 29\n\t", IndicatorCam_Adjust, "", 0)
 void CObj_CheckVisibleAdjust(CamScissor *scissor)
 {
-    scissor->right *= Hoshi_GetWideMult();
+    float aspect_mult = Hoshi_GetWideMult();
+    scissor->left *= aspect_mult;
+    scissor->right *= aspect_mult;
 }
 CODEPATCH_HOOKCREATE(0x800674fc, "addi 3, 1, 0x8\n\t", CObj_CheckVisibleAdjust, "", 0)
 
@@ -385,6 +401,14 @@ void Minimap_AdjustViewport(COBJ *c)
     float aspect_mult = Hoshi_GetWideMult();
 
     float center_x_normalized = ((c->viewport_right + c->viewport_left) / 2) / 640.0f;
+
+    float edge_x = 0;
+    float width = 640.f / aspect_mult; 
+    if (aspect_mult > 1.33333333333)
+    {
+        width = (640.f * 1.33333333333) / aspect_mult; 
+        edge_x = (640.f - width) / 2;
+    }
 
     // // limit to 16:9 position
     // if (aspect_mult > 1.3333)
@@ -401,19 +425,23 @@ void Minimap_AdjustViewport(COBJ *c)
     float adjusted_fb_width = (640.0f / aspect_mult);       // shrinks with wider AR (preserves pixel width when display stretches the image)
     float adjusted_view_width = (view_width / aspect_mult); // shrinks with wider AR (preserves pixel width when display stretches the image)
 
-    float new_center_x = center_x_normalized * adjusted_fb_width;
+    float new_center_x = edge_x + (center_x_normalized * width);
     c->viewport_left = new_center_x - (adjusted_view_width / 2);
     c->viewport_right = new_center_x + (adjusted_view_width / 2);
 
     c->scissor_left = c->viewport_left;
     c->scissor_right = c->viewport_right;
+
+    OSReport("center_normalized: %.2f\n", center_x_normalized);
+    OSReport("left %.2f, right %.2f\n", c->viewport_left, c->viewport_right);
 }
 CODEPATCH_HOOKCREATE(0x80067364, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
+CODEPATCH_HOOKCREATE(0x800672e4, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
 void MiniMapDotsCam_Adjust(COBJ *c)
 {
-    float mult = Hoshi_GetWideMult();
-
-    c->projection_param.ortho.right *= mult;
+    float aspect_mult = Hoshi_GetWideMult();
+    c->projection_param.ortho.left *= aspect_mult;
+    c->projection_param.ortho.right *= aspect_mult;
 }
 CODEPATCH_HOOKCREATE(0x80115ad8, "lwz 3, 0x28 (30)\n\t", MiniMapDotsCam_Adjust, "", 0)
 
@@ -426,6 +454,14 @@ void Wide_CreateDebugHUDGObj()
                     DebugHUD_GX, GAMEGX_HUD, 20);
 
     return;
+}
+void Wide_AdjustConstants()
+{
+    float mult = Hoshi_GetWideMult();
+    
+    // adjust hardcoded values for current aspect
+    for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
+        *wide_adjust_data[i].ptr = wide_adjust_data[i].orig * mult;
 }
 
 void HUDAdjust_Init()
@@ -444,6 +480,26 @@ void HUDAdjust_Init()
     CODEPATCH_HOOKAPPLY(0x80123e18);
     CODEPATCH_HOOKAPPLY(0x80124650); // kirby walk speedometer
 
+    // legendary pieces
+    CODEPATCH_HOOKAPPLY(0x8012b5f0);
+
+    // hit icon
+    CODEPATCH_HOOKAPPLY(0x8012a8fc);
+
+    // stadiums
+    CODEPATCH_HOOKAPPLY(0x8011a4b4); // placement number
+    CODEPATCH_HOOKAPPLY(0x8012d28c); // flight distance
+    CODEPATCH_HOOKAPPLY(0x80130070); // target flight points
+    CODEPATCH_HOOKAPPLY(0x8012fb60); // high jump points
+    CODEPATCH_HOOKAPPLY(0x8012e92c); // kirby melee points
+    CODEPATCH_HOOKAPPLY(0x801306c4); // destruction derby points
+    
+    // air glider points
+    CODEPATCH_HOOKAPPLY(0x8012c464);
+
+    // event compass
+    CODEPATCH_HOOKAPPLY(0x80127fd8);
+
     // pause
     CODEPATCH_HOOKAPPLY(0x80128a50);
 
@@ -457,10 +513,14 @@ void HUDAdjust_Init()
     // position model
     CODEPATCH_HOOKAPPLY(0x80125d8c);
 
-    // indicator hud
+    // minimap viewport
     CODEPATCH_HOOKAPPLY(0x80067364);
+    CODEPATCH_HOOKAPPLY(0x800672e4);
     
+    // minimap dots
     CODEPATCH_HOOKAPPLY(0x80115ad8);
+
+    // indicator hud
     CODEPATCH_HOOKAPPLY(0x800646b8);
     CODEPATCH_HOOKAPPLY(0x800674fc);
     CODEPATCH_HOOKAPPLY(0x80115a48);

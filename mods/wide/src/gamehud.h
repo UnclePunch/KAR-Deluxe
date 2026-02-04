@@ -9,4 +9,6 @@ typedef struct WideAdjustData
 
 void HUDAdjust_Init();
 void Wide_CreateDebugHUDGObj();
+void Wide_AdjustConstants();
+
 #endif

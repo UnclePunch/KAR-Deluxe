@@ -19,6 +19,8 @@
 #include "text_joint/text_joint.h"
 
 int is_netplay = 0;
+
+extern StarpoleExport starpole_export; 
 StarpoleDataDolphin *dolphin_data;
 extern ReplayMode replay_mode;
 
@@ -75,9 +77,12 @@ void Dolphin_Init()
     // get data
     else if (Dolphin_ReqData())
     {
-        bp();
         OSReport("Starpole: Dolphin detected.\n");
         
+        // store pointer to export data
+        starpole_export.dolphin_data = dolphin_data;
+
+        // init netplay flag
         if (dolphin_data->netplay.ply != -1)
         {
             is_netplay = 1;

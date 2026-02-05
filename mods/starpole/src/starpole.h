@@ -107,6 +107,11 @@ typedef struct
     };
 } StarpoleBuffer;
 
+typedef struct StarpoleExport
+{
+    StarpoleDataDolphin *dolphin_data;
+} StarpoleExport;
+
 typedef struct
 {
     Text *t;

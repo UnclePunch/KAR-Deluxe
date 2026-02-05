@@ -10,6 +10,8 @@
 #include "dolphin.h"
 #include "playback.h"
 
+StarpoleExport starpole_export = {0};
+
 OptionDesc mod_settings = {
     .name = "Starpole",
     .description = "Not sure yet.",
@@ -25,6 +27,8 @@ void OnBoot()
     Replay_OnBoot();
     Dolphin_Init();
     Playback_Init();
+
+    Hoshi_ExportMod((void *)&starpole_export);
 
     return;
 }

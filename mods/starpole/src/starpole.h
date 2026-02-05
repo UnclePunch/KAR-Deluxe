@@ -41,9 +41,13 @@ typedef struct
 
 typedef struct
 {
-    int ply;
-    char usernames[4][31];
-} StarpoleDataNetplay;
+    float aspect_mult;
+    struct
+    {
+        int ply;
+        char usernames[4][31];
+    } netplay;
+} StarpoleDataDolphin;
 
 typedef struct
 {

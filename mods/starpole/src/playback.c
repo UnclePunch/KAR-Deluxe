@@ -10,7 +10,7 @@
 
 extern StarpoleBuffer *starpole_buf;
 extern int is_netplay;
-extern StarpoleDataNetplay *netplay_data;
+extern StarpoleDataDolphin *dolphin_data;
 OSThread playback_thread;
 
 MajorSceneDesc playback_major_desc = {

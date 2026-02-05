@@ -1,7 +1,7 @@
 #ifndef STARPOLE_NETPLAY
 #define STARPOLE_NETPLAY
 
-#define NETPLAY_DEBUG 0
+#define DOLPHIN_DEBUG 0
 #define NETPLAY_TAGMAX 10
 
 typedef struct PlayerTagViewData
@@ -10,7 +10,7 @@ typedef struct PlayerTagViewData
     Text *t[5];
 } PlayerTagViewData;
 
-void Netplay_Init();
+void Dolphin_Init();
 void Netplay_OverridePlayerView();
 void Netplay_CreatePlayerTags();
 void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp);

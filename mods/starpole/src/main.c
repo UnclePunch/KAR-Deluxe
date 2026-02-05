@@ -7,7 +7,7 @@
 
 #include "starpole.h"
 #include "replay.h"
-#include "netplay.h"
+#include "dolphin.h"
 #include "playback.h"
 
 OptionDesc mod_settings = {
@@ -23,7 +23,7 @@ void OnBoot()
     Starpole_Init();
 
     Replay_OnBoot();
-    Netplay_Init();
+    Dolphin_Init();
     Playback_Init();
 
     return;

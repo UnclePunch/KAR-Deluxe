@@ -14,16 +14,16 @@
 
 #include "starpole.h"
 #include "replay.h"
-#include "netplay.h"
+#include "dolphin.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
 int is_netplay = 0;
-StarpoleDataNetplay *netplay_data;
+StarpoleDataDolphin *dolphin_data;
 extern ReplayMode replay_mode;
 
 // EXI
-int Netplay_ReqData()
+int Dolphin_ReqData()
 {
     int result = 0;
     int enable = OSDisableInterrupts();
@@ -31,12 +31,12 @@ int Netplay_ReqData()
     // request data
     if (Starpole_Imm(STARPOLE_CMD_NETPLAY, 0) <= 0)
     {
-        OSReport("Netplay: not active\n");
+        OSReport("Starpole: Dolphin not detected.\n");
         goto CLEANUP;
     }
 
     // receive it
-    if (!Starpole_DMA((StarpoleBuffer *)netplay_data, sizeof(*netplay_data), EXI_READ))
+    if (!Starpole_DMA((StarpoleBuffer *)dolphin_data, sizeof(*dolphin_data), EXI_READ))
         goto CLEANUP;
 
     result = 1;
@@ -47,16 +47,18 @@ CLEANUP:
 }
 
 // Init
-void Netplay_Init()
+void Dolphin_Init()
 {
-    if (!Starpole_IsPresent() && !NETPLAY_DEBUG)
+    if (!Starpole_IsPresent() && !DOLPHIN_DEBUG)
         return;
 
     // alloc buffer
-    netplay_data = HSD_MemAlloc(sizeof(*netplay_data));
+    dolphin_data = HSD_MemAlloc(sizeof(*dolphin_data));
 
-    if (NETPLAY_DEBUG)
+    if (DOLPHIN_DEBUG)
     {
+        dolphin_data->aspect_mult = 0;
+
         static char *test_names[] = {
             "UnclePunch",
             "charity",
@@ -65,19 +67,27 @@ void Netplay_Init()
         };
 
         is_netplay = 1;
-        netplay_data->ply = 0;
-        for (int i = 0; i < GetElementsIn(netplay_data->usernames); i++)
-            strcpy(netplay_data->usernames[i], test_names[i]);
+        dolphin_data->netplay.ply = 0;
+        for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
+            strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
     }
 
     // get data
-    else if (Netplay_ReqData())
+    else if (Dolphin_ReqData())
     {
-        is_netplay = 1;
+        bp();
+        OSReport("Starpole: Dolphin detected.\n");
+        
+        if (dolphin_data->netplay.ply != -1)
+        {
+            is_netplay = 1;
 
-        OSReport("Netplay: you are player %d \"%s\"\n", 
-            netplay_data->ply, 
-            netplay_data->usernames[netplay_data->ply]);
+            OSReport("Starpole: Netplay detected. You are player %d \"%s\"\n", 
+                dolphin_data->netplay.ply, 
+                dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
+        }
+        else
+            OSReport("Starpole: Netplay not detected.\n");
     }
 
 }
@@ -94,17 +104,17 @@ void Netplay_OverridePlayerView()
         gd->ply_view_desc[i].flag = PLYCAM_OFF;
     
     // if its a netplay game and we are not plugged in, force p1 cam
-    if (netplay_data->ply == -1)
+    if (dolphin_data->netplay.ply == -1)
         gd->ply_view_desc[0].flag = PLYCAM_ON;
     else
     {
         // // if we are plugged in and in this game, force our cam on
-        // if (Gm_GetGameData()->ply_desc[netplay_data->ply].p_kind == PKIND_HMN)
-            gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_ON;
+        // if (Gm_GetGameData()->ply_desc[dolphin_data->netplay.ply].p_kind == PKIND_HMN)
+            gd->ply_view_desc[dolphin_data->netplay.ply].flag = PLYCAM_ON;
 
         // // plugged in and not present, give us live cam to spectate with
         // else
-        //     gd->ply_view_desc[netplay_data->ply].flag = PLYCAM_LIVE;
+        //     gd->ply_view_desc[dolphin_data->netplay.ply].flag = PLYCAM_LIVE;
     }
 }
 
@@ -143,7 +153,7 @@ void Netplay_CreatePlayerTags()
                 continue;
 
             char name[NETPLAY_TAGMAX + 1];
-            strncpy(name, netplay_data->usernames[ply], NETPLAY_TAGMAX);
+            strncpy(name, dolphin_data->netplay.usernames[ply], NETPLAY_TAGMAX);
             name[NETPLAY_TAGMAX] = '\0';
 
             // create a name for them

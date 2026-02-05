@@ -215,10 +215,10 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
         if (!plynum_gobj)
             continue;
 
-        HudPlyNumData *plynum_data = plynum_gobj->userdata;
+        HUDElementData *hp = plynum_gobj->userdata;
 
         // check if plynum was rendered
-        if (!plynum_data->is_visible || !plynum_data->x8_02)
+        if (!hp->ply_num.is_visible || !hp->is_visible)
             t->hidden = 1;
         else
         {
@@ -234,7 +234,7 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
         if (Gm_Get3dData()->plyview_num >= 2)
         {
             CamScissor view_scissor;
-            PlyCam_GetViewIndexScissor(Ply_GetViewIndex(plynum_data->ply), &view_scissor);
+            PlyCam_Get2PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
             GXSetScissor(view_scissor.left, 
                         view_scissor.bottom, 
                         view_scissor.right - view_scissor.left,

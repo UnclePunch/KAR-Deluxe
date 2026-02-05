@@ -8,6 +8,7 @@
 
 #include "wide.h"
 #include "gamehud.h"
+#include "menu.h"
 #include "wide_export.h"
 
 WideExport wide_export = {
@@ -18,6 +19,7 @@ void OnBoot()
 {
     Wide_Init();
     HUDAdjust_Init();
+    MainMenuAdjust_Init();
 
     Hoshi_ExportMod((void *)&wide_export);
 

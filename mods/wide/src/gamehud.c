@@ -232,31 +232,37 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign a
 }
 
 // speedometer
-void HUDAdjust_Speedometer(GOBJ *g)
+void HUDAdjust_RightAlign(GOBJ *g)
 {
     HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT);
 }
-CODEPATCH_HOOKCREATE(0x80118e70, "mr 3,28\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x801181d4, "mr 3,27\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x80119c20, "mr 3,26\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x8011a060, "mr 3,26\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x80123e18, "mr 3,30\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x80124650, "mr 3,30\n\t", HUDAdjust_Speedometer, "", 0)
-CODEPATCH_HOOKCREATE(0x80127fd8, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // event compass
-CODEPATCH_HOOKCREATE(0x8012d28c, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // flight distance
-CODEPATCH_HOOKCREATE(0x8012c464, "mr 3,29\n\t", HUDAdjust_Speedometer, "", 0) // air glider points
+CODEPATCH_HOOKCREATE(0x80118e70, "mr 3,28\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x801181d4, "mr 3,27\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x80119c20, "mr 3,26\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x8011a060, "mr 3,26\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x80123e18, "mr 3,30\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x80124650, "mr 3,30\n\t", HUDAdjust_RightAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x80128004, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // event compass
+CODEPATCH_HOOKCREATE(0x8012d2d4, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // flight distance
+CODEPATCH_HOOKCREATE(0x8012c4ac, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // air glider points
+CODEPATCH_HOOKCREATE(0x8011ae08, "mr 3,28\n\t", HUDAdjust_RightAlign, "", 0) // air ride lap num
+
 
 void HUDAdjust_LeftAlign(GOBJ *g)
 {
     HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT);
 }
-CODEPATCH_HOOKCREATE(0x8012b5f0, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0)
-CODEPATCH_HOOKCREATE(0x8012a8fc, "mr 3,31\n\t", HUDAdjust_LeftAlign, "", 0) // kirby hit
-CODEPATCH_HOOKCREATE(0x8011a4b4, "mr 3,28\n\t", HUDAdjust_LeftAlign, "", 0) // placement number
-CODEPATCH_HOOKCREATE(0x80130070, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // target flight points
-CODEPATCH_HOOKCREATE(0x8012fb60, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // high jump previous points
-CODEPATCH_HOOKCREATE(0x8012e92c, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // kirby melee points
-CODEPATCH_HOOKCREATE(0x801306c4, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // destruction derby points
+CODEPATCH_HOOKCREATE(0x8012b650, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0)
+CODEPATCH_HOOKCREATE(0x801260fc, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // plynum2
+CODEPATCH_HOOKCREATE(0x8012a94c, "mr 3,31\n\t", HUDAdjust_LeftAlign, "", 0) // kirby hit
+CODEPATCH_HOOKCREATE(0x8011a504, "mr 3,28\n\t", HUDAdjust_LeftAlign, "", 0) // placement number
+CODEPATCH_HOOKCREATE(0x80130084, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // target flight points
+CODEPATCH_HOOKCREATE(0x8012fb74, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // high jump previous points
+CODEPATCH_HOOKCREATE(0x8012e964, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // kirby melee points
+CODEPATCH_HOOKCREATE(0x801306e0, "mr 3,29\n\t", HUDAdjust_LeftAlign, "rlwinm 0, 31, 2, 0, 29\t\n", 0) // destruction derby points
+CODEPATCH_HOOKCREATE(0x8012a350, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // opponent finish
+CODEPATCH_HOOKCREATE(0x8011bdc0, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // stadium race record 1
+CODEPATCH_HOOKCREATE(0x8011b7c0, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // stadium race record 2
 
 // pause
 void HUDAdjust_PauseStats(GOBJ *g)
@@ -265,7 +271,7 @@ void HUDAdjust_PauseStats(GOBJ *g)
 }
 CODEPATCH_HOOKCREATE(0x80128fd0, "mr 3,29\n\t", HUDAdjust_PauseStats, "", 0)
 CODEPATCH_HOOKCREATE(0x80129430, "mr 3,28\n\t", HUDAdjust_PauseStats, "", 0)
-void HUDAdjust_PauseOptions(GOBJ *g)
+void HUDAdjust_CityPauseOptions(GOBJ *g)
 {
     // line
     HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT);
@@ -274,8 +280,17 @@ void HUDAdjust_PauseOptions(GOBJ *g)
     // player indicator
     HUDAdjust_Element(g, 6, false, WIDEALIGN_LEFT);
 }
-CODEPATCH_HOOKCREATE(0x80128a50, "mr 3,29\n\t", HUDAdjust_PauseOptions, "", 0)
-
+CODEPATCH_HOOKCREATE(0x80128a50, "mr 3,29\n\t", HUDAdjust_CityPauseOptions, "", 0)
+void HUDAdjust_AirRidePauseOptions(GOBJ *g)
+{
+    // pause text
+    HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT);
+    // options
+    HUDAdjust_Element(g, 2, false, WIDEALIGN_RIGHT);
+    // player indicator
+    HUDAdjust_Element(g, 3, false, WIDEALIGN_LEFT);
+}
+CODEPATCH_HOOKCREATE(0x801283c0, "mr 3,29\n\t", HUDAdjust_AirRidePauseOptions, "", 0)
 // hp bar
 GOBJ *Hook_HPBarHUD(GOBJ *g)
 {
@@ -405,7 +420,7 @@ void Minimap_AdjustViewport(COBJ *c)
     float center_x_normalized = ((c->viewport_right + c->viewport_left) / 2) / 640.0f;
 
     float edge_x = 0;
-    float width = 640.f / aspect_mult; 
+    float width = 640.f; 
     if (aspect_mult > 1.33333333333)
     {
         width = (640.f * 1.33333333333) / aspect_mult; 
@@ -484,27 +499,35 @@ void HUDAdjust_Init()
     CODEPATCH_HOOKAPPLY(0x80124650); // kirby walk speedometer
 
     // legendary pieces
-    CODEPATCH_HOOKAPPLY(0x8012b5f0);
+    CODEPATCH_HOOKAPPLY(0x8012b650);
+
+    // plynum2
+    CODEPATCH_HOOKAPPLY(0x801260fc);
 
     // hit icon
-    CODEPATCH_HOOKAPPLY(0x8012a8fc);
+    CODEPATCH_HOOKAPPLY(0x8012a94c);
 
     // stadiums
-    CODEPATCH_HOOKAPPLY(0x8011a4b4); // placement number
-    CODEPATCH_HOOKAPPLY(0x8012d28c); // flight distance
-    CODEPATCH_HOOKAPPLY(0x80130070); // target flight points
-    CODEPATCH_HOOKAPPLY(0x8012fb60); // high jump points
-    CODEPATCH_HOOKAPPLY(0x8012e92c); // kirby melee points
-    CODEPATCH_HOOKAPPLY(0x801306c4); // destruction derby points
-    
-    // air glider points
-    CODEPATCH_HOOKAPPLY(0x8012c464);
+    CODEPATCH_HOOKAPPLY(0x8011a504); // placement number
+    CODEPATCH_HOOKAPPLY(0x8012d2d4); // flight distance
+    CODEPATCH_HOOKAPPLY(0x80130084); // target flight points
+    CODEPATCH_HOOKAPPLY(0x8012fb74); // high jump points
+    CODEPATCH_HOOKAPPLY(0x8012e964); // kirby melee points
+    CODEPATCH_HOOKAPPLY(0x801306e0); // destruction derby points
+    CODEPATCH_HOOKAPPLY(0x8012c4ac); // air glider points
 
+    // air ride
+    CODEPATCH_HOOKAPPLY(0x8011ae08); // lap num
+    CODEPATCH_HOOKAPPLY(0x8012a350); // cpu finish
+    CODEPATCH_HOOKAPPLY(0x8011bdc0); // stadium race record 1
+    CODEPATCH_HOOKAPPLY(0x8011b7c0); // stadium race record 2
+    
     // event compass
-    CODEPATCH_HOOKAPPLY(0x80127fd8);
+    CODEPATCH_HOOKAPPLY(0x80128004);
 
     // pause
-    CODEPATCH_HOOKAPPLY(0x80128a50);
+    CODEPATCH_HOOKAPPLY(0x80128a50); // city trial
+    CODEPATCH_HOOKAPPLY(0x801283c0); // air ride
 
     // pause stats
     CODEPATCH_HOOKAPPLY(0x80128fd0);

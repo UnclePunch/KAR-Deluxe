@@ -2,6 +2,12 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment.")
 endif
 
+ifeq ($(OS),Windows_NT)
+    PYTHON := python
+else
+    PYTHON := python3
+endif
+
 # --- Compiler and Flags ---
 CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc
 LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
@@ -14,7 +20,6 @@ LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
 INC_DIR 		?= $(HOSHI_DIR)/include
 PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
 HOSHI_BIN_DIR	= $(HOSHI_DIR)/out/release
-ORIG_DOL		= $(HOSHI_DIR)/dol/kar.dol
 ROOT_DIR 		= root
 ISO_DIR		 	?= iso
 OUT_DIR 		= out
@@ -23,7 +28,8 @@ ISO_OUT_DIR 	=
 INSTALL_DIR 	?=
 
 # --- File Paths ---
-ISO_PATH		= kar.iso
+ISO_PATH		?= kar.iso
+ORIG_DOL		= $(HOSHI_DIR)/dol/kar.dol
 HOSHI_BIN		= $(HOSHI_BIN_DIR)/hoshi.bin
 
 # --- Script Paths ---
@@ -131,11 +137,11 @@ $(OBJ_DIRS):
 
 # Rule to extract the original dol from the iso
 $(ORIG_DOL):
-	python $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
+	$(PYTHON) $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
 
 # --- hoshi target ---
 hoshi: $(ORIG_DOL)
-	$(MAKE) -C $(HOSHI_DIR)
+	$(MAKE) -C $(HOSHI_DIR) MOD_NAME=KirbyAirRideDeluxe
 
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.
@@ -181,7 +187,7 @@ $(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)
 	@echo ""
 	@echo "--- Creating '$(1)' bin file ---"
 	@echo ""
-	python $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
+	$(PYTHON) $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
 
 endef
 

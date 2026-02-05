@@ -7,6 +7,8 @@
 
 #include "code_patch/code_patch.h"
 
+extern StarpoleDolphinData *starpole_export;
+
 WideKind wide_kind = WIDEKIND_43;
 static float wide_kind_fractions[] = {
     1.255,              // 4:3
@@ -120,6 +122,9 @@ float Wide_GetAspectMult()
 }
 void Wide_OnOptionChange(int val)
 {
+    if (starpole_export)
+        return;
+
     WideKind kind = (WideKind)val;
 
     // set global aspect ratio

@@ -15,6 +15,8 @@ WideExport wide_export = {
     .HUDAdjust_Element = HUDAdjust_Element,
 };
 
+StarpoleExport *starpole_export = 0;
+
 void OnBoot()
 {
     Wide_Init();
@@ -25,6 +27,17 @@ void OnBoot()
 
     return;
 }
+
+void OnSaveLoaded()
+{
+    bp();
+    starpole_export = (StarpoleExport *)Hoshi_ImportMod("Starpole Communication", 1, 0);
+
+    // set aspect ratio
+    if (starpole_export)
+        *stc_cobj_aspect = ORIG_ASPECT * starpole_export->dolphin_data->aspect_mult;
+}
+
 void OnSceneChange()
 {
     Wide_CreateTestGObj();
@@ -60,6 +73,7 @@ ModDesc mod_desc = {
     .version.minor = WIDE_VERSION_MINOR,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
+    .OnSaveLoaded = OnSaveLoaded,
     .OnSceneChange = OnSceneChange,
     .On3DLoadStart = On3DLoadStart,
     .On3DLoadEnd = On3DLoadEnd,

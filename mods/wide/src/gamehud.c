@@ -189,6 +189,10 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign a
     // if not a player view element, use fullscreen region
     int plyview_num = (is_ply_element) ? g3d->plyview_num : 1;
 
+    // temp disable splitscreen adjustments
+    if (plyview_num > 1)
+        return;
+
     CamScissor viewport;
     CamScissor *orig_viewport;
     switch (plyview_num)
@@ -464,6 +468,8 @@ CODEPATCH_HOOKCREATE(0x80115ad8, "lwz 3, 0x28 (30)\n\t", MiniMapDotsCam_Adjust, 
 
 void Wide_CreateDebugHUDGObj()
 {
+    return;
+    
     GOBJ_EZCreator(0,0,0,
                     0, 0,
                     0, 0,

@@ -17,6 +17,21 @@ typedef enum WideKind
     WIDEKIND_329,
 } WideKind;
 
+// TEMP UNTIL I MERGE STARPOLE AND WIDESCREEN
+typedef struct StarpoleDolphinData
+{
+    float aspect_mult;
+    struct
+    {
+        s32 ply;
+        char usernames[4][31];
+    } netplay;
+} StarpoleDolphinData;
+typedef struct StarpoleExport
+{
+    StarpoleDolphinData *dolphin_data;
+} StarpoleExport;
+
 void Wide_Init();
 float Wide_GetAspectMult();
 void Wide_OnOptionChange(int val);

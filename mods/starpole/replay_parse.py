@@ -76,37 +76,41 @@ def dump_starpole(input_path, output_path):
 
         out.write("=== StarpoleDataFrame ===\n")
 
-        for i in range(4360):
-            out.write(f"\n-- Frame {i} --\n")
+        i = 0
+        while True:
+            try:
 
-            frame_idx, = read(">I", f)
-            rng_seed, = read(">I", f)
-            ply_num, = read(">B", f)
+                frame_idx, = read(">I", f)
+                rng_seed, = read(">I", f)
+                hash, = read(">I", f)
+                ply_num, = read(">B", f)
 
-            out.write(f"frame_idx : {frame_idx}\n")
-            out.write(f"rng_seed  : {rng_seed:08X}\n")
-            out.write(f"ply_num   : {ply_num}\n")
+                out.write(f"\n-- Frame {i} --\n")
+                out.write(f"frame_idx : {frame_idx}\n")
+                out.write(f"rng_seed  : 0x{rng_seed:08X}\n")
+                out.write(f"hash      : 0x{hash:08X}\n")
+                out.write(f"ply_num   : {ply_num}\n")
 
-            for p in range((frame_size - 9) // 8):
-                idx, = read(">B", f)
-                held, stickX, stickY, subX, subY, trigger = read(">HbbbbB", f)
+                for p in range((frame_size - 9) // 8):
+                    idx, = read(">B", f)
+                    held, stickX, stickY, subX, subY, trigger = read(">HbbbbB", f)
 
-                if (p < ply_num):
-                    out.write(
-                        f"  ply[{p}]: "
-                        f"idx={idx} "
-                        f"held=0x{held:04X} "
-                        f"stick=({stickX},{stickY}) "
-                        f"sub=({subX},{subY}) "
-                        f"trig={trigger}\n"
-                    )
+                    if p < ply_num:
+                        out.write(
+                            f"  ply[{p}]: "
+                            f"idx={idx} "
+                            f"held=0x{held:04X} "
+                            f"stick=({stickX:=+03d},{stickY:=+03d}) "
+                            f"sub=({subX:=+03d},{subY:=+03d}) "
+                            f"trig={trigger:=+03d}\n"
+                        )
 
-        # Check for trailing data
-        remaining = f.read()
-        if remaining:
-            out.write(
-                f"\nWARNING: {len(remaining)} trailing bytes at EOF\n"
-            )
+                i += 1
+
+            except EOFError:
+                out.write("\n=== End of file reached ===\n")
+                break
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

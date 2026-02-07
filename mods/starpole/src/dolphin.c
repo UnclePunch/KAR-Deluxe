@@ -59,7 +59,6 @@ void Dolphin_Init()
 
     if (DOLPHIN_DEBUG)
     {
-        dolphin_data->aspect_mult = 0;
 
         static char *test_names[] = {
             "UnclePunch",
@@ -68,14 +67,14 @@ void Dolphin_Init()
             "ThePulsarLegend",
         };
 
-        is_netplay = 1;
+        dolphin_data->aspect_mult = 1;
         dolphin_data->netplay.ply = 0;
         for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
             strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
     }
 
     // get data
-    else if (Dolphin_ReqData())
+    if (DOLPHIN_DEBUG || Dolphin_ReqData())
     {
         OSReport("Starpole: Dolphin detected.\n");
         

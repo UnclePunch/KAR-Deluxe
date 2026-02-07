@@ -263,8 +263,7 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
     CamScissor full_scissor;
     PlyCam_GetFullscreenScissor(&full_scissor);
     GXSetScissor(full_scissor.left, 
-                full_scissor.bottom, 
+                full_scissor.top, 
                 full_scissor.right - full_scissor.left,
-                full_scissor.top - full_scissor.bottom);
-
+                full_scissor.bottom - full_scissor.top);
 }

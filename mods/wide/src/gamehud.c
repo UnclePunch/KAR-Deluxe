@@ -247,10 +247,8 @@ CODEPATCH_HOOKCREATE(0x8011a060, "mr 3,26\n\t", HUDAdjust_RightAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x80123e18, "mr 3,30\n\t", HUDAdjust_RightAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x80124650, "mr 3,30\n\t", HUDAdjust_RightAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x80128004, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // event compass
-CODEPATCH_HOOKCREATE(0x8012d2d4, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // flight distance
 CODEPATCH_HOOKCREATE(0x8012c4ac, "mr 3,29\n\t", HUDAdjust_RightAlign, "", 0) // air glider points
 CODEPATCH_HOOKCREATE(0x8011ae08, "mr 3,28\n\t", HUDAdjust_RightAlign, "", 0) // air ride lap num
-
 
 void HUDAdjust_LeftAlign(GOBJ *g)
 {
@@ -263,10 +261,24 @@ CODEPATCH_HOOKCREATE(0x8011a504, "mr 3,28\n\t", HUDAdjust_LeftAlign, "", 0) // p
 CODEPATCH_HOOKCREATE(0x80130084, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // target flight points
 CODEPATCH_HOOKCREATE(0x8012fb74, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // high jump previous points
 CODEPATCH_HOOKCREATE(0x8012e964, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // kirby melee points
-CODEPATCH_HOOKCREATE(0x801306e0, "mr 3,29\n\t", HUDAdjust_LeftAlign, "rlwinm 0, 31, 2, 0, 29\t\n", 0) // destruction derby points
+CODEPATCH_HOOKCREATE(0x801306ec, "mr 3,29\n\t", HUDAdjust_LeftAlign, "li 0, 0\t\n", 0) // destruction derby points
 CODEPATCH_HOOKCREATE(0x8012a350, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // opponent finish
 CODEPATCH_HOOKCREATE(0x8011bdc0, "mr 3,29\n\t", HUDAdjust_LeftAlign, "", 0) // stadium race record 1
 CODEPATCH_HOOKCREATE(0x8011b7c0, "mr 3,30\n\t", HUDAdjust_LeftAlign, "", 0) // stadium race record 2
+
+void HUDAdjust_AirGliderDistance(GOBJ *g, int ply)
+{
+    if (Ply_IsViewOn(ply))
+        HUDAdjust_RightAlign(g);
+    else
+        HUDAdjust_LeftAlign(g);
+}
+CODEPATCH_HOOKCREATE(0x8012d2d4, "mr 3,29\n\t" "mr 4,26\n\t", HUDAdjust_AirGliderDistance, "", 0) // flight distance opponent
+void HUDAdjust_AirGliderMachineIcon(int ply)
+{
+    HUDAdjust_LeftAlign(Gm_Get3dData()->airglider_hud.machineicon_gobj[ply]);
+}
+CODEPATCH_HOOKCREATE(0x8012cde4, "mr 3,26\n\t", HUDAdjust_AirGliderMachineIcon, "", 0) // flight distance opponent
 
 // pause
 void HUDAdjust_PauseStats(GOBJ *g)
@@ -515,11 +527,12 @@ void HUDAdjust_Init()
 
     // stadiums
     CODEPATCH_HOOKAPPLY(0x8011a504); // placement number
-    CODEPATCH_HOOKAPPLY(0x8012d2d4); // flight distance
+    CODEPATCH_HOOKAPPLY(0x8012d2d4); // flight distance text
+    CODEPATCH_HOOKAPPLY(0x8012cde4); // flight distance machine icon
     CODEPATCH_HOOKAPPLY(0x80130084); // target flight points
     CODEPATCH_HOOKAPPLY(0x8012fb74); // high jump points
     CODEPATCH_HOOKAPPLY(0x8012e964); // kirby melee points
-    CODEPATCH_HOOKAPPLY(0x801306e0); // destruction derby points
+    CODEPATCH_HOOKAPPLY(0x801306ec); // destruction derby points
     CODEPATCH_HOOKAPPLY(0x8012c4ac); // air glider points
 
     // air ride

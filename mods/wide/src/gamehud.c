@@ -109,6 +109,31 @@ void DebugHUD_GX(GOBJ *g, int pass)
         }
     }
 }
+void Camera_AdjustWidth(float left_in, float right_in, float *left_out, float *right_out)
+{
+    float aspect_mult = Wide_GetAspectMult();
+    float center_x_normalized = ((right_in + left_in) / 2) / 640.0f;
+
+    float edge_x = 0;
+    float width = 640.f;
+    if (aspect_mult > 1.33333333333)
+    {
+        width = (640.f * 1.33333333333) / aspect_mult;
+        edge_x = (640.f - width) / 2;
+    }
+
+    float view_width = right_in - left_in;
+        
+    float adjusted_fb_width = (640.0f / aspect_mult);       // shrinks with wider AR (preserves pixel width when display stretches the image)
+    float adjusted_view_width = (view_width / aspect_mult); // shrinks with wider AR (preserves pixel width when display stretches the image)
+
+    float new_center_x = edge_x + (center_x_normalized * width);
+    *left_out = new_center_x - (adjusted_view_width / 2);
+    *right_out = new_center_x + (adjusted_view_width / 2);
+
+    // OSReport("center_normalized: %.2f\n", center_x_normalized);
+    // OSReport("left %.2f, right %.2f\n", left_in, right_in);
+}
 
 GOBJ *HUDMain_Create(GOBJ *g)
 {
@@ -187,7 +212,7 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign a
     HUDElementData *gp = g->userdata;
 
     // if not a player view element, use fullscreen region
-    int plyview_num = (is_ply_element) ? g3d->plyview_num : 1;
+    int plyview_num = g3d->plyview_num;
 
     // temp disable splitscreen adjustments
     if (plyview_num > 1)
@@ -233,6 +258,37 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign a
     // OSReport(" aspect scale: %.2f\n", aspect_scale);
     // OSReport(" viewport scale: %.2f\n", viewport_scale);
 
+}
+void HUDAdjust_Camera(COBJ *c)
+{
+    float viewport_width = c->viewport_right - c->viewport_left;
+    int scissor_wdith = c->scissor_right - c->scissor_left;
+    float left, right;
+
+    if (viewport_width < 640.f)
+    {
+        Camera_AdjustWidth(c->viewport_left, c->viewport_right, &left, &right);
+        c->viewport_left = left;
+        c->viewport_right = right;
+    }
+
+    if (scissor_wdith < 640)
+    {
+        Camera_AdjustWidth(c->scissor_left, c->scissor_right, &left, &right);
+        c->scissor_left = left;
+        c->scissor_right = right;
+    }
+
+    float aspect_mult = Wide_GetAspectMult();
+    
+    switch (c->projection_type)
+    {
+        case (PROJ_ORTHO):
+        {
+            c->projection_param.ortho.left *= aspect_mult;
+            c->projection_param.ortho.right *= aspect_mult;
+        }
+    }
 }
 
 // speedometer
@@ -458,50 +514,13 @@ CODEPATCH_HOOKCREATE(0x800674fc, "addi 3, 1, 0x8\n\t", CObj_CheckVisibleAdjust, 
 // mini map
 void Minimap_AdjustViewport(COBJ *c)
 {
-    float aspect_mult = Wide_GetAspectMult();
-
-    float center_x_normalized = ((c->viewport_right + c->viewport_left) / 2) / 640.0f;
-
-    float edge_x = 0;
-    float width = 640.f; 
-    if (aspect_mult > 1.33333333333)
-    {
-        width = (640.f * 1.33333333333) / aspect_mult; 
-        edge_x = (640.f - width) / 2;
-    }
-
-    // // limit to 16:9 position
-    // if (aspect_mult > 1.3333)
-    // {
-    //     float adjusted_fb_width = (640.0f / 1.3333);
-    //     float new_center_x = center_x_normalized * adjusted_fb_width;
-    //     (aspect_mult / 1.3333) * 
-    //     float pixels_from_center = new_center_x - (640.0f / 2);
-    //     center_x_normalized = new_center_x / 640.0f;
-    // }
-
-    float view_width = c->viewport_right - c->viewport_left;
-    
-    float adjusted_fb_width = (640.0f / aspect_mult);       // shrinks with wider AR (preserves pixel width when display stretches the image)
-    float adjusted_view_width = (view_width / aspect_mult); // shrinks with wider AR (preserves pixel width when display stretches the image)
-
-    float new_center_x = edge_x + (center_x_normalized * width);
-    c->viewport_left = new_center_x - (adjusted_view_width / 2);
-    c->viewport_right = new_center_x + (adjusted_view_width / 2);
-
-    c->scissor_left = c->viewport_left;
-    c->scissor_right = c->viewport_right;
-
-    OSReport("center_normalized: %.2f\n", center_x_normalized);
-    OSReport("left %.2f, right %.2f\n", c->viewport_left, c->viewport_right);
+    HUDAdjust_Camera(c);
 }
 CODEPATCH_HOOKCREATE(0x80067364, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
 CODEPATCH_HOOKCREATE(0x800672e4, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)
 void MiniMapDotsCam_Adjust(COBJ *c)
 {
-    float aspect_mult = Wide_GetAspectMult();
-    c->projection_param.ortho.left *= aspect_mult;
-    c->projection_param.ortho.right *= aspect_mult;
+    HUDAdjust_Camera(c);
 }
 CODEPATCH_HOOKCREATE(0x80115ad8, "lwz 3, 0x28 (30)\n\t", MiniMapDotsCam_Adjust, "", 0)
 

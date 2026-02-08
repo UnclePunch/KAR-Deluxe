@@ -53,6 +53,10 @@ void MusicChange_On3DLoad()
                     param->scissor_left + param->scissor_width, 
                     0, 480);
 
+    bp();
+    if (wide_export)
+        wide_export->HUDAdjust_Camera(c);
+
     music_text_canvas_idx = Text_CreateCanvas(0, -1, 28, GAMEPLINK_CAMHUD, 0, SONGNAME_GXLINK, 0, 0);
 }
 
@@ -76,8 +80,9 @@ GOBJ *MusicChange_Create()
     JObj_AddSetAnim(j, 0, set, 0, 1);
 
     // widescreen shift
-    if (wide_export)
-        wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT);
+    // if (Gm_Get3dData()->plyview_num == 1 && wide_export)
+    //     wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT);
+    
     // j->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
     // JObj_SetMtxDirtySub(j);
 

@@ -137,7 +137,7 @@ void QuickStat_OnPause()
 void QuickStat_On3DStart()
 {
     // add proc to rider that checks to create the stat HUD
-    if (!quickstats_enabled || !(Gm_IsInCity() && Gm_GetCityMode() == CITYMODE_TRIAL))
+    if (!quickstats_enabled || Gm_GetCityMode() != CITYMODE_TRIAL)
         return;
 
     // add new proc to each rider with a viewport

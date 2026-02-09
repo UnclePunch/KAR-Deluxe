@@ -48,18 +48,22 @@ void MusicChange_On3DLoad()
     MusicChangeTextParams *param = MusicChange_GetTextParam();
 
     COBJ *c = g->hsd_object;
-    CObj_SetScissor(c, 
-                    param->scissor_left, 
-                    param->scissor_left + param->scissor_width, 
-                    0, 480);
+    // CObj_SetScissor(c, 
+    //                 param->scissor_left, 
+    //                 param->scissor_left + param->scissor_width, 
+    //                 0, 480);
 
-    bp();
     if (wide_export)
         wide_export->HUDAdjust_Camera(c);
 
     music_text_canvas_idx = Text_CreateCanvas(0, -1, 28, GAMEPLINK_CAMHUD, 0, SONGNAME_GXLINK, 0, 0);
 }
 
+void MusicChange_OnTextDraw(GOBJ *g)
+{
+
+    GXSetZMode(GX_ENABLE, GX_GEQUAL, GX_DISABLE);
+}
 GOBJ *MusicChange_Create()
 {
     JOBJSet *set = MusicChange_GetJOBJSet();
@@ -98,6 +102,7 @@ GOBJ *MusicChange_Create()
     // create song text
     Text *t = Text_CreateText(0, music_text_canvas_idx);
     // t->viewport_color = (GXColor){0, 0, 0, 128};
+    t->render_callback = MusicChange_OnTextDraw;
     t->kerning = 1;
     t->viewport_scale = gp->param->scale;
     t->use_aspect = 1;

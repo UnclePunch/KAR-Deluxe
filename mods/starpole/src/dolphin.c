@@ -83,17 +83,22 @@ void Dolphin_Init()
 
         // init netplay flag
         if (dolphin_data->netplay.ply != -1)
-        {
-            is_netplay = 1;
-
-            OSReport("Starpole: Netplay detected. You are player %d \"%s\"\n", 
-                dolphin_data->netplay.ply, 
-                dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
-        }
+            Netplay_Init();
         else
             OSReport("Starpole: Netplay not detected.\n");
     }
 
+}
+
+void Netplay_Init()
+{
+    is_netplay = 1;
+
+    OSReport("Starpole: Netplay detected. You are player %d \"%s\"\n", 
+        dolphin_data->netplay.ply, 
+        dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
+
+    PadAlarm_Remove();
 }
 
 // Fullscreen
@@ -266,4 +271,32 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
                 full_scissor.top, 
                 full_scissor.right - full_scissor.left,
                 full_scissor.bottom - full_scissor.top);
+}
+
+// Pad stuff
+void Pad_Renew()
+{
+    void (*HSD_RenewInputs)() = (void *)0x800625cc;
+    HSD_RenewInputs();
+}
+void (*HSD_RenewInputs)() = (void *)0x800625cc;
+
+CODEPATCH_HOOKCREATE(0x80006b98, "", Pad_Renew, "", 0)
+void PadAlarm_Remove()
+{
+    int *is_alarm_active = (int *)0x80550ca8;
+    OSAlarm *alarm_ptr = (OSAlarm *)0x80550d28;
+
+    // cancel any active alarms
+    if (*is_alarm_active)
+        OSCancelAlarm(alarm_ptr);
+    
+    // disable pad alarm creation
+    CODEPATCH_REPLACEINSTRUCTION(0x80062848, 0x60000000);
+    
+    // disable some OSJamMessage i dont fully understad yet
+    CODEPATCH_REPLACEINSTRUCTION(0x80006b94, 0x60000000);
+
+    // move padread to after PostRetraceCB
+    CODEPATCH_HOOKAPPLY(0x80006b98);
 }

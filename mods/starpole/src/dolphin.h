@@ -11,9 +11,12 @@ typedef struct PlayerTagViewData
 } PlayerTagViewData;
 
 void Dolphin_Init();
+void Netplay_Init();
 void Netplay_OverridePlayerView();
 void Netplay_CreatePlayerTags();
 void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp);
 void Netplay_PlayerTagGX(GOBJ *g, int pass);
+
+void PadAlarm_Remove();
 
 #endif

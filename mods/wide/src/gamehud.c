@@ -114,6 +114,10 @@ void Camera_AdjustWidth(float left_in, float right_in, float *left_out, float *r
     float aspect_mult = Wide_GetAspectMult();
     float center_x_normalized = ((right_in + left_in) / 2) / 640.0f;
 
+    OSReport("in:\n");
+    OSReport("left %.2f, right %.2f\n", left_in, right_in);
+    OSReport("center_normalized: %.2f\n", center_x_normalized);
+
     float edge_x = 0;
     float width = 640.f;
     if (aspect_mult > 1.33333333333)
@@ -131,8 +135,8 @@ void Camera_AdjustWidth(float left_in, float right_in, float *left_out, float *r
     *left_out = new_center_x - (adjusted_view_width / 2);
     *right_out = new_center_x + (adjusted_view_width / 2);
 
-    // OSReport("center_normalized: %.2f\n", center_x_normalized);
-    // OSReport("left %.2f, right %.2f\n", left_in, right_in);
+    OSReport("out:\n");
+    OSReport("left %.2f, right %.2f\n", *left_out, *right_out);
 }
 
 GOBJ *HUDMain_Create(GOBJ *g)

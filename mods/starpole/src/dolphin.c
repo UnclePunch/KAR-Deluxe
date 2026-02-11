@@ -295,10 +295,11 @@ void PadAlarm_Remove()
     
     // disable pad alarm creation
     CODEPATCH_REPLACEINSTRUCTION(0x80062848, 0x60000000);
+    CODEPATCH_REPLACEINSTRUCTION(0x8006262c, 0x60000000);
     
-    // disable some OSJamMessage i dont fully understad yet
-    CODEPATCH_REPLACEINSTRUCTION(0x80006b94, 0x60000000);
+    // replace pad alarm jam with viwaitforretrace
+    CODEPATCH_REPLACECALL(0x80006b94, VIWaitForRetrace);
 
-    // move padread to after PostRetraceCB
+    // move padread to beginning of new frame
     CODEPATCH_HOOKAPPLY(0x80006b98);
 }

@@ -667,6 +667,34 @@ void Dismount_GetCameraPosition(CamData *cd)
 }
 CODEPATCH_HOOKCREATE(0x800b7840, "mr 3, 30\n\t", Dismount_GetCameraPosition, "", 0)
 
+// Particle adjustments
+void (*ParticleUnk1)(int flag) = (void *)0x80430198;
+void (*ParticleUnk2)(int flag) = (void *)0x804324ec;
+int ptcl_rng_seed = 0;
+void Particle_InitRNG()
+{
+    ptcl_rng_seed = **stc_rng_seed;
+}
+CODEPATCH_HOOKCREATE(0x80233994, "", Particle_InitRNG, "", 0)
+void Particle1_Think()
+{
+    int *orig_rng_ptr = *stc_rng_seed;
+    
+    *stc_rng_seed = &ptcl_rng_seed;
+    ParticleUnk1(0);
+    ParticleUnk2(0);
+    *stc_rng_seed = orig_rng_ptr;
+}
+void Particle2_Think()
+{
+    int *orig_rng_ptr = *stc_rng_seed;
+
+    *stc_rng_seed = &ptcl_rng_seed;
+    ParticleUnk1(0xFFFD0000);
+    ParticleUnk2(0xFFFD0000);
+    *stc_rng_seed = orig_rng_ptr;
+}
+
 // Mod Callbacks
 void Replay_OnBoot()
 {
@@ -679,6 +707,11 @@ void Replay_OnBoot()
     CODEPATCH_HOOKAPPLY(0x800144d4);
 
     CODEPATCH_REPLACEFUNC(0x800b67cc, PlyCam_UseRiderInputsForMachineCameraControl);
+
+    // particles use their own RNG seed
+    CODEPATCH_HOOKAPPLY(0x80233994);
+    CODEPATCH_REPLACEFUNC(0x80233b74, Particle1_Think);
+    CODEPATCH_REPLACEFUNC(0x80233ba0, Particle2_Think);
 
     // temp patches
     float *reduce_ratio = (float *)0x805df274; // fullscreen live cam

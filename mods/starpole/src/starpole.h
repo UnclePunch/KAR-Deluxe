@@ -44,6 +44,7 @@ typedef struct
     float aspect_mult;
     struct
     {
+        int is;
         int ply;
         char usernames[4][31];
     } netplay;

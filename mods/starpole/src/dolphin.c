@@ -68,6 +68,7 @@ void Dolphin_Init()
         };
 
         dolphin_data->aspect_mult = 1;
+        dolphin_data->netplay.is = 1;
         dolphin_data->netplay.ply = 0;
         for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
             strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
@@ -82,7 +83,7 @@ void Dolphin_Init()
         starpole_export.dolphin_data = dolphin_data;
 
         // init netplay flag
-        if (dolphin_data->netplay.ply != -1)
+        if (dolphin_data->netplay.is)
             Netplay_Init();
         else
             OSReport("Starpole: Netplay not detected.\n");
@@ -94,9 +95,16 @@ void Netplay_Init()
 {
     is_netplay = 1;
 
-    OSReport("Starpole: Netplay detected. You are player %d \"%s\"\n", 
-        dolphin_data->netplay.ply, 
-        dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
+    OSReport("Starpole: Netplay detected.\n");
+
+    if (dolphin_data->netplay.ply != -1)
+    {
+        OSReport(" You are player %d \"%s\"\n", 
+            dolphin_data->netplay.ply, 
+            dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
+    }
+    else
+        OSReport(" You are spectating.\n");
 
     PadAlarm_Remove();
 }
@@ -109,21 +117,15 @@ void Netplay_OverridePlayerView()
 
     GameData *gd = Gm_GetGameData();
 
-    for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
-        gd->ply_view_desc[i].flag = PLYCAM_OFF;
-    
-    // if its a netplay game and we are not plugged in, force p1 cam
-    if (dolphin_data->netplay.ply == -1)
-        gd->ply_view_desc[0].flag = PLYCAM_ON;
-    else
+    if (dolphin_data->netplay.ply != -1 && Gm_GetGameData()->ply_desc[dolphin_data->netplay.ply].p_kind == PKIND_HMN)
     {
-        // // if we are plugged in and in this game, force our cam on
-        // if (Gm_GetGameData()->ply_desc[dolphin_data->netplay.ply].p_kind == PKIND_HMN)
+        for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+            gd->ply_view_desc[i].flag = PLYCAM_OFF;
+        
+        // plugged in and not present, give us live cam to spectate with
+        int held = stc_engine_pads[dolphin_data->netplay.ply].held;
+        if ((held & (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R)) != (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R))
             gd->ply_view_desc[dolphin_data->netplay.ply].flag = PLYCAM_ON;
-
-        // // plugged in and not present, give us live cam to spectate with
-        // else
-        //     gd->ply_view_desc[dolphin_data->netplay.ply].flag = PLYCAM_LIVE;
     }
 }
 

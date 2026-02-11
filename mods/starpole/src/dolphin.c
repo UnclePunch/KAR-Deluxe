@@ -246,20 +246,22 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
             t->hidden = 0;
             JOBJ *plynum_jobj = plynum_gobj->hsd_object;
 
+            static float tag_offsets[] = {0, 6.3, 5.8, 5, 5};
+
             // move text to PlyNum
             t->trans.X = plynum_jobj->trans.X;
-            t->trans.Y = -(plynum_jobj->trans.Y + 6.3);
+            t->trans.Y = -(plynum_jobj->trans.Y + tag_offsets[g3d->plyview_num]);
         }
 
         // splitscreen logic
-        if (Gm_Get3dData()->plyview_num >= 2)
+        if (g3d->plyview_num >= 2)
         {
             CamScissor view_scissor;
             PlyCam_Get2PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
             GXSetScissor(view_scissor.left, 
-                        view_scissor.bottom, 
+                        view_scissor.top, 
                         view_scissor.right - view_scissor.left,
-                        view_scissor.top - view_scissor.bottom);
+                        view_scissor.bottom - view_scissor.top);
         }
 
         // call render func

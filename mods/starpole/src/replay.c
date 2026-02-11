@@ -183,6 +183,13 @@ u32 Replay_HashGameState()
         u16 frame;
         Vec3 pos;
     } ObjectState;
+    
+    typedef struct
+    {
+        int rng_seed;
+        ObjectState objects[];
+    } GameState;
+
 
     // count number of objects to backup
     object_num = 0;
@@ -199,15 +206,16 @@ u32 Replay_HashGameState()
         return 0;
 
     // alloc temp buffer
-    ObjectState *states = HSD_MemAlloc(sizeof(ObjectState) * object_num);
-    memset(states, 0, sizeof(ObjectState) * object_num);
+    int state_size = sizeof(GameState) + sizeof(ObjectState) * object_num;
+    GameState *state = HSD_MemAlloc(state_size);
+    memset(&state->objects, 0, sizeof(ObjectState) * object_num);
     object_num = 0;
 
     // begin collecting data
     for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; g; g = g->next)
     {
         RiderData *rd = g->userdata;
-        ObjectState *this_state = &states[object_num++];
+        ObjectState *this_state = &state->objects[object_num++];
         this_state->kind = rd->kind;
         this_state->state = rd->state_idx;
         this_state->frame = rd->state_frame;
@@ -216,7 +224,7 @@ u32 Replay_HashGameState()
     for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
     {
         MachineData *gp = g->userdata;
-        ObjectState *this_state = &states[object_num++];
+        ObjectState *this_state = &state->objects[object_num++];
         this_state->kind = gp->kind;
         this_state->state = 0;
         this_state->frame = 0;
@@ -225,7 +233,7 @@ u32 Replay_HashGameState()
     for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; g; g = g->next)
     {
         EnemyData *gp = g->userdata;
-        ObjectState *this_state = &states[object_num++];
+        ObjectState *this_state = &state->objects[object_num++];
         this_state->kind = gp->kind;
         this_state->state = gp->state_idx;
         this_state->frame = gp->state_frame;
@@ -234,15 +242,15 @@ u32 Replay_HashGameState()
     for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; g; g = g->next)
     {
         ItemData *gp = g->userdata;
-        ObjectState *this_state = &states[object_num++];
+        ObjectState *this_state = &state->objects[object_num++];
         this_state->kind = gp->kind;
         this_state->state = gp->state;
         this_state->frame = gp->state_frame;
         this_state->pos = gp->pos;
     }
 
-    u32 hash = hash_32(states, sizeof(ObjectState) * object_num);
-    HSD_Free(states);
+    u32 hash = hash_32(state, state_size);
+    HSD_Free(state);
 
     return hash;
 }
@@ -607,7 +615,10 @@ int Playback_RestoreMatch()
     {
         // copy to game struct
         GameData *gp = Gm_GetGameData();
-        *hsd_rand_seed = starpole_buf->match.rng_seed;
+
+        if (REPLAY_SYNCRNG)
+            *hsd_rand_seed = starpole_buf->match.rng_seed;
+
         gp->city.stadium_kind = starpole_buf->match.stadium_kind;
         gp->stage_kind = starpole_buf->match.stage_kind;
         // gp->city_kind = starpole_buf->match.city_kind;

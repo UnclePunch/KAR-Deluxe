@@ -59,7 +59,6 @@ void Dolphin_Init()
 
     if (DOLPHIN_DEBUG)
     {
-
         static char *test_names[] = {
             "UnclePunch",
             "charity",
@@ -277,14 +276,70 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
                 full_scissor.bottom - full_scissor.top);
 }
 
+// Hash Display
+Text *hash_text;
+void Hash_CreateText()
+{
+    // display test string
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){0, 0, 0};
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){320, 32};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "Game State Hash: %08X", Replay_HashGameState());
+
+    hash_text = t;
+}
+void Hash_DestroyText()
+{
+    Text_Destroy(hash_text);
+}
+
+// frame budget test
+void StressTest_Think()
+{
+    if (dolphin_data->netplay.ply != -1)
+    {
+        int held = stc_engine_pads[dolphin_data->netplay.ply].held;
+        int down = stc_engine_pads[dolphin_data->netplay.ply].down;
+        if ((held & (PAD_TRIGGER_Z | PAD_TRIGGER_L | PAD_TRIGGER_R)) == (PAD_TRIGGER_Z | PAD_TRIGGER_L | PAD_TRIGGER_R))
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 1000000; j++)
+                    ;
+            }
+        }
+    }
+}
+void StressTest_Create()
+{
+    GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_HUD, 0,
+                    0, 0,
+                    0, 0,
+                    StressTest_Think, 20, 
+                    0, 0, 0);
+}
+
 // Pad stuff
 void Pad_Renew()
 {
-    void (*HSD_RenewInputs)() = (void *)0x800625cc;
-    HSD_RenewInputs();
-}
-void (*HSD_RenewInputs)() = (void *)0x800625cc;
+    struct HSD_PadStatus
+    {
+        PADStatus status[4];
+        int result;
+    };
 
+    int (*Unk_Check)() = (void *)0x8007b640;
+    void (*HSD_RenewInputs)(struct HSD_PadStatus *status) = (void *)0x80411d40;
+    void (*HSD_UnkInputs)(struct HSD_PadStatus *status) = (void *)0x804124f8;
+
+    struct HSD_PadStatus status;
+    HSD_RenewInputs(&status);
+    HSD_UnkInputs(&status);
+}
 CODEPATCH_HOOKCREATE(0x80006b98, "", Pad_Renew, "", 0)
 void PadAlarm_Remove()
 {
@@ -297,11 +352,16 @@ void PadAlarm_Remove()
     
     // disable pad alarm creation
     CODEPATCH_REPLACEINSTRUCTION(0x80062848, 0x60000000);
-    CODEPATCH_REPLACEINSTRUCTION(0x8006262c, 0x60000000);
-    
-    // replace pad alarm jam with viwaitforretrace
-    CODEPATCH_REPLACECALL(0x80006b94, VIWaitForRetrace);
 
-    // move padread to beginning of new frame
-    CODEPATCH_HOOKAPPLY(0x80006b98);
+    // // skip padread call in pad alarm
+    // CODEPATCH_REPLACEINSTRUCTION(0x8006260c, 0x48000000 | 0x10);
+    
+    // execute padread on VI retrace callback
+    CODEPATCH_REPLACEFUNC(0x80005894, 0x800625cc);
+
+    // // replace pad alarm jam with viwaitforretrace
+    // CODEPATCH_REPLACECALL(0x80006b94, VIWaitForRetrace);
+
+    // // move padread to beginning of new frame
+    // CODEPATCH_HOOKAPPLY(0x80006b98);
 }

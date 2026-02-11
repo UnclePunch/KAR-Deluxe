@@ -55,11 +55,22 @@ void On3DLoadStart()
 void On3DLoadEnd()
 {
     Netplay_CreatePlayerTags();
+    // StressTest_Create();
 }
 
 void On3DExit()
 {
     Replay_On3DExit();
+}
+
+void On3DPause(int pause_ply)
+{
+    Hash_CreateText();
+}
+
+void On3DUnpause(int pause_ply)
+{
+    Hash_DestroyText();
 }
 
 ModDesc mod_desc = {
@@ -72,4 +83,6 @@ ModDesc mod_desc = {
     .On3DLoadEnd = On3DLoadEnd,
     .On3DExit = On3DExit,
     .OnFrameEnd = OnFrameEnd,
+    .On3DPause = On3DPause,
+    .On3DUnpause = On3DUnpause,
 };

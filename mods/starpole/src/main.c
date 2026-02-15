@@ -8,6 +8,7 @@
 #include "starpole.h"
 #include "replay.h"
 #include "dolphin.h"
+#include "netsync.h"
 #include "playback.h"
 
 StarpoleExport starpole_export = {0};
@@ -40,11 +41,15 @@ void OnSceneChange()
     Replay_OnSceneChange();
     Test_DisplayString();
     Starpole_DisplayAsset();
+
+    // Netsync_CreateRNGText();
 }
 
 void OnFrameEnd()
 {
     Playback_Listen();
+
+    // Netsync_UpdateRNGText();
 }
 
 void On3DLoadStart()

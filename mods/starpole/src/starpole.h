@@ -29,7 +29,10 @@ typedef enum
 
     STARPOLE_CMD_CHECKPLAYBACK,
 
-    STARPOLE_CMD_NETPLAY,
+    STARPOLE_CMD_DOLPHIN,
+    
+    STARPOLE_CMD_NETPADSEND,
+    STARPOLE_CMD_NETPADRECV,
 
     STARPOLE_CMD_NUM,    
 } StarpoleCmd;
@@ -46,6 +49,7 @@ typedef struct
     {
         int is;
         int ply;
+        int rng_seed;
         char usernames[4][31];
     } netplay;
 } StarpoleDataDolphin;

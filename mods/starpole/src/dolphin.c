@@ -15,6 +15,7 @@
 #include "starpole.h"
 #include "replay.h"
 #include "dolphin.h"
+#include "netsync.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -31,7 +32,7 @@ int Dolphin_ReqData()
     int enable = OSDisableInterrupts();
 
     // request data
-    if (Starpole_Imm(STARPOLE_CMD_NETPLAY, 0) <= 0)
+    if (Starpole_Imm(STARPOLE_CMD_DOLPHIN, 0) <= 0)
     {
         OSReport("Starpole: Dolphin not detected.\n");
         goto CLEANUP;
@@ -105,7 +106,12 @@ void Netplay_Init()
     else
         OSReport(" You are spectating.\n");
 
-    PadAlarm_Remove();
+    // init rng seed
+    *hsd_rand_seed = dolphin_data->netplay.rng_seed;
+
+    // PadAlarm_Remove();
+
+    Netsync_Init();
 }
 
 // Fullscreen
@@ -324,23 +330,6 @@ void StressTest_Create()
 }
 
 // Pad stuff
-void Pad_Renew()
-{
-    struct HSD_PadStatus
-    {
-        PADStatus status[4];
-        int result;
-    };
-
-    int (*Unk_Check)() = (void *)0x8007b640;
-    void (*HSD_RenewInputs)(struct HSD_PadStatus *status) = (void *)0x80411d40;
-    void (*HSD_UnkInputs)(struct HSD_PadStatus *status) = (void *)0x804124f8;
-
-    struct HSD_PadStatus status;
-    HSD_RenewInputs(&status);
-    HSD_UnkInputs(&status);
-}
-CODEPATCH_HOOKCREATE(0x80006b98, "", Pad_Renew, "", 0)
 void PadAlarm_Remove()
 {
     int *is_alarm_active = (int *)0x80550ca8;
@@ -351,10 +340,7 @@ void PadAlarm_Remove()
         OSCancelAlarm(alarm_ptr);
     
     // disable pad alarm creation
-    CODEPATCH_REPLACEINSTRUCTION(0x80062848, 0x60000000);
-
-    // // skip padread call in pad alarm
-    // CODEPATCH_REPLACEINSTRUCTION(0x8006260c, 0x48000000 | 0x10);
+    CODEPATCH_REPLACEINSTRUCTION(0x80062660, 0x4e800020);
     
     // execute padread on VI retrace callback
     CODEPATCH_REPLACEFUNC(0x80005894, 0x800625cc);

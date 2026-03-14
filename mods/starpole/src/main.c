@@ -25,7 +25,7 @@ void OnBoot()
 {
     Starpole_Init();
 
-    Replay_OnBoot();
+    // Replay_OnBoot();
     Dolphin_Init();
     Playback_Init();
 
@@ -38,7 +38,7 @@ void OnSceneChange()
 {
     TextConsole_Init();
 
-    Replay_OnSceneChange();
+    // Replay_OnSceneChange();
     Test_DisplayString();
     Starpole_DisplayAsset();
 
@@ -54,18 +54,20 @@ void OnFrameEnd()
 
 void On3DLoadStart()
 {
-    Replay_On3DLoadStart();
+    // Replay_On3DLoadStart();
     Netplay_OverridePlayerView();
+    Audio_On3DLoadStart();
 }
 void On3DLoadEnd()
 {
+    Audio_InitLog();
     Netplay_CreatePlayerTags();
     // StressTest_Create();
 }
 
 void On3DExit()
 {
-    Replay_On3DExit();
+    // Replay_On3DExit();
 }
 
 void On3DPause(int pause_ply)

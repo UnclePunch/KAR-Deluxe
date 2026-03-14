@@ -1,0 +1,28 @@
+look into charge sound not playing after the first time? this also affects kirby's jump sound
+look into wagon star motor sound sounding weird
+look into sound cutting out for ambient volcano noises
+
+BUG: sound effects played on frame 0 (notably the one when spawning the first machine 0x3000b)
+    get removed when resimulating frame 0? apparently the "this_frame" variable is set to 1?
+
+ok, it seems rollbacks are not allocating the same sg's for audio emitters. i believe the function
+80443d8c is checking for any active fgm instances with the sg it tries to allocate, and if its in use,
+(which it is because a previous sim of that frame grabbed it) it allocates the next one.
+
+todo: handle the case where an sg is stolen from another emitter @ 8005d770.
+
+im thinking i snapshot the state of all sg's at the top of the frame, before receiving inputs
+and simulating any game frames.
+
+im back to wanting to decouple audio entirely, including the emitter data. im blocking the duplicate creation
+and termination of sound effects with injected game code. im noticing that sounds arent actually stopping when
+i request them to stop though.
+
+currently, i am not backing up any audio data INCLUDING the emitter struct which includes information about
+which tracks and sg's are available. this actually works amazingly from a sound perspective. i believe there
+is an issue where tracks are being allocated on prediction frames but not being freed when rolling back. i
+tried to include the audio source table in the savestate but it causes many sounds to not play, likely because
+tracks are being reallocated while an instance exists referencing them? not sure tbh but i think im getting
+close.
+
+the random text obj crash in HSD_ObjAlloc is because i have an HSD_Obj in hoshi that isnt being backed up.

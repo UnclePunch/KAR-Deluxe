@@ -1,0 +1,382 @@
+Func 0x800ce5e4 with p_link STAGE completed in 0.0001ms
+Func 0x800ac8cc with p_link 61 completed in 0.0001ms
+Func 0x800d5f3c with p_link 1 completed in 0.0001ms
+Func 0x807f3094 with p_link RIDER completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f52e8 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5340 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x800f5374 with p_link ENEMY completed in 0.0001ms
+Func 0x807f2ce4 with p_link RIDER completed in 0.0001ms
+Func 0x807f2ce4 with p_link RIDER completed in 0.0001ms
+Func 0x807f2ce4 with p_link RIDER completed in 0.0001ms
+Func 0x807f2ce4 with p_link RIDER completed in 0.0001ms
+Func 0x801c67a0 with p_link MACHINE completed in 0.0001ms
+Func 0x801c67a0 with p_link MACHINE completed in 0.0001ms
+Func 0x801c67a0 with p_link MACHINE completed in 0.0001ms
+Func 0x801c67a0 with p_link MACHINE completed in 0.0001ms
+Func 0x8018f95c with p_link RIDER completed in 0.0001ms
+Func 0x8018f95c with p_link RIDER completed in 0.0001ms
+Func 0x8018f95c with p_link RIDER completed in 0.0001ms
+Func 0x8018f95c with p_link RIDER completed in 0.0001ms
+Func 0x8018fc58 with p_link RIDER completed in 0.0001ms
+Func 0x80124840 with p_link HUD completed in 0.0001ms
+Func 0x800ce6d4 with p_link STAGE completed in 0.0001ms
+Func 0x8027b0d0 with p_link SHADOW completed in 0.0001ms
+Func 0x807f14e4 with p_link SYS completed in 0.0002ms
+Func 0x800ee60c with p_link CITYEVENTSPAWN completed in 0.0002ms
+Func 0x801c628c with p_link MACHINE completed in 0.0002ms
+Func 0x801c628c with p_link MACHINE completed in 0.0002ms
+Func 0x801c628c with p_link MACHINE completed in 0.0002ms
+Func 0x801c628c with p_link MACHINE completed in 0.0002ms
+Func 0x801c628c with p_link MACHINE completed in 0.0002ms
+Func 0x8018f8e0 with p_link RIDER completed in 0.0002ms
+Func 0x8018f8e0 with p_link RIDER completed in 0.0002ms
+Func 0x8018f8e0 with p_link RIDER completed in 0.0002ms
+Func 0x8018f8e0 with p_link RIDER completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0002ms
+Func 0x8009440c with p_link 63 completed in 0.0002ms
+Func 0x80116d8c with p_link HUD completed in 0.0002ms
+Func 0x8011dbc4 with p_link HUD completed in 0.0002ms
+Func 0x8011dbc4 with p_link HUD completed in 0.0002ms
+Func 0x8011dbc4 with p_link HUD completed in 0.0002ms
+Func 0x8011dbc4 with p_link HUD completed in 0.0002ms
+Func 0x8011f804 with p_link HUD completed in 0.0002ms
+Func 0x8011f804 with p_link HUD completed in 0.0002ms
+Func 0x8011f804 with p_link HUD completed in 0.0002ms
+Func 0x8012b1e8 with p_link PAUSEHUD completed in 0.0002ms
+Func 0x801df840 with p_link CITYMACHINESPAWN completed in 0.0003ms
+Func 0x8018e9a8 with p_link RIDER completed in 0.0003ms
+Func 0x8018e9a8 with p_link RIDER completed in 0.0003ms
+Func 0x8018e9a8 with p_link RIDER completed in 0.0003ms
+Func 0x8018e9a8 with p_link RIDER completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0003ms
+Func 0x8018f4e8 with p_link RIDER completed in 0.0003ms
+Func 0x8018f4e8 with p_link RIDER completed in 0.0003ms
+Func 0x8018f4e8 with p_link RIDER completed in 0.0003ms
+Func 0x8018f4e8 with p_link RIDER completed in 0.0003ms
+Func 0x8018f734 with p_link RIDER completed in 0.0003ms
+Func 0x8018f734 with p_link RIDER completed in 0.0003ms
+Func 0x8018f734 with p_link RIDER completed in 0.0003ms
+Func 0x8018f734 with p_link RIDER completed in 0.0003ms
+Func 0x801c6834 with p_link MACHINE completed in 0.0003ms
+Func 0x801c6834 with p_link MACHINE completed in 0.0003ms
+Func 0x801c6834 with p_link MACHINE completed in 0.0003ms
+Func 0x801c6834 with p_link MACHINE completed in 0.0003ms
+Func 0x801c6834 with p_link MACHINE completed in 0.0003ms
+Func 0x8018fa20 with p_link RIDER completed in 0.0003ms
+Func 0x8018fa20 with p_link RIDER completed in 0.0003ms
+Func 0x8018fa20 with p_link RIDER completed in 0.0003ms
+Func 0x8018fa20 with p_link RIDER completed in 0.0003ms
+Func 0x80065668 with p_link Debug completed in 0.0004ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0004ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0004ms
+Func 0x801c6368 with p_link MACHINE completed in 0.0004ms
+Func 0x801c6368 with p_link MACHINE completed in 0.0004ms
+Func 0x801c6368 with p_link MACHINE completed in 0.0004ms
+Func 0x801c6368 with p_link MACHINE completed in 0.0004ms
+Func 0x80117bb0 with p_link HUD completed in 0.0004ms
+Func 0x800d6094 with p_link 1 completed in 0.0005ms
+Func 0x8019019c with p_link 1 completed in 0.0005ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0005ms
+Func 0x800f5454 with p_link ENEMY completed in 0.0005ms
+Func 0x8006d95c with p_link EFFECTMODEL completed in 0.0005ms
+Func 0x800eb108 with p_link CITYITEMSPAWN completed in 0.0006ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0006ms
+Func 0x8018ee28 with p_link RIDER completed in 0.0006ms
+Func 0x8018fbfc with p_link RIDER completed in 0.0006ms
+Func 0x8018fbfc with p_link RIDER completed in 0.0006ms
+Func 0x8018fbfc with p_link RIDER completed in 0.0006ms
+Func 0x8018fbfc with p_link RIDER completed in 0.0006ms
+Func 0x801c5fe0 with p_link MACHINE completed in 0.0007ms
+Func 0x801c5fe0 with p_link MACHINE completed in 0.0007ms
+Func 0x801c5fe0 with p_link MACHINE completed in 0.0007ms
+Func 0x801c5fe0 with p_link MACHINE completed in 0.0007ms
+Func 0x801c5fe0 with p_link MACHINE completed in 0.0007ms
+Func 0x8018ee28 with p_link RIDER completed in 0.0007ms
+Func 0x8018ee28 with p_link RIDER completed in 0.0007ms
+Func 0x80118f50 with p_link HUD completed in 0.0007ms
+Func 0x800b5434 with p_link 18 completed in 0.0008ms
+Func 0x80115bf8 with p_link CAMHUD completed in 0.0009ms
+Func 0x801182dc with p_link HUD completed in 0.0009ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8027b0d4 with p_link SHADOW completed in 0.0010ms
+Func 0x8018ee28 with p_link RIDER completed in 0.0011ms
+Func 0x801200ac with p_link HUD completed in 0.0012ms
+Func 0x801200ac with p_link HUD completed in 0.0012ms
+Func 0x801200ac with p_link HUD completed in 0.0012ms
+Func 0x80277bfc with p_link 24 completed in 0.0015ms
+Func 0x800f3904 with p_link 3 completed in 0.0016ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0016ms
+Func 0x801c618c with p_link MACHINE completed in 0.0017ms
+Func 0x80011024 with p_link 25 completed in 0.0019ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0021ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f53fc with p_link ENEMY completed in 0.0023ms
+Func 0x800f5284 with p_link ENEMY completed in 0.0024ms
+Func 0x801c65a8 with p_link MACHINE completed in 0.0025ms
+Func 0x801c65a8 with p_link MACHINE completed in 0.0025ms
+Func 0x801c65a8 with p_link MACHINE completed in 0.0025ms
+Func 0x801c65a8 with p_link MACHINE completed in 0.0025ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0026ms
+Func 0x800f53a8 with p_link ENEMY completed in 0.0026ms
+Func 0x80233b74 with p_link EFFECTMODEL completed in 0.0026ms
+Func 0x8018f79c with p_link RIDER completed in 0.0035ms
+Func 0x8018f79c with p_link RIDER completed in 0.0035ms
+Func 0x8018f79c with p_link RIDER completed in 0.0035ms
+Func 0x8018f79c with p_link RIDER completed in 0.0035ms
+Func 0x80802734 with p_link SYS completed in 0.0038ms
+Func 0x80182e68 with p_link CARDCAM completed in 0.0044ms
+Func 0x800b548c with p_link 18 completed in 0.0048ms
+Func 0x801c6668 with p_link MACHINE completed in 0.0051ms
+Func 0x801c6668 with p_link MACHINE completed in 0.0054ms
+Func 0x801c6668 with p_link MACHINE completed in 0.0054ms
+Func 0x801c6668 with p_link MACHINE completed in 0.0054ms
+Func 0x801c6668 with p_link MACHINE completed in 0.0054ms
+Func 0x801c6368 with p_link MACHINE completed in 0.0063ms
+Func 0x800b3540 with p_link CAMWORLD completed in 0.0075ms
+Func 0x800b3540 with p_link CAMWORLD completed in 0.0075ms
+Func 0x800b3540 with p_link CAMWORLD completed in 0.0075ms
+Func 0x800b3540 with p_link CAMWORLD completed in 0.0075ms
+Func 0x801c67a0 with p_link MACHINE completed in 0.0115ms - machine hitcoll
+Func 0x80161798 with p_link 30 completed in 0.0148ms - loading screen
+Func 0x801c66d0 with p_link MACHINE completed in 0.0181ms - machine hitthink
+Func 0x8018f800 with p_link RIDER completed in 0.0195ms - rider hitthink
+Func 0x8018f800 with p_link RIDER completed in 0.0197ms - rider hitthink
+Func 0x8018f800 with p_link RIDER completed in 0.0199ms - rider hitthink
+Func 0x8018f800 with p_link RIDER completed in 0.0203ms - rider hitthink
+Func 0x801c66d0 with p_link MACHINE completed in 0.0224ms - machine hitthink
+Func 0x801c66d0 with p_link MACHINE completed in 0.0229ms - machine hitthink
+Func 0x801c66d0 with p_link MACHINE completed in 0.0236ms - machine hitthink
+Func 0x801c69f0 with p_link MACHINE completed in 0.0236ms - machine shadow
+Func 0x801c66d0 with p_link MACHINE completed in 0.0246ms - machine hitthink
+Func 0x80801d04 with p_link 1 completed in 0.0280ms - replay text update
+Func 0x8018fc98 with p_link RIDER completed in 0.0283ms - rider shadow?
+Func 0x801c69f0 with p_link MACHINE completed in 0.0298ms - machine shadow
+Func 0x801c69f0 with p_link MACHINE completed in 0.0312ms - machine shadow
+Func 0x8018fc98 with p_link RIDER completed in 0.0324ms - rider shadow?
+Func 0x8011e8f0 with p_link HUD completed in 0.0370ms - HUD hp bar
+Func 0x801c69f0 with p_link MACHINE completed in 0.0400ms - machine shadow
+Func 0x8018fc98 with p_link RIDER completed in 0.0402ms - rider shadow?
+Func 0x801c69f0 with p_link MACHINE completed in 0.0410ms - machine shadow
+Func 0x801c618c with p_link MACHINE completed in 0.0499ms - machine anim
+Func 0x801c618c with p_link MACHINE completed in 0.0499ms - machine anim
+Func 0x801c618c with p_link MACHINE completed in 0.0499ms - machine anim
+Func 0x801c618c with p_link MACHINE completed in 0.0505ms - machine anim
+Func 0x8018ea1c with p_link RIDER completed in 0.0633ms - rider anim
+Func 0x8018ea1c with p_link RIDER completed in 0.0677ms - rider anim
+Func 0x8018ea1c with p_link RIDER completed in 0.0810ms - rider anim
+Func 0x8018ea1c with p_link RIDER completed in 0.0816ms - rider anim
+Func 0x801c65a8 with p_link MACHINE completed in 0.1376ms - env coll
+Func 0x8018fc58 with p_link RIDER completed in 0.1606ms - cpu think
+Func 0x8018fc58 with p_link RIDER completed in 0.1768ms - cpu think
+Func 0x8018fc98 with p_link RIDER completed in 0.1946ms - rider shadow?
+Func 0x800ce68c with p_link STAGE completed in 0.2248ms - rail think
+Func 0x8018fc58 with p_link RIDER completed in 0.2509ms - cpu think
+Func 0x800ce618 with p_link STAGE completed in 0.3787ms - stage JOBJAnimAll
+Func 0x800614a8 with p_link AUDIO completed in 0.5240ms - audio source update

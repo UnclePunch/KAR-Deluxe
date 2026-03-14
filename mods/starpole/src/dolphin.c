@@ -70,6 +70,7 @@ void Dolphin_Init()
         dolphin_data->aspect_mult = 1;
         dolphin_data->netplay.is = 1;
         dolphin_data->netplay.ply = 0;
+        dolphin_data->netplay.rng_seed = 0;
         for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
             strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
     }

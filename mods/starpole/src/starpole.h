@@ -33,6 +33,7 @@ typedef enum
     
     STARPOLE_CMD_NETPADSEND,
     STARPOLE_CMD_NETPADRECV,
+    STARPOLE_CMD_NETSAVE,
 
     STARPOLE_CMD_NUM,    
 } StarpoleCmd;

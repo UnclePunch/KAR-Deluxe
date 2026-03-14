@@ -1,7 +1,7 @@
 #ifndef STARPOLE_NETPLAY
 #define STARPOLE_NETPLAY
 
-#define DOLPHIN_DEBUG 0
+#define DOLPHIN_DEBUG 1
 #define NETPLAY_TAGMAX 10
 
 typedef struct PlayerTagViewData

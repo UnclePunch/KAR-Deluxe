@@ -204,18 +204,18 @@ void Debug3D_Think(GOBJ *g)
         for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
         {
             MachineData *md = g->userdata;
-            int audio_source = Machine_AllocAudioSource(128);
+            int audio_emitter = Machine_AllocAudioEmitter(128);
             int audio_track = AudioTrack_Alloc();
 
-            AudioSource_SetPosition(audio_source, &md->pos, 0);
-            AudioSource_Init(audio_source);
-            AudioSource_Play(0x130025, audio_track, audio_source);
-            OSReport("played sound with source %d and track %d %p\n", audio_source, audio_track, &audio_source_table->sources[audio_source]);
+            AudioEmitter_SetPosition(audio_emitter, &md->pos, 0);
+            AudioEmitter_Init(audio_emitter);
+            AudioEmitter_Play(0x130025, audio_track, audio_emitter);
+            OSReport("played sound with emitter %d and track %d %p\n", audio_emitter, audio_track, &audio_3d_data->sources[audio_emitter]);
                 
             // free it
-            if (AudioSource_CheckUnk(audio_source) == 0)
+            if (AudioEmitter_CheckUnk(audio_emitter) == 0)
             {
-                AudioSource_Free(audio_source);
+                AudioEmitter_Free(audio_emitter);
                 AudioTrack_Free(audio_track);
             }
             else

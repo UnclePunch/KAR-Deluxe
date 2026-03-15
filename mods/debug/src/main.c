@@ -25,7 +25,7 @@ OptionDesc ModSettings = {
 
 void OnBoot()
 {
-    // Profiler_Init();
+    Profiler_Init();
 
     Debug_Init();
 

@@ -170,7 +170,7 @@ void Debug_Think()
                                  file_name,
                                  pe,
                                  (pe->status > 0) ? "Needed" : "Unneeded",
-                                 load_state_names[p->entry[i].load_state],
+                                 load_state_names[pe->load_state],
                                  BytesToKB(pe->file_size),
                                  pe->file_data);
                     }
@@ -208,7 +208,7 @@ void Debug3D_Think(GOBJ *g)
             int audio_track = AudioTrack_Alloc();
 
             AudioSource_SetPosition(audio_source, &md->pos, 0);
-            AudioSource_InitUnk(audio_source);
+            AudioSource_Init(audio_source);
             AudioSource_Play(0x130025, audio_track, audio_source);
             OSReport("played sound with source %d and track %d %p\n", audio_source, audio_track, &audio_source_table->sources[audio_source]);
                 

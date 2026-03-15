@@ -276,7 +276,7 @@ void CitySettings_Init();
 void CitySettings_SaveLoaded();
 CitySettingsSave *CitySettings_SaveGet();
 void CitySettings_Load();
-void CitySettings_Think(void *data);
+void CitySettings_Think();
 void CitySettings_Exit(void *data);
 void CitySettings_Create();
 void CitySettings_Destroy();

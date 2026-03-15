@@ -362,10 +362,10 @@ float MusicChange_GetScrollAmount(Text *t, float textbox_width)
 void MusicChange_UpdateSongName(MusicChangeData *gp)
 {
     char *song_name = "None";
-    u32 vpb_index = stc_bgm_data_arr[1].vpb_index;
+    u32 vpb_index = stc_bgm_pid[1] & AXDRIVER_PIDMASK;
 
     // check if no song is playing
-    if (vpb_index != 63)
+    if (vpb_index != AXDRIVER_PIDMASK)
     {
         int cur_playing_entrynum = ax_live->voice_data[vpb_index].x30[2];
         SongData *sd = SongData_GetDataByEntrynum(cur_playing_entrynum);

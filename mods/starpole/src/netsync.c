@@ -594,8 +594,8 @@ void Audio_UpdateLog()
             if (m_source_log[i].frame != (u32)-1 && 
                 m_source_log[i].frame >= this_frame)
             {            
-                OSReport("SOURCE: freeing source %08X alloc'd on future frame %d\n", m_source_log[i].audio_emitter, m_source_log[i].frame);
-                AudioSource_Free(m_source_log[i].audio_emitter);
+                OSReport("SOURCE: freeing emitter %08X alloc'd on future frame %d\n", m_source_log[i].audio_emitter, m_source_log[i].frame);
+                AudioEmitter_Free(m_source_log[i].audio_emitter);
             }
         }
     }

@@ -18,7 +18,7 @@ typedef struct
     u32 frame;
     int sfx_id;
     FGMInstance fgm_instance : 16;
-    AudioSource audio_source : 16;
+    AudioEmitter audio_emitter : 16;
 } SFXLog;
 
 typedef struct
@@ -32,7 +32,7 @@ typedef struct
 typedef struct
 {
     u32 frame;
-    int audio_source;
+    int audio_emitter;
 } SourceLog;
 
 typedef struct
@@ -44,8 +44,8 @@ typedef struct
 typedef struct
 {
     u32 frame;
-    AudioSourceData *audio_source_data;
-    AudioSourceData *stolen_from_data;
+    AudioEmitterData *audio_source_data;
+    AudioEmitterData *stolen_from_data;
     u8 slot_idx;
     u8 sg;
 } SoundGeneratorLog;

@@ -394,7 +394,7 @@ CODEPATCH_HOOKCREATE(0x80440844, "stwu	1, -0x0014 (1)\n\t"
                                  "mr 3, 4\n\t", 0)
 
 // Sound Generator
-int Audio_AssignSoundGenerator(AudioSourceData *audio_source_data, int slot_idx)
+int Audio_AssignSoundGenerator(AudioEmitterData *audio_source_data, int slot_idx)
 {
     if (!(Scene_GetCurrentMinor() == MNRKIND_3D && m_audio_log_enable))
         return 0;
@@ -417,7 +417,7 @@ int Audio_AssignSoundGenerator(AudioSourceData *audio_source_data, int slot_idx)
                 audio_source_data->x40 = sg;
 
             // mark sg as used
-            audio_source_table->sg_status[sg] = 1;
+            audio_3d_data->sg_status[sg] = 1;
 
             // if the sg was stolen from an existing emitter, null it
             if (m_sg_log[i].stolen_from_data)
@@ -440,7 +440,7 @@ int Audio_AssignSoundGenerator(AudioSourceData *audio_source_data, int slot_idx)
 CODEPATCH_HOOKCONDITIONALCREATE(0x8005d720, "mr 3, 29\n\t"
                                             "mr 4, 30\n\t", Audio_AssignSoundGenerator,
                                             "", 0, 0x8005d84c)
-void Audio_AddToSoundGeneratorLog(AudioSourceData *audio_source_data, u8 sg, u8 slot_idx, AudioSourceData *stolen_from_data)
+void Audio_AddToSoundGeneratorLog(AudioEmitterData *audio_source_data, u8 sg, u8 slot_idx, AudioEmitterData *stolen_from_data)
 {
     if (!(Scene_GetCurrentMinor() == MNRKIND_3D && m_audio_log_enable))
         return;
@@ -474,7 +474,7 @@ CODEPATCH_HOOKCREATE(0x8005d830, "mr 3, 29\n\t"
 CODEPATCH_HOOKCREATE(0x8005d6f8, "li 27, 0\n\t" "b 0x8\n\t", 0, "", 0)  // init audio_source_data in use variable
 
 // Audio Source
-void Audio_AddToSourceLog(AudioSource audio_source)
+void Audio_AddToSourceLog(AudioEmitter audio_emitter)
 {
     if (!m_audio_log_enable)
         return;
@@ -485,10 +485,10 @@ void Audio_AddToSourceLog(AudioSource audio_source)
     {
         if (m_source_log[i].frame == (u32)-1)
         {
-            OSReport("SOURCE: adding source %08X alloc'd on frame %d\n", audio_source, this_frame);
+            OSReport("SOURCE: adding source %08X alloc'd on frame %d\n", audio_emitter, this_frame);
 
             m_source_log[i].frame = this_frame;
-            m_source_log[i].audio_source = audio_source;
+            m_source_log[i].audio_emitter = audio_emitter;
             return;
         }
     }
@@ -497,14 +497,14 @@ void Audio_AddToSourceLog(AudioSource audio_source)
     return;
 }
 CODEPATCH_HOOKCREATE(0x8005db08, "mr 3, 29\n\t", Audio_AddToSourceLog, "mr 3, 29\n\t", 0)
-int Audio_RemoveFromSourceLog(AudioSource audio_source)
+int Audio_RemoveFromSourceLog(AudioEmitter audio_emitter)
 {
     if (m_audio_log_enable)
     {
         for (int i = 0; i < GetElementsIn(m_source_log); i++)
         {
             if (m_source_log[i].frame != (u32)-1 &&
-                m_source_log[i].audio_source == audio_source)
+                m_source_log[i].audio_emitter == audio_emitter)
             {
                 m_source_log[i].frame = (u32)-1;
                 break;
@@ -512,7 +512,7 @@ int Audio_RemoveFromSourceLog(AudioSource audio_source)
         }
     }
 
-    return audio_source;
+    return audio_emitter;
 }
 CODEPATCH_HOOKCREATE(0x8005e08c, "stwu	1, -0x0010 (1)\n\t"
                                 "mflr 0\n\t"
@@ -594,25 +594,25 @@ void Audio_UpdateLog()
             if (m_source_log[i].frame != (u32)-1 && 
                 m_source_log[i].frame >= this_frame)
             {            
-                OSReport("SOURCE: freeing source %08X alloc'd on future frame %d\n", m_source_log[i].audio_source, m_source_log[i].frame);
-                AudioSource_Free(m_source_log[i].audio_source);
+                OSReport("SOURCE: freeing source %08X alloc'd on future frame %d\n", m_source_log[i].audio_emitter, m_source_log[i].frame);
+                AudioSource_Free(m_source_log[i].audio_emitter);
             }
         }
     }
     return;
 }
 
-FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, AudioSource audio_source, int sg)
+FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, AudioEmitter audio_emitter, int sg)
 {
-    FGMInstance (*_SFX_Play)(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, AudioSource audio_source, int sg) = (void *)0x80442674;
+    FGMInstance (*_SFX_Play)(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, AudioEmitter audio_emitter, int sg) = (void *)0x80442674;
 
     if (!(Scene_GetCurrentMinor() == MNRKIND_3D && m_audio_log_enable))
-        return _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_source, sg);
+        return _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_emitter, sg);
         
     u32 this_frame = Gm_GetGameData()->update.engine_frames;
 
     int next_free_idx = -1;
-    AudioSourceData *this_source_data = &audio_source_table->sources[audio_source];
+    AudioEmitterData *this_source_data = &audio_3d_data->sources[audio_emitter];
 
     // check if we played the sound already
     for (int i = 0; i < GetElementsIn(m_sfx_start_log); i++)
@@ -624,7 +624,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
         if (this_frame == m_sfx_start_log[i].frame && 
             m_sfx_start_log[i].sfx_id == sfx_id)
         {
-            AudioSourceData *that_source_data = &audio_source_table->sources[m_sfx_start_log[i].audio_source];
+            AudioEmitterData *that_source_data = &audio_3d_data->sources[m_sfx_start_log[i].audio_emitter];
             
             // audio track data is not backed up in the savestate, so a rolled back item sound effect 
             // will acquire a new track.
@@ -637,7 +637,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
     }
 
     // lets play it
-    int fgm_instance = _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_source, sg);
+    int fgm_instance = _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_emitter, sg);
 
     // log it for the future
     if (next_free_idx != -1)
@@ -645,7 +645,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
         SFXLog *next_free = &m_sfx_start_log[next_free_idx];
         next_free->frame = this_frame;
         next_free->sfx_id = sfx_id;
-        next_free->audio_source = audio_source;
+        next_free->audio_emitter = audio_emitter;
         next_free->fgm_instance = fgm_instance;
 
         OSReport("SFX: played sfx %08X with instance %08X on frame %d\n", sfx_id, fgm_instance, this_frame);

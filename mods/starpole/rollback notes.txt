@@ -26,3 +26,39 @@ tracks are being reallocated while an instance exists referencing them? not sure
 close.
 
 the random text obj crash in HSD_ObjAlloc is because i have an HSD_Obj in hoshi that isnt being backed up.
+
+seems many of the desyncs were related to the replay determinism fixes being disabled, makes sense i guess.
+that being said i did see a spawn position difference in round 2 of high jump, not sure how thats
+determined, i should look into that.
+
+getting off a machine and highlighting the machine emitter shows the ig and sg as unchanged and shows item drop coming from it?
+
+
+
+
+solutions i've tried:
+
+1.  
+    - backup audio_3d_data
+    - record all sound effect events the first time they play and suppress duplicate plays.
+    - record all emitter allocations and replay them on rollback (emitter alloc checks if active sounds are using its sg/ig)
+    - record all sg -> emitter assignements and replay them on rollback (sg assignment checks if active sounds are using it)
+    - record all track allocation (finnicky, not enough data to record this reliably, we dont know who is requesting it)
+        pros:
+            - 
+
+
+new idea:
+    - lets plan around worst real case, which is predict 5 frames, rollback 5, simulate 6.
+    - lets make all audio allocations deterministic. this means hashing emitter, sg, and track assignments. 
+    - log sfx play events on prediction frames and reference them when resimulating to prevent duplicate sounds. 
+        if a sound is detected as already having played, use that fgm instance and mark it as being re-used. 
+        the track and sg should associated with the fgm instance should still be valid because of 
+        emitter sg and track determinism.
+    - AFTER rolling back and resimulating our confirm frames, perform a pass on the sfx play log,
+        look for sounds that were not re-used + still playing and stop them. this should prevent any stale references
+        to tracks and sg in the fgm instance?
+
+i REALLY should backup mods in the savestate, they sometimes contain game state
+related stuff (x to rear view) and they arent being backed up. the resim frames are
+differing slightly because of this

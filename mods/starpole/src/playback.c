@@ -7,6 +7,7 @@
 #include "playback.h"
 #include "replay.h"
 #include "starpole.h"
+#include "dolphin.h"
 
 extern StarpoleBuffer *starpole_buf;
 extern int is_netplay;
@@ -47,7 +48,7 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
-    if (!Starpole_IsPresent() || is_netplay)
+    if (!Starpole_IsPresent() || (is_netplay && !DOLPHIN_DEBUG))
         return;
 
     if (Playback_CheckForMatch())
@@ -93,8 +94,8 @@ void Playback_Init()
     if (!Starpole_IsPresent())
         return;
 
-    Hoshi_InstallMinorScene(&playback_minor_desc);
+    // Hoshi_InstallMinorScene(&playback_minor_desc);
+    // playback_major_desc.initial_minor_id = playback_minor_desc.idx;
 
-    playback_major_desc.initial_minor_id = playback_minor_desc.idx;
     Hoshi_InstallMajorScene(&playback_major_desc);
 }

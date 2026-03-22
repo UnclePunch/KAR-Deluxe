@@ -384,7 +384,7 @@ void Record_OnFrameEnd(GOBJ *g)
 
     Replay_SendFrame(frame_idx);
 
-    Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
+    Text_SetText(frame_text, 0, "Frame: %d", Gm_GetGameData()->update.engine_frames);
     frame_idx++;
 }
 
@@ -787,7 +787,7 @@ void Replay_On3DLoadStart()
         for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
             gd->ply_view_desc[i].flag = PLYCAM_OFF;
 
-        gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+        gd->ply_view_desc[0].flag = PLYCAM_ON;
     }
 
     // debug display

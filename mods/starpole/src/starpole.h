@@ -31,9 +31,10 @@ typedef enum
 
     STARPOLE_CMD_DOLPHIN,
     
+    STARPOLE_CMD_NETSTART,
     STARPOLE_CMD_NETPADSEND,
     STARPOLE_CMD_NETPADRECV,
-    STARPOLE_CMD_NETSAVE,
+    STARPOLE_CMD_NETEND,
 
     STARPOLE_CMD_NUM,    
 } StarpoleCmd;
@@ -124,7 +125,7 @@ typedef struct
     float y;
 } TextConsole;
 
-int Starpole_Imm(StarpoleCmd cmd, int args);
+int Starpole_Imm(StarpoleCmd cmd, u32 args);
 int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode);
 
 int Starpole_IsPresent();

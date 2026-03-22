@@ -56,7 +56,7 @@ void On3DLoadStart()
 {
     Replay_On3DLoadStart();
     Netplay_OverridePlayerView();
-    Audio_On3DLoadStart();
+    Netsync_On3DLoadStart();
 }
 void On3DLoadEnd()
 {
@@ -68,6 +68,7 @@ void On3DLoadEnd()
 void On3DExit()
 {
     Replay_On3DExit();
+    Netsync_On3DExit();
 }
 
 void On3DPause(int pause_ply)

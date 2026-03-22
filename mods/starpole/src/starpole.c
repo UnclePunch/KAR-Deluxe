@@ -24,7 +24,7 @@ StarpoleBuffer *starpole_buf;
 StarpoleDataTest starpole_data_test;
 
 // EXI Transfer functions
-int Starpole_Imm(StarpoleCmd cmd, int args)
+int Starpole_Imm(StarpoleCmd cmd, u32 args)
 {
     // return values:
     //   -1  = EXI failure

@@ -62,3 +62,13 @@ new idea:
 i REALLY should backup mods in the savestate, they sometimes contain game state
 related stuff (x to rear view) and they arent being backed up. the resim frames are
 differing slightly because of this
+
+
+lets have a rollback init command sent by the game
+    - init the savesates
+    - raise a flag to perform rollback logic in dolphin
+    - have the game send a list of memory regions to preserve. 
+
+inversely a rollback end command
+    - frees all savestates
+    - lowers rollback logic flag

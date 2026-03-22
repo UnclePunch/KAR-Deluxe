@@ -19,6 +19,18 @@ typedef enum BGMEvent
 typedef struct
 {
     void *addr;
+    u32 size;
+} PreserveMemRegion;
+
+typedef struct 
+{
+    int head;
+    PADStatus history[10][4];
+} DebugPadData;
+
+typedef struct
+{
+    void *addr;
     AudioTrackOwner owner;
 } AudioTrackCallerMap;
 
@@ -72,13 +84,26 @@ typedef struct
     u8 sg;
 } SoundGeneratorLog;
 
+typedef struct
+{
+    int enable;
+    SFXLog sfx_start[64];
+    SFXLog sfx_stop[64];
+    BGMLog bgm[16];
+    EmitterLog emitter[64];
+    TrackLog track[64];
+    SoundGeneratorLog sg[64];
+} AudioLog;
+
 void Netsync_Init();
 void PadAlarm_NetplayLockstep();
 
 void Netsync_CreateRNGText();
 void Netsync_UpdateRNGText();
 
-void Audio_On3DLoadStart();
+void Netsync_On3DLoadStart();
+void Netsync_On3DExit();
+
 void Audio_InitLog();
 void Audio_UpdateSFXLog();
 void Audio_UpdateLog();

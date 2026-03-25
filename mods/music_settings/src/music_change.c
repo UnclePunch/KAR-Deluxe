@@ -15,7 +15,6 @@
 #include "text_joint/text_joint.h"
 
 static GOBJ *stc_music_change_gobj;
-static Text *stc_text;
 static NowPlayingAssets *music_assets;
 static int music_text_canvas_idx;
 
@@ -60,7 +59,7 @@ GOBJ *MusicChange_Create()
 
     // create hud element gobj
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,
-                             sizeof(MusicChangeData), HSD_Free,
+                             sizeof(MusicChangeData), MusicChange_OnDestroy,
                              HSD_OBJKIND_JOBJ, set->jobj,
                              MusicChange_Think, 20,
                              JObj_GX, 21, gx_pri);
@@ -88,20 +87,18 @@ GOBJ *MusicChange_Create()
     t->trans.Y = gp->param->pos.Y;
     Text_AddSubtext(t, 0, 0, "");
 
-    stc_text = t;
+    gp->text = t;
 
     // update song name
     MusicChange_UpdateSongName(gp);
 
     return g;
 }
-void MusicChange_Destroy()
+void MusicChange_OnDestroy(MusicChangeData *gp)
 {
-    GObj_Destroy(stc_music_change_gobj);
-    stc_music_change_gobj = 0;
+    Text_Destroy(gp->text);
 
-    Text_Destroy(stc_text);
-    stc_text = 0;
+    HSD_Free(gp);
 
     return;
 }
@@ -189,7 +186,7 @@ void MusicChange_Think(GOBJ *g)
     }
 
     // update text scroll logic
-    Text *text = stc_text;
+    Text *text = gp->text;
     switch (gp->state)
     {
     case MUSICCHANGE_SCROLLSTATE_STARTWAIT:
@@ -235,7 +232,12 @@ void MusicChange_Think(GOBJ *g)
     // update text pos
     text->trans.X = gp->param->pos.X + gp->offset.X; // original pos + offset
 }
-
+void MusicChange_Destroy()
+{
+    GObj_Destroy(stc_music_change_gobj);
+    stc_music_change_gobj = 0;
+    return;
+}
 void MusicChange_TextCObj(GOBJ *g)
 {
     if (!CObj_SetCurrent(g->hsd_object))
@@ -388,9 +390,9 @@ void MusicChange_UpdateSongName(MusicChangeData *gp)
         extension_ptr[0] = '\0';
 
     // update song name
-    Text_SetText(stc_text, 0, buf);
+    Text_SetText(gp->text, 0, buf);
 
-    float width = MusicChange_GetScrollAmount(stc_text, gp->param->textbox_width);
+    float width = MusicChange_GetScrollAmount(gp->text, gp->param->textbox_width);
     if (width > 0)
         gp->state = MUSICCHANGE_SCROLLSTATE_STARTWAIT;
     else

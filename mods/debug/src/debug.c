@@ -210,7 +210,7 @@ void Debug3D_Think(GOBJ *g)
             AudioEmitter_SetPosition(audio_emitter, &md->pos, 0);
             AudioEmitter_Init(audio_emitter);
             AudioEmitter_Play(0x130025, audio_track, audio_emitter);
-            OSReport("played sound with emitter %d and track %d %p\n", audio_emitter, audio_track, &audio_3d_data->sources[audio_emitter]);
+            OSReport("played sound with emitter %d and track %d %p\n", audio_emitter, audio_track, &audio_3d_data->emitters[audio_emitter]);
                 
             // free it
             if (AudioEmitter_CheckUnk(audio_emitter) == 0)

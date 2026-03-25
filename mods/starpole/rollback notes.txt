@@ -59,11 +59,6 @@ new idea:
         look for sounds that were not re-used + still playing and stop them. this should prevent any stale references
         to tracks and sg in the fgm instance?
 
-i REALLY should backup mods in the savestate, they sometimes contain game state
-related stuff (x to rear view) and they arent being backed up. the resim frames are
-differing slightly because of this
-
-
 lets have a rollback init command sent by the game
     - init the savesates
     - raise a flag to perform rollback logic in dolphin
@@ -72,3 +67,7 @@ lets have a rollback init command sent by the game
 inversely a rollback end command
     - frees all savestates
     - lowers rollback logic flag
+
+running pretty good! looks like something broke when switching over to backing
+up all mods minus the audio and debug pad data. inputs are not stable, i should
+properly implement input handling in dolphin next

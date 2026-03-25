@@ -95,6 +95,13 @@ typedef struct
     SoundGeneratorLog sg[64];
 } AudioLog;
 
+typedef struct
+{
+    u32 sim_frames;
+    u32 is_resim_frame;
+    u32 this_sim_idx;
+} RollbackLog;
+
 void Netsync_Init();
 void PadAlarm_NetplayLockstep();
 

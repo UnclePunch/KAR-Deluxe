@@ -46,6 +46,7 @@ typedef struct MusicChangeData
     int state;
     int timer;
     Vec2 offset;
+    Text *text;
     MusicChangeTextParams *param;
 } MusicChangeData;
 
@@ -53,8 +54,9 @@ HUDLayoutKind HUD_GetLayout();
 void MusicChange_Init();
 void MusicChange_On3DLoad();
 GOBJ *MusicChange_Create();
-void MusicChange_Destroy();
+void MusicChange_OnDestroy(MusicChangeData *gp);
 void MusicChange_Think(GOBJ *g);
+void MusicChange_Destroy();
 void MusicChange_TextCObj(GOBJ *g);
 JOBJSet *MusicChange_GetJOBJSet();
 void MusicChange_ScaleStats(int ply, float scale, Vec2 offsets);

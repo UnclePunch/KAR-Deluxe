@@ -290,7 +290,9 @@ void Netplay_OnFrameStart(int loop_num)
         // we just finished resimulating after a rollback
         // lets cleanup AX state if sounds that shouldn't be playing are. lets also clear logs
         Audio_ValidateAX();
-        Audio_ResetLogs(true);
+
+        OSReport("SFX: clearing entire audio log after resimulating from a %d frame rollback\n", g_rollback.sim_frames - 1);
+        Audio_ResetLogs();
     }
 
     OSReport("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
@@ -505,146 +507,34 @@ void Audio_InitLog()
 
     memset(g_audio_log.sfx_start, -1, sizeof(g_audio_log.sfx_start));
     memset(g_audio_log.sfx_stop, -1, sizeof(g_audio_log.sfx_stop));
-    memset(g_audio_log.bgm, -1, sizeof(g_audio_log.bgm));
-    memset(g_audio_log.sg, -1, sizeof(g_audio_log.sg));
-    memset(g_audio_log.emitter, -1, sizeof(g_audio_log.emitter));
-    memset(g_audio_log.track, -1, sizeof(g_audio_log.track));
 
-    // audio debug gobj
-    GOBJ_EZCreator(0, 0, 0,
-                    0, 0, 
-                    0, 0, 
-                    Audio_Debug, 23,
-                    0, 0, 0);
-    
-
-    // clear log entries for sfx's on confirmed frames
+    // // audio debug gobj
     // GOBJ_EZCreator(0, 0, 0,
     //                 0, 0, 
     //                 0, 0, 
-    //                 Audio_UpdateSFXLog, 17,
-    //                 0, 0, 0);
-
-    // handle free'ing future source and track allocations at the top of the frame
-    // GOBJ_EZCreator(0, 0, 0,
-    //                 0, 0, 
-    //                 0, 0, 
-    //                 Audio_UpdateLog, 0,
+    //                 Audio_Debug, 23,
     //                 0, 0, 0);
 }
-void Audio_UpdateSFXLog()
+void Audio_ResetLogs()
 {
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
 
-    if (!g_rollback.is_resim_frame)
-        return;
-
-    // remove start events for confirmed frames
+    // remove start events
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
     {
-        if (g_audio_log.sfx_start[i].fgm_instance != (u32)-1 && 
-            g_audio_log.sfx_start[i].frame < this_frame)
-        {            
-            //OSReport("SFX: expired sfx PLAY %08X from frame %d\n", g_audio_log.sfx_start[i].sfx_id, g_audio_log.sfx_start[i].frame);
-            g_audio_log.sfx_start[i].frame = (u32)-1;
-        }
+        g_audio_log.sfx_start[i].frame = (u32)-1;
     }
 
-    // remove stop events for confirmed frames
+    // remove stop events
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_stop); i++)
     {
-        if (g_audio_log.sfx_stop[i].fgm_instance != (u32)-1 && 
-            g_audio_log.sfx_stop[i].frame < this_frame)
-        {            
-            //OSReport("SFX: expired sfx END %08X from frame %d\n", g_audio_log.sfx_stop[i].sfx_id, g_audio_log.sfx_stop[i].frame);
-            g_audio_log.sfx_stop[i].frame = (u32)-1;
-        }
+        g_audio_log.sfx_stop[i].frame = (u32)-1;
     }
 
-    // remove bgm events for confirmed frames
+    // remove bgm events
     for (int i = 0; i < GetElementsIn(g_audio_log.bgm); i++)
     {
-        if (g_audio_log.bgm[i].entrynum != (u32)-1 && 
-            g_audio_log.bgm[i].frame < this_frame)
-        {            
-            g_audio_log.bgm[i].entrynum = (u32)-1;
-        }
+        g_audio_log.bgm[i].entrynum = (u32)-1;
     }
-
-    // remove sg alloc events for confirmed frames
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        if (g_audio_log.sg[i].sg != (u32)-1 && 
-            g_audio_log.sg[i].frame < this_frame)
-        {            
-            g_audio_log.sg[i].frame = (u32)-1;
-        }
-    }
-
-    // remove sg alloc events for confirmed frames
-    for (int i = 0; i < GetElementsIn(g_audio_log.emitter); i++)
-    {
-        if (g_audio_log.emitter[i].emitter.index != (u32)-1 && 
-            g_audio_log.emitter[i].frame < this_frame)
-        {            
-            g_audio_log.emitter[i].frame = (u32)-1;
-        }
-    }
-
-   // remove track alloc events for confirmed frames
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        if (g_audio_log.track[i].audio_track != (u32)-1 && 
-            g_audio_log.track[i].frame < this_frame)
-        {            
-            g_audio_log.track[i].frame = (u32)-1;
-        }
-    }
-}
-void Audio_ResetLogs(int is_clear_all)
-{
-    if (is_clear_all)
-    {
-        OSReport("SFX: clearing entire audio log after resimulating from a %d frame rollback\n", g_rollback.sim_frames - 1);
-
-        // remove start events
-        for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
-        {
-            g_audio_log.sfx_start[i].frame = (u32)-1;
-        }
-
-        // remove stop events
-        for (int i = 0; i < GetElementsIn(g_audio_log.sfx_stop); i++)
-        {
-            g_audio_log.sfx_stop[i].frame = (u32)-1;
-        }
-
-        // remove bgm events
-        for (int i = 0; i < GetElementsIn(g_audio_log.bgm); i++)
-        {
-            g_audio_log.bgm[i].entrynum = (u32)-1;
-        }
-    }
-
-    // remove sg alloc events
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        g_audio_log.sg[i].frame = (u32)-1;
-    }
-
-    // remove emitter alloc events
-    for (int i = 0; i < GetElementsIn(g_audio_log.emitter); i++)
-    {
-     
-        g_audio_log.emitter[i].frame = (u32)-1;
-    }
-
-   // remove track alloc events
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        g_audio_log.track[i].frame = (u32)-1;
-    }
-
 }
 
 int Audio_CheckStopLog(FGMInstance fgm)
@@ -715,323 +605,6 @@ CODEPATCH_HOOKCREATE(0x80440844, "stwu	1, -0x0014 (1)\n\t"
                                  "blr\n\t"
                                  "mr 3, 4\n\t", 0)
 
-// Sound Generator
-int Audio_AssignSoundGenerator(AudioEmitterData *emitter_data, int slot_idx)
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable && g_rollback.is_resim_frame))
-        return 0;
-        
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-
-    // map emitters are id'd by their emitter pointer because map all emitters use 0 for their instance
-    u32 this_emitter_instance = GET_EMITTER_INSTANCE(emitter_data);
-
-    // check if we allocated this sg already
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        if (this_frame == g_audio_log.sg[i].frame && 
-            g_audio_log.sg[i].this_emitter.kind == emitter_data->kind && g_audio_log.sg[i].this_emitter.instance == this_emitter_instance)
-        {
-            int emitter_index = emitter_data - audio_3d_data->emitters;
-
-            OSReport("SFX: giving old sg %d assignment to emitter (%d) %p (identifier %d:%d) on frame %d\n", 
-                g_audio_log.sg[i].sg, 
-                emitter_index, 
-                emitter_data, 
-                g_audio_log.sg[i].this_emitter.kind, 
-                g_audio_log.sg[i].this_emitter.instance, 
-                this_frame);
-            
-            // store sg to emitter
-            u8 sg = g_audio_log.sg[i].sg;
-            if (slot_idx == 0)
-                emitter_data->sg = sg;
-            else
-                emitter_data->ig = sg;
-
-            // mark sg as used
-            audio_3d_data->sg_status[sg] = 1;
-
-            // // if the sg was stolen from an existing emitter, null it
-            // if (g_audio_log.sg[i].stolen_from_data)
-            // {
-            //     if (slot_idx == 0)
-            //         g_audio_log.sg[i].stolen_from_data->sg = -1;
-            //     else
-            //         g_audio_log.sg[i].stolen_from_data->x40 = -1;
-            // }
-
-            // null log entry
-            g_audio_log.sg[i].frame = -1;
-
-            // return sg
-            return sg;
-        }
-    }
-
-    // if this is a correction frame and we missed cache, null the entire log
-    if (g_rollback.is_resim_frame)
-    {
-        OSReport("SFX: missed sg cache, nulling audio log!\n");
-        Audio_ResetLogs(false);
-    }
-
-    // allocate it normally
-    return 0;
-
-}
-CODEPATCH_HOOKCONDITIONALCREATE(0x8005d720, "mr 3, 29\n\t"
-                                            "mr 4, 30\n\t", Audio_AssignSoundGenerator,
-                                            "", 0, 0x8005d84c)
-void Audio_AddToSoundGeneratorLog(AudioEmitterData *emitter_data, u8 sg, u8 slot_idx, AudioEmitterData *stolen_from_data)
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable))
-        return;
-
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-
-    // map emitters are id'd by their emitter pointer because map all emitters use 0 for their instance
-    u32 this_emitter_instance = GET_EMITTER_INSTANCE(emitter_data);
-
-    // log sg assignment
-    for (int i = 0; i < GetElementsIn(g_audio_log.sg); i++)
-    {
-        if (g_audio_log.sg[i].frame == -1)
-        {
-            g_audio_log.sg[i].frame = this_frame;
-            g_audio_log.sg[i].this_emitter.kind = emitter_data->kind;
-            g_audio_log.sg[i].this_emitter.instance = this_emitter_instance;
-            // g_audio_log.sg[i].stolen_from_data = stolen_from_data;
-            g_audio_log.sg[i].sg = sg;
-            g_audio_log.sg[i].slot_idx = slot_idx;
-
-            int emitter_index = ((u32)emitter_data - (u32)audio_3d_data->emitters) / sizeof(*emitter_data);
-            
-            OSReport("SFX: logging sg %d assignment to emitter (%d) %p (identifier %d:%d) on frame %d\n", 
-                    sg, 
-                    emitter_index, 
-                    emitter_data, 
-                    g_audio_log.sg[i].this_emitter.kind, 
-                    g_audio_log.sg[i].this_emitter.instance, 
-                    this_frame);
-            break;
-        }
-    }
-
-    return;
-
-}
-CODEPATCH_HOOKCREATE(0x8005d830, "mr 3, 29\n\t"
-                                 "mr 4, 31\n\t"
-                                 "mr 5, 30\n\t"
-                                 "mr 6, 27\n\t", Audio_AddToSoundGeneratorLog,
-                                 "", 0)
-CODEPATCH_HOOKCREATE(0x8005d6f8, "li 27, 0\n\t" "b 0x8\n\t", 0, "", 0)  // init emitter_data in use variable
-
-// Audio Source
-
-// Audio Emitter
-AudioEmitter Audio_AllocEmitter(AudioEmitterKind kind, u32 instance)
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable && g_rollback.is_resim_frame))
-        return 0;
-        
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-
-    // check if we allocated this emitter already
-    for (int i = 0; i < GetElementsIn(g_audio_log.emitter); i++)
-    {
-        if (this_frame == g_audio_log.emitter[i].frame && 
-            g_audio_log.emitter[i].emitter.identifier.kind == kind && g_audio_log.emitter[i].emitter.identifier.instance == instance)
-        {
-            OSReport("SFX: using old emitter %d (%p) alloc for (identifier %d:%d) on frame %d\n", 
-                g_audio_log.emitter[i].emitter.index, 
-                &audio_3d_data->emitters[g_audio_log.emitter[i].emitter.index], 
-                kind, 
-                instance, 
-                this_frame);
-
-            // null log
-            g_audio_log.emitter[i].frame = -1;
-
-            // return emitter
-            return g_audio_log.emitter[i].emitter.index;
-        }
-    }
-
-    // if this is a correction frame and we missed cache, null the entire log
-    if (g_rollback.is_resim_frame)
-    {
-        OSReport("SFX: missed emitter cache, nulling audio log!\n");
-        Audio_ResetLogs(false);
-    }
-
-    // allocate it normally
-    return 0;
-}
-CODEPATCH_HOOKCONDITIONALCREATE(0x8005d88c,
-                                 "mr 3, 26\n\t"
-                                 "mr 4, 27\n\t",
-                                 Audio_AllocEmitter, 
-                                 "mr 29, 3\n\t", 0, 0x8005da0c)
-void Audio_AddToEmitterLog(AudioEmitter emitter)
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable && !g_rollback.is_resim_frame))
-        return;
-
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-    AudioEmitterData *emitter_data = &audio_3d_data->emitters[emitter];
-
-    // log emitter alloc
-    for (int i = 0; i < GetElementsIn(g_audio_log.emitter); i++)
-    {
-        if (g_audio_log.emitter[i].frame == -1)
-        {
-            g_audio_log.emitter[i].frame = this_frame;
-            g_audio_log.emitter[i].emitter.index = emitter;
-            g_audio_log.emitter[i].emitter.identifier.kind = emitter_data->kind;
-            g_audio_log.emitter[i].emitter.identifier.instance = emitter_data->instance;
-            
-            OSReport("SFX: logging emitter %d (%p) alloc to (%d:%d) on frame %d\n", 
-                    emitter, 
-                    emitter_data, 
-                    emitter_data->kind, 
-                    emitter_data->instance, 
-                    this_frame);
-            break;
-        }
-    }
-
-    return;
-
-}
-CODEPATCH_HOOKCREATE(0x8005db04, "mr 3, 29\n\t", Audio_AddToEmitterLog, "", 0)
-
-// Audio Track
-AudioTrackOwner AudioTrack_GetOwnerFromCaller(void *addr)
-{
-    static AudioTrackCallerMap track_alloc_caller_map[] = {
-        {
-            .addr = (void *)0x8005d140,
-            .owner = AUDIOTRACKOWNER_RIDER,  
-        },
-        {
-            .addr = (void *)0x8005d1c4,
-            .owner = AUDIOTRACKOWNER_MACHINE,  
-        },
-        {
-            .addr = (void *)0x8005d244,
-            .owner = AUDIOTRACKOWNER_ENEMY,  
-        },
-        {
-            .addr = (void *)0x8005d2c8,
-            .owner = AUDIOTRACKOWNER_ITEM,  
-        },
-        {
-            .addr = (void *)0x8005d34c,
-            .owner = AUDIOTRACKOWNER_MAP,  
-        },
-        {
-            .addr = (void *)0x8005d3d0,
-            .owner = AUDIOTRACKOWNER_NONE,  
-        },
-        {
-            .addr = (void *)0x8005d454,
-            .owner = AUDIOTRACKOWNER_RIDER,  
-        },
-        {
-            .addr = (void *)0x8005d4d8,
-            .owner = AUDIOTRACKOWNER_MACHINE,  
-        },
-        {
-            .addr = (void *)0x8005d55c,
-            .owner = AUDIOTRACKOWNER_WEAPON,  
-        },
-        {
-            .addr = (void *)0x8005d5dc,
-            .owner = AUDIOTRACKOWNER_MAP,  
-        },
-    };
-
-    for (int i = 0; i < GetElementsIn(track_alloc_caller_map); i++)
-    {
-        if (track_alloc_caller_map[i].addr == addr)
-            return track_alloc_caller_map[i].owner;
-    }
-
-    OSReport("audio track owner unknown!!!\n");
-    return -1;
-
-}
-int Audio_AssignTrack()
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable && g_rollback.is_resim_frame))
-        return 0;
-        
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-
-    // check what kind of object is allocating this track
-    AudioTrackOwner track_owner = AudioTrack_GetOwnerFromCaller(OSGetCaller(1));
-
-    // check if we allocated this track already
-    for (int i = 0; i < GetElementsIn(g_audio_log.track); i++)
-    {
-        if (this_frame == g_audio_log.track[i].frame && 
-            g_audio_log.track[i].owner == track_owner)
-        {
-            OSReport("SFX: giving old track %d assignment to owner kind %d on frame %d\n", 
-                g_audio_log.track[i].audio_track, 
-                g_audio_log.track[i].owner, 
-                this_frame);
-
-            // null this logged track
-            g_audio_log.track[i].frame = -1;
-
-            return g_audio_log.track[i].audio_track;
-        }
-    }
-
-    // if this is a correction frame and we missed cache, null the entire log
-    if (g_rollback.is_resim_frame)
-    {
-        OSReport("SFX: missed track cache, nulling audio log!\n");
-        Audio_ResetLogs(false);
-    }
-
-    // allocate it normally
-    return 0;
-
-}
-CODEPATCH_HOOKCONDITIONALCREATE(0x8005c6f0, "", Audio_AssignTrack, "", 0, 0x8005cf34)
-void Audio_AddToTrackLog(u32 track)
-{
-    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable))
-        return;
-
-    u32 this_frame = Gm_GetGameData()->update.engine_frames;
-
-    // log track assignment
-    for (int i = 0; i < GetElementsIn(g_audio_log.track); i++)
-    {
-        if (g_audio_log.track[i].frame == -1)
-        {
-            g_audio_log.track[i].frame = this_frame;
-            g_audio_log.track[i].audio_track = track;
-            g_audio_log.track[i].owner = AudioTrack_GetOwnerFromCaller(OSGetCaller(1));
-
-            OSReport("SFX: logging track %d assignment to owner kind %d on frame %d\n", 
-                    g_audio_log.track[i].audio_track, 
-                    g_audio_log.track[i].owner, 
-                    this_frame);
-            break;
-        }
-    }
-
-    return;
-
-}
-CODEPATCH_HOOKCREATE(0x8005cf30, "mr 3, 18\n\t", Audio_AddToTrackLog, "", 0)
-
 FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, u32 audio_track, int sg)
 {
     FGMInstance (*_SFX_Play)(int sfx_id, int volume, int pan, int r6, int r7, u8 r8, u8 r9, u32 audio_track, int sg) = (void *)0x80442674;
@@ -1093,8 +666,6 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
                 // audio_track,
                 // sg);
 
-                bp();
-
                 // update fgm's data
                 fgm->audio_track = audio_track;
                 fgm->sg = sg;
@@ -1123,16 +694,16 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
     // lets play it
     int fgm_instance = _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_track, sg);
 
-    // if this is a correction frame and we missed cache, null the entire log
-    if (g_rollback.is_resim_frame)
-    {
-        OSReport("SFX: missed sfx cache, nulling audio log!\n");
-        OSReport("     unable to find sfx %08x while resimming frame %d\n", sfx_id, this_frame);
-        Audio_ResetLogs(false);
-    }
+    // // if this is a correction frame and we missed cache, null the entire log
+    // if (g_rollback.is_resim_frame)
+    // {
+    //     OSReport("SFX: missed sfx cache, nulling audio log!\n");
+    //     OSReport("     unable to find sfx %08x while resimming frame %d\n", sfx_id, this_frame);
+    //     Audio_ResetLogs(false);
+    // }
 
     // only log sounds played on prediction frames
-    else
+    if (!g_rollback.is_resim_frame)
     {
         // log it for the future
         if (next_free_idx != -1)
@@ -1206,43 +777,7 @@ int BGMLog_OnPlay(char *file_name, int volume, int pan, int r6, int r7, int r8, 
     return result;
 
 }
-int Audio_SpoofNoFGMInstanceMatch()
-{
-    return 0;
-}
 
-void Emitter_NullSoundGenerator(u32 sg)
-{
-    for (int i = 0; i < GetElementsIn(audio_3d_data->emitters); i++)
-    {
-        if (audio_3d_data->emitters[i].kind != AUDIOEMITTER_NONE)
-        {
-            if (audio_3d_data->emitters[i].ig == sg)
-                audio_3d_data->emitters[i].ig = -1;
-            else if (audio_3d_data->emitters[i].sg == sg)
-                audio_3d_data->emitters[i].sg = -1;
-        }
-    }
-}
-void FGM_StopAllUsingSoundGenerator(u32 sg)
-{
-    int level = OSDisableInterrupts();
-
-    FGMInstance fgm_to_stop_arr[16];
-    int fgm_to_stop_num = 0;
-    
-    for (FGMInstanceData *fgm = (*stc_fgm_data_start); fgm; fgm = fgm->next)
-    {
-        if (fgm->sg == sg)
-            fgm_to_stop_arr[fgm_to_stop_num++] = fgm->instance;
-    }
-
-    // stop em all
-    for (int i = 0; i < fgm_to_stop_num; i++)
-        FGM_Stop(fgm_to_stop_arr[i]);
-
-    OSRestoreInterrupts(level);
-}
 void Audio_ValidateAX()
 {
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
@@ -1262,31 +797,6 @@ void Audio_ValidateAX()
             FGM_Stop(g_audio_log.sfx_start[i].fgm_instance);
         }
     }
-
-    // for (int i = 5; i < 64; i++)
-    // {
-    //     int sound_is_playing = Audio_GetFGMNumUsingSoundGenerator(i) > 0;
-    //     int sg_marked_inuse  = audio_3d_data->sg_status[i] == 1;
-
-    //     if (sound_is_playing && !sg_marked_inuse)
-    //     {
-    //         // Voice was grabbed and played during prediction frames.
-    //         // The restored emitter thinks it owns this sg but it was
-    //         // reassigned, null the reference so the game doesnt try
-    //         // to update parameters on a voice it no longer owns
-    //         // Do NOT stop the sound; it belongs to whoever owns it now.
-    //         Emitter_NullSoundGenerator(i);
-    //     }
-    //     else if (!sound_is_playing && sg_marked_inuse)
-    //     {
-    //         // Sound finished during prediction frames.
-    //         // Free the sg so the game can reallocate it.
-    //         audio_3d_data->sg_status[i] = 0;
-    //         Emitter_NullSoundGenerator(i);
-    //     }
-    //     // sound_is_playing && sg_marked_inuse: voice is intact, leave alone
-    //     // !sound_is_playing && !sg_marked_inuse, nothing to do.
-    // }
 }
 
 Text *rng_text;
@@ -1337,26 +847,10 @@ void Netsync_Init()
     // prevent duplicate sfx
     CODEPATCH_REPLACECALL(0x80442a40, SFXLog_OnSFXPlay);
     CODEPATCH_HOOKAPPLY(0x80440844);
-
-    // disable live fgm instance references
-    // CODEPATCH_REPLACEINSTRUCTION(0x80256a14, 0x38600000);
     
     // prevent duplicate music events
     CODEPATCH_REPLACECALL(0x804456f0, BGMLog_OnPlay);
     
-    // audio emitter allocs 
-    // CODEPATCH_HOOKAPPLY(0x8005d88c); 
-    // CODEPATCH_HOOKAPPLY(0x8005db04);
-
-    // sg assignment
-    // CODEPATCH_HOOKAPPLY(0x8005d720);
-    // CODEPATCH_HOOKAPPLY(0x8005d830);
-    // CODEPATCH_HOOKAPPLY(0x8005d6f8);
-
-    // track assignment
-    // CODEPATCH_HOOKAPPLY(0x8005c6f0);
-    // CODEPATCH_HOOKAPPLY(0x8005cf30);
-
     // temp disable music
     // CODEPATCH_REPLACEINSTRUCTION(0x804456c0, 0x4e800020);
 }

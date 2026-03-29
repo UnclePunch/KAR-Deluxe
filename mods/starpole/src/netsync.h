@@ -141,7 +141,7 @@ void Audio_InitLog();
 void Audio_UpdateSFXLog();
 void Audio_UpdateLog();
 void Audio_ValidateAX();
-void Audio_ResetLogs(int is_clear_all);
+void Audio_ResetLogs();
 void Audio_Debug();
 
 #endif

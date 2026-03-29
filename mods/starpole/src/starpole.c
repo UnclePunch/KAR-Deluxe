@@ -93,12 +93,12 @@ int Starpole_DMA(StarpoleBuffer *buf, int size, EXIMode mode)
         assert("0");
     }
 
-    // ensure buffer is large enough to receive this data
-    if (size > sizeof(StarpoleBuffer))
-    {
-        OSReport("Starpole: incoming DMA too large for buffer\n");
-        assert("0");
-    }
+    // // ensure buffer is large enough to receive this data
+    // if (size > sizeof(StarpoleBuffer))
+    // {
+    //     OSReport("Starpole: incoming DMA too large for buffer\n");
+    //     assert("0");
+    // }
 
     // static char *exi_mode_names[] = {"reading", "writing"};
     // OSReport("Starpole: %s payload of size 0x%x bytes\n", exi_mode_names[mode], size);

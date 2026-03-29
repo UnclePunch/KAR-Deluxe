@@ -71,3 +71,62 @@ inversely a rollback end command
 running pretty good! looks like something broke when switching over to backing
 up all mods minus the audio and debug pad data. inputs are not stable, i should
 properly implement input handling in dolphin next
+
+the audio bug is caused by MP emitters using the same sg/ig as the riders star.
+not sure how to forcefully trigger this yet but after moving near the volcano/city
+overlap area, my engine sound cut out and when checking the log, emitter #2 is using
+my machines sg and emitter #4 is using my machines ig. i also have noticed that the emitter
+ive been following this whole time (index 43) has been replaced with an item. my machines
+emitter has seemingly moved to index 52. not sure when or why this happened. 
+i never got off the machine.
+
+2 issues ive observed, 
+    1. multiple emitters share a sg value. this causes the higher emitter id to have priority 
+    over placing the sounds on the map. i think because when the later
+    emitters are updated, they try to queue a volume/pan change but it skips 
+    doing so because an operation is already queued on that sound (from the 
+    earlier emitter)
+    2. the sound just doesnt play even though observing the table doesnt show a stc_bgm_curLoadingHpsChunkHeaderIndex
+    sg or ig value with another emitter. i think this one happens when i develop mode pause with
+    rollbacks runnings
+
+do i need to preserve that weird array of volumes that gets written to when a sounds volume changes?? do i already do this?
+
+im noticing if the emitter's volume is not changed from the last update's value,
+it doesnt adjust the voice volume. the volume of the emitter doesnt 
+usually change because its on the machine, so maybe something is modifying the
+voice's volume and it never gets corrected by its own emitter? yeah just forced the emitter
+to update the voice regardless and it was set to 0.25 and was updated to 1.0.
+
+ok, lets look into this array tomorrow. try to figure out whats adjusting it
+
+
+what i think is happening
+
+1. kirby passes a wheel powerup, main machine destroyed, wheel machine created
+2. next item that spawns garbage collects the main machines audio emitter, and nulls its sg (ig is still playing the item pickup sound), and uses it for the item
+3. rollback occurs, restores, restores the machines sg (which is now playing an item sound). we emulate the garbage collection but ofc diff outcome because the machines sg now has an item sound playing, so it doesnt get garbage collected. the item sg assignment gets replayed and now the old machine emitter AND the item share a sg
+
+
+prediction frame:
+    - log all sound effects played
+rollback correction:
+    - check if we played the sound already and if so, find its instance and update it to use the request track and sg?
+
+
+BUG ALERT:
+SFX: played sfx 0003000B for sg (5) with instance 00002D15 on frame 0
+SFX: played sfx 00030021 for sg (5) with instance 00002E16 on frame 0
+SFX: stopped sfx with instance 00002E16 on frame 0
+SFX: skipping PLAY 00030021 on frame 0. matches instance 00002E16 from frame 0
+
+^ instance 00002E16 should have been played again because it was stopped, i guess i should check for this
+
+idea: hash callstack to more accurately ID sounds? idk
+
+backup all of axlive?
+
+what is 0x98 of r13?? related to volume changes @ 80449cc0
+
+
+come back 8044aa00, its reading the sg from the VPB and updating a volume array

@@ -43,48 +43,49 @@ PreserveMemRegion g_preserve_regions[] = {
     {(void *)0x00000000, 0x96000},                      // XFB buffer 2 80589a4c
     {(void *)0x00000000, 0x80000},                      // gx init alloc in arena lo, performed at 8040fc3c
     {(void *)0, 0},                                     // audio heap
+    {(void *)0, 0},                                     // audio track status
     
     {(void *)(0x805f6390 - (32 * 1024)), 32 * 1024},    // stack, address derived from 80005410. im inferring 32kb stack
     {&g_audio_log, sizeof(g_audio_log)},                // audio log
-    {&g_rollback, sizeof(g_rollback)},              // rollback specific data
+    {&g_rollback, sizeof(g_rollback)},                  // rollback specific data
     {&g_debug_pad, sizeof(g_debug_pad)},                // debug pad data
 
 
-    {(void *)0x80003100, 0x2500},                   // dol text section 1
-    {(void *)0x80005800, 0x483C40},                 // dol text section 2
+    {(void *)0x80003100, 0x2500},                       // dol text section 1
+    {(void *)0x80005800, 0x483C40},                     // dol text section 2
 
-    {(void *)0x80550f68, 0x1008},                   // file preload table
-    {(void *)0x80508bc8, 0x4 * 3},                  // BGM PID's. needed to stop a song from playing
+    {(void *)0x80550f68, 0x1008},                       // file preload table
+    {(void *)0x80508bc8, 0x4 * 3},                      // BGM PID's. needed to stop a song from playing
     
-    {(void *)(0x805dd0e0 + 0xF20), 0xF68 - 0xF20},    // ARQ and hsd audio sbss
-    {(void *)(0x805dd0e0 + 0xAC), 0x8},               // 64 bitfield that is raised when the corresponding sg has its volume changed, 0x8044c450
-    {(void *)0x80599c60, 0x8059a818 - 0x80599c60},  // more audio stuff. sg indexed audio data in here @ 8059a178 and 8059a160?
-    {(void *)(0x805dd0e0 + 0x1358), 0x1470 - 0x1358}, // hsd audio sbss
-    {(void *)0x8056ccb4, 0x24},                     // DVD Waiting Queue
-    {(void *)0x8056cb40, 0xE0},                     // DVD Interrupt stuff @ 803c40b4. includes alarm
-    {(void *)0x8056cc20, 0x94},                     // DVD state stuff @ 803c67f0. another alarm at 0x70 of this?
+    {(void *)(0x805dd0e0 + 0xF20), 0xF68 - 0xF20},      // ARQ and hsd audio sbss
+    {(void *)(0x805dd0e0 + 0xAC), 0x8},                 // 64 bitfield that is raised when the corresponding sg has its volume changed, 0x8044c450
+    {(void *)0x80599c60, 0x8059a818 - 0x80599c60},      // more audio stuff. sg indexed volume data in here @ 8059a178 and 8059a160?
+    {(void *)(0x805dd0e0 + 0x1358), 0x1470 - 0x1358},   // hsd audio sbss
+    {(void *)0x8056ccb4, 0x24},                         // DVD Waiting Queue
+    {(void *)0x8056cb40, 0xE0},                         // DVD Interrupt stuff @ 803c40b4. includes alarm
+    {(void *)0x8056cc20, 0x94},                         // DVD state stuff @ 803c67f0. another alarm at 0x70 of this?
 
     {(void *)(0x805dd0e0 + 0xC60), 0xCF4 - 0xC60},      // disc read variables
     {(void *)(0x805dd0e0 + 0xDC8), 0xDD0 - 0xDC8},      // OSAlarm variables
     {(void *)(0x805dd0e0 + 0x4C8), 0x4},                // file async load flag
 
-    {(void *)0x8056e9e8, 0x80587A60 - 0x8056e9e8},     // all the AX data i know of, AXStack head -> end of __AXVPB
-    {(void *)(0x805dd0e0 + 0xF30), 0x1054 - 0xF30},      // AX region sbss
+    {(void *)0x8056e9e8, 0x80587A60 - 0x8056e9e8},      // all the AX data i know of, AXStack head -> end of __AXVPB
+    {(void *)(0x805dd0e0 + 0xF30), 0x1054 - 0xF30},     // AX region sbss
 
-    {(void *)0x8058e298, 64 * 0x4},                   // array of VPB pointers? indexed by FGMInstance index
-    {(void *)0x8058E398, 0x8F8},                      // unknown in between chunks, part of this is the fgm_kind struct, referenced @ 80442a24
-    {(void *)0x8058ec90, 0x90},                       // hps stream unk struct @ 804464bc
-    {(void *)0x8058ed20, 2 * 0x4000},                 // hps double buffer?
-    {(void *)0x80596d20, 0x40},                       // hps streaming @ 80446a74
-    {(void *)0x80596d60, 0x50},                       // hps streaming stuff
-    {(void *)0x80596da0, 160 + (512*3)},              // FGM region, multiple offsets of this loaded around 80447ee4. also includes some HPS streaming stuff
-    {(void *)0x80597440, 0x220},                      // unknown in between chunks
+    {(void *)0x8058e298, 64 * 0x4},                     // array of VPB pointers? indexed by FGMInstance index
+    {(void *)0x8058E398, 0x8F8},                        // unknown in between chunks, part of this is the fgm_kind struct, referenced @ 80442a24
+    {(void *)0x8058ec90, 0x90},                         // hps stream unk struct @ 804464bc
+    {(void *)0x8058ed20, 2 * 0x4000},                   // hps double buffer?
+    {(void *)0x80596d20, 0x40},                         // hps streaming @ 80446a74
+    {(void *)0x80596d60, 0x50},                         // hps streaming stuff
+    {(void *)0x80596da0, 160 + (512*3)},                // FGM region, multiple offsets of this loaded around 80447ee4. also includes some HPS streaming stuff
+    {(void *)0x80597440, 0x220},                        // unknown in between chunks
 
-    {(void *)0x80597660, 64 * 0x98},                  // AXLive voice array. (8044ccf0)
-    {(void *)0x80597F20, 64 * 152},                   // static audio lookup 0X8c0 (8044ccf0)
+    {(void *)0x80597660, 64 * 0x98},                    // AXLive voice array. (8044ccf0)
+    {(void *)0x80597F20, 64 * 152},                     // static audio lookup 0X8c0 (8044ccf0)
 
-    {(void *)0x8059a880, 0x618},                      // memcard thread data? referenced by the function 8045b848 in the thread func
-    {(void *)0x805b4698, 0x35C},                      // memcard thread data
+    {(void *)0x8059a880, 0x618},                        // memcard thread data? referenced by the function 8045b848 in the thread func
+    {(void *)0x805b4698, 0x35C},                        // memcard thread data
 };
 
 void Netplay_GetPreserveRegions(PreserveMemRegion *regions_out)
@@ -104,6 +105,10 @@ void Netplay_GetPreserveRegions(PreserveMemRegion *regions_out)
     // audio heap
     regions_out[5].addr = *(void **)0x804bdb2c;
     regions_out[5].size = *(u32 *)0x804bdb30;
+    // audio track status
+    regions_out[6].addr = (*stc_audio_track_unk);
+    regions_out[6].size = sizeof(u16) * (*stc_audio_track_num);
+    
 
     return;
 }
@@ -276,8 +281,6 @@ void Netplay_OnFrameStart(int loop_num)
     // request save/load
     Netplay_RequestSave(Gm_GetGameData()->update.engine_frames);
 
-    OSReport("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
-
     g_rollback.this_sim_idx = loop_num;
     g_rollback.is_resim_frame = (g_rollback.sim_frames > 1 && g_rollback.this_sim_idx < (g_rollback.sim_frames - 1));
 
@@ -289,6 +292,8 @@ void Netplay_OnFrameStart(int loop_num)
         Audio_ValidateAX();
         Audio_ResetLogs(true);
     }
+
+    OSReport("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
 
     // insert pad into queue
     if (DOLPHIN_DEBUG)
@@ -353,6 +358,145 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x8018fd6c, "", Netsync_IsFinalSimFrame, "xori 3
 CODEPATCH_HOOKCONDITIONALCREATE(0x801c6b20, "", Netsync_IsFinalSimFrame, "xori 3, 3, 1\n\t", 0, 0x801c6b28)
 
 // SFX
+void Audio_Debug()
+{
+    // get riders machine's emitter
+    GOBJ *r = Ply_GetRiderGObj(0);
+    if (!r) 
+        return;
+
+    RiderData *rd = r->userdata;
+    if (!rd->machine_gobj)
+        return;
+    
+    MachineData *md = rd->machine_gobj->userdata;
+    AudioEmitter emitter_idx = md->audio.emitter;
+
+    AudioEmitterData *emitter_data = &audio_3d_data->emitters[emitter_idx];
+    int sg = emitter_data->sg;
+    int fgm_num = Audio_GetFGMNumUsingSoundGenerator(sg);
+
+    if (emitter_data->state > 1 && sg != -1)
+    {
+        for (int i = 0; i < GetElementsIn(audio_3d_data->emitters); i++)
+        {
+            if (i != emitter_idx)
+            {
+                static char *sg_names[] = {"ig", "sg"};
+                int sg_kind = -1;
+
+                if (audio_3d_data->emitters[i].sg == sg)
+                    sg_kind = 0;
+                else if (audio_3d_data->emitters[i].ig == sg)
+                    sg_kind = 1;
+
+                if (sg_kind != -1)
+                {
+                    OSReport("emitter %d (%p) has a matching %s\n", 
+                        i, 
+                        &audio_3d_data->emitters[i],
+                        sg_names[sg_kind]);
+                }
+            }
+        }
+
+        OSReport("emitter %d (%p) has sg %d with %d active sounds\n", 
+            emitter_idx, 
+            emitter_data,
+            sg, 
+            fgm_num);
+        OSReport("volume %d, pitch %d, pan %d\n", 
+            emitter_data->volume, 
+            emitter_data->pitch,
+            emitter_data->pan); 
+
+        if (fgm_num > 0)
+        {
+            FGMDebugLog *fgm_log = HSD_MemAlloc(sizeof(FGMDebugLog) * fgm_num);
+            int fgm_idx = 0;
+
+            // populate log
+            int level = OSDisableInterrupts();
+            int this_fgm_idx = 0;
+            for (FGMInstanceData *fgm = (*stc_fgm_data_start); fgm; fgm = fgm->next)
+            {
+                if (fgm->sg == sg)
+                {
+                    if (this_fgm_idx++ == fgm_idx)
+                    {
+                        fgm_log[fgm_idx].instance = fgm->instance;
+                        fgm_log[fgm_idx].pid = fgm->pid;
+                        fgm_log[fgm_idx].sfx_id = fgm->sfx_id;
+                        fgm_log[fgm_idx].priority = fgm->priority;
+                        fgm_log[fgm_idx].audio_track = fgm->audio_track;
+
+                        // get vpb
+                        VPB *vpb = &ax_live->voice_data[fgm->pid & AXDRIVER_PIDMASK];
+                        AXVPB *axvpb = vpb->axvpb[0];
+                        fgm_log[fgm_idx].vpb.addr = vpb;
+                        fgm_log[fgm_idx].vpb.current_vol = vpb->user_vol[1].current;
+                        fgm_log[fgm_idx].vpb.target_vol = vpb->user_vol[1].target;
+                        
+                        if (axvpb)
+                        {
+                            fgm_log[fgm_idx].axvpb.addr = axvpb;
+                            fgm_log[fgm_idx].axvpb.state = axvpb->pb.state;
+                            fgm_log[fgm_idx].axvpb.vol = axvpb->pb.ve.currentVolume;
+                            fgm_log[fgm_idx].axvpb.vol_l = axvpb->pb.mix.vL;
+                            fgm_log[fgm_idx].axvpb.vol_r = axvpb->pb.mix.vR;
+                            fgm_log[fgm_idx].axvpb.pitch = axvpb->pb.src.ratioHi;
+                            fgm_log[fgm_idx].axvpb.currentAddress = *(void **)&axvpb->pb.addr.currentAddressHi;
+                        }
+
+                        if (++fgm_idx == fgm_num)
+                            break;
+                    }
+                }
+            }
+                
+            OSRestoreInterrupts(level);
+
+            // output to log
+            for (int i = 0; i < fgm_num; i++)
+            {
+                OSReport("sound %d/%d:\n", i + 1, fgm_num);
+                OSReport(" fgm:\n");
+                OSReport("  sfx_id %d:%d\n  instance %08X\n  pid %x\n  priority %d\n  audio_track %08X\n  vpb %p\n", 
+                    (fgm_log[i].sfx_id & 0xFFFF0000) >> 16, fgm_log[i].sfx_id & 0xFFFF,
+                    fgm_log[i].instance,
+                    fgm_log[i].pid,
+                    fgm_log[i].priority,
+                    fgm_log[i].audio_track,
+                    fgm_log[i].vpb
+                    ); 
+
+                OSReport(" vpb %p:\n",
+                    fgm_log[i].vpb.addr);
+                OSReport("  current_vol: %.2f\n  target_vol: %.2f\n",
+                    fgm_log[i].vpb.current_vol,
+                    fgm_log[i].vpb.target_vol);
+
+                OSReport(" axvpb %p:\n",
+                    fgm_log[i].axvpb.addr);
+                if (fgm_log[i].axvpb.addr)
+                {
+                    OSReport("  state: %d\n  vol: %d\n  vol_l: %d\n  vol_r: %d\n  pitch: %d\n  currAddress: %p\n",
+                        fgm_log[i].axvpb.state,
+                        fgm_log[i].axvpb.vol,
+                        fgm_log[i].axvpb.vol_l,
+                        fgm_log[i].axvpb.vol_r,
+                        fgm_log[i].axvpb.pitch,
+                        fgm_log[i].axvpb.currentAddress);
+                }
+                
+
+            }
+
+            HSD_Free(fgm_log);
+        }
+    }
+    
+}
 void Audio_InitLog()
 {
     // raise audio log flag after initializing the 3D scene.
@@ -365,6 +509,14 @@ void Audio_InitLog()
     memset(g_audio_log.sg, -1, sizeof(g_audio_log.sg));
     memset(g_audio_log.emitter, -1, sizeof(g_audio_log.emitter));
     memset(g_audio_log.track, -1, sizeof(g_audio_log.track));
+
+    // audio debug gobj
+    GOBJ_EZCreator(0, 0, 0,
+                    0, 0, 
+                    0, 0, 
+                    Audio_Debug, 23,
+                    0, 0, 0);
+    
 
     // clear log entries for sfx's on confirmed frames
     // GOBJ_EZCreator(0, 0, 0,
@@ -702,7 +854,7 @@ AudioEmitter Audio_AllocEmitter(AudioEmitterKind kind, u32 instance)
             // null log
             g_audio_log.emitter[i].frame = -1;
 
-            // return sg
+            // return emitter
             return g_audio_log.emitter[i].emitter.index;
         }
     }
@@ -899,20 +1051,70 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
             next_free_idx = i;
 
         if (this_frame == g_audio_log.sfx_start[i].frame && 
-            g_audio_log.sfx_start[i].sfx_id == sfx_id && 
-            g_audio_log.sfx_start[i].audio_track == audio_track)
+            sfx_id == g_audio_log.sfx_start[i].sfx_id)
         {
-            // if (sfx_id == 0x00000000)
-            // {
-            //     bp();
-            //     OSReport("SFX: spoofing MISS %08X with instance %08X from frame %d\n", 
-            //         sfx_id, 
-            //         g_audio_log.sfx_start[i].fgm_instance, 
-            //         g_audio_log.sfx_start[i].frame);
-            //     break;
-            // }
+            OSReport("SFX: skipping PLAY %08X on frame %d. matches instance %08X from frame %d\n", 
+                sfx_id, 
+                this_frame, 
+                g_audio_log.sfx_start[i].fgm_instance, 
+                g_audio_log.sfx_start[i].frame);
 
-            OSReport("SFX: skipping PLAY %08X on frame %d. matches instance %08X from frame %d\n", sfx_id, this_frame, g_audio_log.sfx_start[i].fgm_instance, g_audio_log.sfx_start[i].frame);
+            // lets assume we played this sound already
+            // lets update the sound with the params passed in in case they are
+            // different
+            int level = OSDisableInterrupts();
+            FGMInstanceData *fgm = &(*stc_fgm_data_unk)[g_audio_log.sfx_start[i].fgm_instance & 0xFF];
+            if (g_rollback.is_resim_frame && 
+                g_audio_log.sfx_start[i].fgm_instance == fgm->instance && // if the sound was short, it may have stopped playing and these wont match
+                (fgm->audio_track != audio_track || fgm->sg != sg))
+            {          
+                // OSReport(" id %d:%d with instance %08X is using track %d and sg %d. requested to play with track %d and sg %d\n",
+                // (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
+                // fgm->instance,
+                // fgm->audio_track,
+                // fgm->sg,
+                // audio_track,
+                // sg);
+
+                // OSReport(" FGM:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
+                // (g_audio_log.sfx_start[i].sfx_id & 0xFFFF0000) >> 16, g_audio_log.sfx_start[i].sfx_id & 0xFFFF,
+                // g_audio_log.sfx_start[i].fgm_instance,
+                // g_audio_log.sfx_start[i].audio_track,
+                // g_audio_log.sfx_start[i].sg);
+
+                // OSReport(" Cache:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
+                // (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
+                // fgm->instance,
+                // fgm->audio_track,
+                // fgm->sg);
+
+                // OSReport(" Req:\n  sfx: %d:%d\n  track: %d\n  sg: %d\n",
+                // (sfx_id & 0xFFFF0000) >> 16, sfx_id & 0xFFFF,
+                // audio_track,
+                // sg);
+
+                bp();
+
+                // update fgm's data
+                fgm->audio_track = audio_track;
+                fgm->sg = sg;
+
+                // update VPB's data
+                VPB *vpb = &ax_live->voice_data[fgm->pid & AXDRIVER_PIDMASK];
+                vpb->sg = sg;
+
+                // OSReport(" Updated FGM %08X (%p) to track: %d  sg: %d\n",
+                // fgm->instance,
+                // fgm,
+                // audio_track,
+                // sg);
+
+                // maybe manually update the sound using the emitter params? idk
+                // if i change the emitters volume level it should force a voice change next
+                // emitter update
+            }
+            OSRestoreInterrupts(level);
+
             g_audio_log.sfx_start[i].is_replayed = true;
             return g_audio_log.sfx_start[i].fgm_instance;
         }
@@ -940,6 +1142,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
             next_free->sfx_id = sfx_id;
             next_free->audio_track = audio_track;
             next_free->fgm_instance = fgm_instance;
+            next_free->sg = sg;
             next_free->is_replayed = false;
 
             OSReport("SFX: played sfx %08X for sg (%d) with instance %08X on frame %d\n", 
@@ -1042,8 +1245,6 @@ void FGM_StopAllUsingSoundGenerator(u32 sg)
 }
 void Audio_ValidateAX()
 {
-    int (*Audio_GetFGMusingSoundGenerator)(int sg) = (void *)0x80443d8c;
-
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
     {
         // stop sounds that weren't replayed 
@@ -1064,7 +1265,7 @@ void Audio_ValidateAX()
 
     // for (int i = 5; i < 64; i++)
     // {
-    //     int sound_is_playing = Audio_GetFGMusingSoundGenerator(i) > 0;
+    //     int sound_is_playing = Audio_GetFGMNumUsingSoundGenerator(i) > 0;
     //     int sg_marked_inuse  = audio_3d_data->sg_status[i] == 1;
 
     //     if (sound_is_playing && !sg_marked_inuse)
@@ -1138,25 +1339,23 @@ void Netsync_Init()
     CODEPATCH_HOOKAPPLY(0x80440844);
 
     // disable live fgm instance references
-    // CODEPATCH_REPLACEFUNC(0x80443e9c, Audio_SpoofNoFGMInstanceMatch);
-    // CODEPATCH_REPLACEFUNC(0x80443d8c, Audio_SpoofNoFGMInstanceMatch);
-    CODEPATCH_REPLACEINSTRUCTION(0x80256a14, 0x38600000);
+    // CODEPATCH_REPLACEINSTRUCTION(0x80256a14, 0x38600000);
     
     // prevent duplicate music events
     CODEPATCH_REPLACECALL(0x804456f0, BGMLog_OnPlay);
     
     // audio emitter allocs 
-    CODEPATCH_HOOKAPPLY(0x8005d88c); 
-    CODEPATCH_HOOKAPPLY(0x8005db04);
+    // CODEPATCH_HOOKAPPLY(0x8005d88c); 
+    // CODEPATCH_HOOKAPPLY(0x8005db04);
 
     // sg assignment
-    CODEPATCH_HOOKAPPLY(0x8005d720);
-    CODEPATCH_HOOKAPPLY(0x8005d830);
-    CODEPATCH_HOOKAPPLY(0x8005d6f8);
+    // CODEPATCH_HOOKAPPLY(0x8005d720);
+    // CODEPATCH_HOOKAPPLY(0x8005d830);
+    // CODEPATCH_HOOKAPPLY(0x8005d6f8);
 
     // track assignment
-    CODEPATCH_HOOKAPPLY(0x8005c6f0);
-    CODEPATCH_HOOKAPPLY(0x8005cf30);
+    // CODEPATCH_HOOKAPPLY(0x8005c6f0);
+    // CODEPATCH_HOOKAPPLY(0x8005cf30);
 
     // temp disable music
     // CODEPATCH_REPLACEINSTRUCTION(0x804456c0, 0x4e800020);

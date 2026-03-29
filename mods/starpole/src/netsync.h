@@ -46,7 +46,8 @@ typedef struct
     int sfx_id;
     FGMInstance fgm_instance;
     u32 audio_track : 16;
-    u32 is_replayed : 16;
+    u32 sg : 8;
+    u32 is_replayed : 8;
     // EmitterID emitter;
 } SFXLog;
 
@@ -102,6 +103,31 @@ typedef struct
     u32 this_sim_idx;
 } RollbackLog;
 
+typedef struct
+{
+    FGMInstance instance;       // 0xc, index in the FGMInstanceData array
+    PID pid;                    // 0x10, as evidenced by assert @ 80442538 and 80441274
+    u32 sfx_id;                 // 0x14, what was passed into SFX_Play. internally fid
+    u8 priority;                // 0x19
+    u16 audio_track;            // 0x1a. is r6 of SFX_Play
+    struct
+    {
+        VPB *addr;
+        float current_vol;
+        float target_vol;   
+    } vpb;
+    struct
+    {
+        AXVPB *addr;
+        u16 state;
+        u16 vol;
+        u16 vol_l;
+        u16 vol_r;
+        u16 pitch;
+        void *currentAddress;
+    } axvpb;             
+} FGMDebugLog;
+
 void Netsync_Init();
 void PadAlarm_NetplayLockstep();
 
@@ -116,5 +142,6 @@ void Audio_UpdateSFXLog();
 void Audio_UpdateLog();
 void Audio_ValidateAX();
 void Audio_ResetLogs(int is_clear_all);
+void Audio_Debug();
 
 #endif

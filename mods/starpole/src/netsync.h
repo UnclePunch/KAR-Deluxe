@@ -4,10 +4,15 @@
 #include "hsd.h"
 #include "audio.h"
     
-// map emitters are id'd by their emitter pointer because map all emitters use 0 for their instance
-#define GET_EMITTER_INSTANCE(emitter_data) (emitter_data->kind == AUDIOEMITTER_MAP) ? (u32)emitter_data : emitter_data->instance
-
 #define MAX_ROLLBACK_FRAMES (5)
+#define NET_LOG (0)
+
+void NetLog(const char* fmt, ...);
+#if NET_LOG==0
+#define NetLog(...) ((void)0)
+#else
+#define NetLog(...) OSReport(__VA_ARGS__)
+#endif
 
 typedef enum BGMEvent
 {

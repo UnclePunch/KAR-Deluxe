@@ -125,7 +125,7 @@ int Netplay_StartRollback()
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETSTART, GetElementsIn(g_preserve_regions)) <= 0)
     {
-        OSReport("Starpole: unable to start rollback.\n");
+        NetLog("Starpole: unable to start rollback.\n");
         goto CLEANUP;
     }
 
@@ -147,7 +147,7 @@ int Netplay_EndRollback()
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETEND, 0) <= 0)
     {
-        OSReport("Starpole: unable to end rollback.\n");
+        NetLog("Starpole: unable to end rollback.\n");
         goto CLEANUP;
     }
 
@@ -165,7 +165,7 @@ int Netplay_RequestSave(u32 frame_idx)
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETSAVE, frame_idx) <= 0)
     {
-        OSReport("Starpole: unable to savestate.\n");
+        NetLog("Starpole: unable to savestate.\n");
         goto CLEANUP;
     }
 
@@ -187,7 +187,7 @@ int Netplay_SendInputs(PADStatus *status)
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETPADSEND, sizeof(buffer)) <= 0)
     {
-        OSReport("Starpole: unable to send pad data.\n");
+        NetLog("Starpole: unable to send pad data.\n");
         goto CLEANUP;
     }
 
@@ -228,7 +228,7 @@ int Netplay_ReceiveInputs()
 
         if (sim_num <= 0)
         {
-            OSReport("Starpole: inputs not ready.\n");
+            NetLog("Starpole: inputs not ready.\n");
             goto CLEANUP;
         }
 
@@ -257,7 +257,7 @@ int Netplay_WaitForClients()
     //     VPB *vbp = &ax_live->voice_data[stc_bgm_data_arr[1].vpb_index];
     //     AXVPB *axvpb = vbp->axvpb;
     //     int cur = *(int *)(&axvpb->pb.addr.currentAddressHi);
-    //     OSReport("pb.addr: 0x%08X\n", &axvpb->pb.addr);
+    //     NetLog("pb.addr: 0x%08X\n", &axvpb->pb.addr);
     // }
 
     PADRead(g_local_status);                      // poll inputs this frame
@@ -266,7 +266,7 @@ int Netplay_WaitForClients()
     // update game sim only when we have all inputs for this frame
     g_rollback.sim_frames = Netplay_ReceiveInputs();
 
-    // OSReport("\nwill sim %d frames\n", g_rollback.sim_frames);
+    // NetLog("\nwill sim %d frames\n", g_rollback.sim_frames);
 
     // if we are running more than 1 frame we are resimulating after a rollback, validate sounds
     // if (g_rollback.sim_frames > 1)
@@ -291,11 +291,11 @@ void Netplay_OnFrameStart(int loop_num)
         // lets cleanup AX state if sounds that shouldn't be playing are. lets also clear logs
         Audio_ValidateAX();
 
-        OSReport("SFX: clearing entire audio log after resimulating from a %d frame rollback\n", g_rollback.sim_frames - 1);
+        NetLog("SFX: clearing entire audio log after resimulating from a %d frame rollback\n", g_rollback.sim_frames - 1);
         Audio_ResetLogs();
     }
 
-    OSReport("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
+    NetLog("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
 
     // insert pad into queue
     if (DOLPHIN_DEBUG)
@@ -318,7 +318,7 @@ void Netsync_OutputFrameHash()
         return;
 
     // u32 hash = Replay_HashGameState();
-    // OSReport(" frame end. hash: %08X  rng: %08X\n", hash, *hsd_rand_seed);
+    // NetLog(" frame end. hash: %08X  rng: %08X\n", hash, *hsd_rand_seed);
 }
 CODEPATCH_HOOKCREATE(0x80006a80, "", Netsync_OutputFrameHash, "", 0)
 
@@ -394,7 +394,7 @@ void Audio_Debug()
 
                 if (sg_kind != -1)
                 {
-                    OSReport("emitter %d (%p) has a matching %s\n", 
+                    NetLog("emitter %d (%p) has a matching %s\n", 
                         i, 
                         &audio_3d_data->emitters[i],
                         sg_names[sg_kind]);
@@ -402,12 +402,12 @@ void Audio_Debug()
             }
         }
 
-        OSReport("emitter %d (%p) has sg %d with %d active sounds\n", 
+        NetLog("emitter %d (%p) has sg %d with %d active sounds\n", 
             emitter_idx, 
             emitter_data,
             sg, 
             fgm_num);
-        OSReport("volume %d, pitch %d, pan %d\n", 
+        NetLog("volume %d, pitch %d, pan %d\n", 
             emitter_data->volume, 
             emitter_data->pitch,
             emitter_data->pan); 
@@ -461,9 +461,9 @@ void Audio_Debug()
             // output to log
             for (int i = 0; i < fgm_num; i++)
             {
-                OSReport("sound %d/%d:\n", i + 1, fgm_num);
-                OSReport(" fgm:\n");
-                OSReport("  sfx_id %d:%d\n  instance %08X\n  pid %x\n  priority %d\n  audio_track %08X\n  vpb %p\n", 
+                NetLog("sound %d/%d:\n", i + 1, fgm_num);
+                NetLog(" fgm:\n");
+                NetLog("  sfx_id %d:%d\n  instance %08X\n  pid %x\n  priority %d\n  audio_track %08X\n  vpb %p\n", 
                     (fgm_log[i].sfx_id & 0xFFFF0000) >> 16, fgm_log[i].sfx_id & 0xFFFF,
                     fgm_log[i].instance,
                     fgm_log[i].pid,
@@ -472,17 +472,17 @@ void Audio_Debug()
                     fgm_log[i].vpb
                     ); 
 
-                OSReport(" vpb %p:\n",
+                NetLog(" vpb %p:\n",
                     fgm_log[i].vpb.addr);
-                OSReport("  current_vol: %.2f\n  target_vol: %.2f\n",
+                NetLog("  current_vol: %.2f\n  target_vol: %.2f\n",
                     fgm_log[i].vpb.current_vol,
                     fgm_log[i].vpb.target_vol);
 
-                OSReport(" axvpb %p:\n",
+                NetLog(" axvpb %p:\n",
                     fgm_log[i].axvpb.addr);
                 if (fgm_log[i].axvpb.addr)
                 {
-                    OSReport("  state: %d\n  vol: %d\n  vol_l: %d\n  vol_r: %d\n  pitch: %d\n  currAddress: %p\n",
+                    NetLog("  state: %d\n  vol: %d\n  vol_l: %d\n  vol_r: %d\n  pitch: %d\n  currAddress: %p\n",
                         fgm_log[i].axvpb.state,
                         fgm_log[i].axvpb.vol,
                         fgm_log[i].axvpb.vol_l,
@@ -508,12 +508,12 @@ void Audio_InitLog()
     memset(g_audio_log.sfx_start, -1, sizeof(g_audio_log.sfx_start));
     memset(g_audio_log.sfx_stop, -1, sizeof(g_audio_log.sfx_stop));
 
-    // // audio debug gobj
-    // GOBJ_EZCreator(0, 0, 0,
-    //                 0, 0, 
-    //                 0, 0, 
-    //                 Audio_Debug, 23,
-    //                 0, 0, 0);
+    // audio debug gobj
+    GOBJ_EZCreator(0, 0, 0,
+                    0, 0, 
+                    0, 0, 
+                    Audio_Debug, 23,
+                    0, 0, 0);
 }
 void Audio_ResetLogs()
 {
@@ -572,7 +572,7 @@ int Audio_RemoveFromSFXLog(FGMInstance fgm_instance)
         if (this_frame == g_audio_log.sfx_stop[i].frame && 
             g_audio_log.sfx_stop[i].fgm_instance == fgm_instance)
         {
-            // OSReport("SFX:  skipping sfx END on frame %d. matches instance %08X from frame %d\n", this_frame, g_audio_log.sfx_stop[i].fgm_instance, g_audio_log.sfx_stop[i].frame);
+            // NetLog("SFX:  skipping sfx END on frame %d. matches instance %08X from frame %d\n", this_frame, g_audio_log.sfx_stop[i].fgm_instance, g_audio_log.sfx_stop[i].frame);
             return 1;
         }
     }
@@ -584,10 +584,10 @@ int Audio_RemoveFromSFXLog(FGMInstance fgm_instance)
         next_free->frame = this_frame;
         next_free->fgm_instance = fgm_instance;
 
-        OSReport("SFX: stopped sfx with instance %08X on frame %d\n", fgm_instance, this_frame);
+        NetLog("SFX: stopped sfx with instance %08X on frame %d\n", fgm_instance, this_frame);
     }
     else
-        OSReport("audio_log over!!\n");
+        NetLog("audio_log over!!\n");
 
     return 0;
 }
@@ -626,7 +626,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
         if (this_frame == g_audio_log.sfx_start[i].frame && 
             sfx_id == g_audio_log.sfx_start[i].sfx_id)
         {
-            OSReport("SFX: skipping PLAY %08X on frame %d. matches instance %08X from frame %d\n", 
+            NetLog("SFX: skipping PLAY %08X on frame %d. matches instance %08X from frame %d\n", 
                 sfx_id, 
                 this_frame, 
                 g_audio_log.sfx_start[i].fgm_instance, 
@@ -641,30 +641,30 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
                 g_audio_log.sfx_start[i].fgm_instance == fgm->instance && // if the sound was short, it may have stopped playing and these wont match
                 (fgm->audio_track != audio_track || fgm->sg != sg))
             {          
-                // OSReport(" id %d:%d with instance %08X is using track %d and sg %d. requested to play with track %d and sg %d\n",
-                // (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
-                // fgm->instance,
-                // fgm->audio_track,
-                // fgm->sg,
-                // audio_track,
-                // sg);
+                NetLog(" id %d:%d with instance %08X is using track %d and sg %d. requested to play with track %d and sg %d\n",
+                (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
+                fgm->instance,
+                fgm->audio_track,
+                fgm->sg,
+                audio_track,
+                sg);
 
-                // OSReport(" FGM:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
-                // (g_audio_log.sfx_start[i].sfx_id & 0xFFFF0000) >> 16, g_audio_log.sfx_start[i].sfx_id & 0xFFFF,
-                // g_audio_log.sfx_start[i].fgm_instance,
-                // g_audio_log.sfx_start[i].audio_track,
-                // g_audio_log.sfx_start[i].sg);
+                NetLog(" FGM:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
+                (g_audio_log.sfx_start[i].sfx_id & 0xFFFF0000) >> 16, g_audio_log.sfx_start[i].sfx_id & 0xFFFF,
+                g_audio_log.sfx_start[i].fgm_instance,
+                g_audio_log.sfx_start[i].audio_track,
+                g_audio_log.sfx_start[i].sg);
 
-                // OSReport(" Cache:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
-                // (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
-                // fgm->instance,
-                // fgm->audio_track,
-                // fgm->sg);
+                NetLog(" Cache:\n  sfx: %d:%d\n  instance: %08X\n  track: %d\n  sg: %d\n",
+                (fgm->sfx_id & 0xFFFF0000) >> 16, fgm->sfx_id & 0xFFFF,
+                fgm->instance,
+                fgm->audio_track,
+                fgm->sg);
 
-                // OSReport(" Req:\n  sfx: %d:%d\n  track: %d\n  sg: %d\n",
-                // (sfx_id & 0xFFFF0000) >> 16, sfx_id & 0xFFFF,
-                // audio_track,
-                // sg);
+                NetLog(" Req:\n  sfx: %d:%d\n  track: %d\n  sg: %d\n",
+                (sfx_id & 0xFFFF0000) >> 16, sfx_id & 0xFFFF,
+                audio_track,
+                sg);
 
                 // update fgm's data
                 fgm->audio_track = audio_track;
@@ -674,11 +674,11 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
                 VPB *vpb = &ax_live->voice_data[fgm->pid & AXDRIVER_PIDMASK];
                 vpb->sg = sg;
 
-                // OSReport(" Updated FGM %08X (%p) to track: %d  sg: %d\n",
-                // fgm->instance,
-                // fgm,
-                // audio_track,
-                // sg);
+                NetLog(" Updated FGM %08X (%p) to track: %d  sg: %d\n",
+                fgm->instance,
+                fgm,
+                audio_track,
+                sg);
 
                 // maybe manually update the sound using the emitter params? idk
                 // if i change the emitters volume level it should force a voice change next
@@ -697,8 +697,8 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
     // // if this is a correction frame and we missed cache, null the entire log
     // if (g_rollback.is_resim_frame)
     // {
-    //     OSReport("SFX: missed sfx cache, nulling audio log!\n");
-    //     OSReport("     unable to find sfx %08x while resimming frame %d\n", sfx_id, this_frame);
+    //     NetLog("SFX: missed sfx cache, nulling audio log!\n");
+    //     NetLog("     unable to find sfx %08x while resimming frame %d\n", sfx_id, this_frame);
     //     Audio_ResetLogs(false);
     // }
 
@@ -716,14 +716,14 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
             next_free->sg = sg;
             next_free->is_replayed = false;
 
-            OSReport("SFX: played sfx %08X for sg (%d) with instance %08X on frame %d\n", 
+            NetLog("SFX: played sfx %08X for sg (%d) with instance %08X on frame %d\n", 
                 sfx_id, 
                 sg,
                 fgm_instance,
                 this_frame);
         }
         else
-            OSReport("audio_log over!!\n");
+            NetLog("audio_log over!!\n");
     }
 
     return fgm_instance;
@@ -769,10 +769,10 @@ int BGMLog_OnPlay(char *file_name, int volume, int pan, int r6, int r7, int r8, 
         next_free->entrynum = entrynum;
         next_free->slot = slot;
 
-        OSReport("BGM: played bgm %s with slot %08X on frame %d\n", file_name, slot, this_frame);
+        NetLog("BGM: played bgm %s with slot %08X on frame %d\n", file_name, slot, this_frame);
     }
     else
-        OSReport("m_audio_log.bgm over!!\n");
+        NetLog("m_audio_log.bgm over!!\n");
 
     return result;
 
@@ -790,7 +790,7 @@ void Audio_ValidateAX()
         {
             bp();
 
-            OSReport("SFX: stopping sfx %08X with fgm instance %08X from frame %d due to not being replayed on resim\n", 
+            NetLog("SFX: stopping sfx %08X with fgm instance %08X from frame %d due to not being replayed on resim\n", 
                 g_audio_log.sfx_start[i].sfx_id,
                 g_audio_log.sfx_start[i].fgm_instance,
                 g_audio_log.sfx_start[i].frame);

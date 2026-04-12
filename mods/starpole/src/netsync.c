@@ -34,8 +34,8 @@ DebugPadData g_debug_pad = {.head = 0};
 AudioLog g_audio_log;
 RollbackLog g_rollback;
 
-PADStatus g_local_status[4];
-PADStatus g_remote_status[MAX_ROLLBACK_FRAMES + 1][4];
+PADStatus g_local_status[4] = {0};
+PADStatus g_remote_status[MAX_ROLLBACK_FRAMES + 1][4] = {0};
 PreserveMemRegion g_preserve_regions[] = {
     {(void *)0, 0},                                     // stay
     {(void *)0, 0},                                     // AllM
@@ -49,7 +49,7 @@ PreserveMemRegion g_preserve_regions[] = {
     {&g_audio_log, sizeof(g_audio_log)},                // audio log
     {&g_rollback, sizeof(g_rollback)},                  // rollback specific data
     {&g_debug_pad, sizeof(g_debug_pad)},                // debug pad data
-
+    {&g_remote_status, sizeof(g_remote_status)},        // pad data to use for game frames
 
     {(void *)0x80003100, 0x2500},                       // dol text section 1
     {(void *)0x80005800, 0x483C40},                     // dol text section 2
@@ -179,13 +179,14 @@ int Netplay_SendInputs(PADStatus *status)
 {
     int result = 0;
     int enable = OSDisableInterrupts();
+    u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
 
     // copy pad data to aligned buffer
     char buffer[sizeof(PADStatus) * 4] __attribute__((aligned(32)));
     memcpy(buffer, status, sizeof(buffer));
 
     // notify of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_NETPADSEND, sizeof(buffer)) <= 0)
+    if (Starpole_Imm(STARPOLE_CMD_NETPADSEND, this_frame_idx) <= 0)
     {
         NetLog("Starpole: unable to send pad data.\n");
         goto CLEANUP;
@@ -207,30 +208,27 @@ int Netplay_ReceiveInputs()
     u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
     int enable = OSDisableInterrupts();
 
-    // transfer buffer
-    PADStatus buffer[4][MAX_ROLLBACK_FRAMES + 1] __attribute__((aligned(32)));
-
-    // request data 
+    // request pad data and receive the number of frames will receive pad data for
     sim_num = Starpole_Imm(STARPOLE_CMD_NETPADRECV, this_frame_idx);
 
-    if (DOLPHIN_DEBUG)
+    if (NETPLAY_DEBUG)
     {
-        // sim_num = (Scene_GetCurrentMinor() == MNRKIND_3D && Gm_GetGameData()->update.engine_frames > MAX_ROLLBACK_FRAMES) ? 6 : 1;
-             
         // store all inputs to buffer
         memcpy(g_debug_pad.history[g_debug_pad.head], g_local_status, sizeof(g_local_status));
         g_debug_pad.head = (g_debug_pad.head + 1) % 10;
     }
     else
     {
-        // request data 
-        // frame_num = Starpole_Imm(STARPOLE_CMD_NETPADRECV, 0);
-
         if (sim_num <= 0)
         {
             NetLog("Starpole: inputs not ready.\n");
             goto CLEANUP;
         }
+
+        // alloc stack buffer to receive to
+        PADStatus buffer[MAX_ROLLBACK_FRAMES + 1][4] __attribute__((aligned(32)));
+        
+        memset(buffer, 0, sizeof(buffer));
 
         // receive inputs
         if (!Starpole_DMA((StarpoleBuffer *)buffer, sizeof(buffer), EXI_READ))
@@ -298,7 +296,7 @@ void Netplay_OnFrameStart(int loop_num)
     NetLog("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
 
     // insert pad into queue
-    if (DOLPHIN_DEBUG)
+    if (NETPLAY_DEBUG)
     {
         int frames_ago = (g_rollback.sim_frames - 1) - loop_num;
         int idx = (g_debug_pad.head - 1 - frames_ago + 10) % 10;

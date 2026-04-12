@@ -4,6 +4,7 @@
 #include "hsd.h"
 #include "audio.h"
     
+#define NETPLAY_DEBUG 0
 #define MAX_ROLLBACK_FRAMES (5)
 #define NET_LOG (0)
 

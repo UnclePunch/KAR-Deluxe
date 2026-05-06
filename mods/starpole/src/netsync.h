@@ -6,7 +6,7 @@
     
 #define NETPLAY_DEBUG 0
 #define MAX_ROLLBACK_FRAMES (5)
-#define NET_LOG (0)
+#define NET_LOG (1)
 
 void NetLog(const char* fmt, ...);
 #if NET_LOG==0
@@ -51,7 +51,8 @@ typedef struct
     u32 frame;
     int sfx_id;
     FGMInstance fgm_instance;
-    u32 audio_track : 16;
+    u32 audio_track : 10;
+    u32 resim_idx : 6;
     u32 sg : 8;
     u32 is_replayed : 8;
     // EmitterID emitter;
@@ -104,9 +105,11 @@ typedef struct
 
 typedef struct
 {
+    u32 resim_idx : 6;
     u32 sim_frames;
     u32 is_resim_frame;
     u32 this_sim_idx;
+    u32 confirm_frame;
 } RollbackLog;
 
 typedef struct
@@ -147,7 +150,7 @@ void Audio_InitLog();
 void Audio_UpdateSFXLog();
 void Audio_UpdateLog();
 void Audio_ValidateAX();
-void Audio_ResetLogs();
+void Audio_ExpireLogs();
 void Audio_Debug();
 
 #endif

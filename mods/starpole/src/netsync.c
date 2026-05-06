@@ -118,6 +118,8 @@ int Netplay_StartRollback()
     int result = 0;
     int enable = OSDisableInterrupts();
 
+    g_rollback.resim_idx = 0;
+
     // create buffer of memory regions to preserve
     char buffer[sizeof(g_preserve_regions)] __attribute__((aligned(32)));
     Netplay_GetPreserveRegions((PreserveMemRegion *)&buffer);
@@ -157,23 +159,17 @@ CLEANUP:
     OSRestoreInterrupts(enable);
     return result;
 }
-int Netplay_RequestSave(u32 frame_idx)
+u32 Netplay_RequestSave(u32 frame_idx)
 {
     int result = 0;
     int enable = OSDisableInterrupts();
 
-    // notify of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_NETSAVE, frame_idx) <= 0)
-    {
-        NetLog("Starpole: unable to savestate.\n");
-        goto CLEANUP;
-    }
-
+    u32 confirm_frame = Starpole_Imm(STARPOLE_CMD_NETSAVE, frame_idx);
     result = 1;
 
 CLEANUP:
     OSRestoreInterrupts(enable);
-    return result;
+    return confirm_frame;
 }
 int Netplay_SendInputs(PADStatus *status)
 {
@@ -221,7 +217,7 @@ int Netplay_ReceiveInputs()
     {
         if (sim_num <= 0)
         {
-            NetLog("Starpole: inputs not ready.\n");
+            // NetLog("Starpole: inputs not ready.\n");
             goto CLEANUP;
         }
 
@@ -247,6 +243,18 @@ CLEANUP:
     OSRestoreInterrupts(enable);
     return sim_num;
 }
+u32 Netplay_ReceiveConfirmFrame()
+{
+    u32 confirm_frame;
+    u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
+    int enable = OSDisableInterrupts();
+
+    confirm_frame = Starpole_Imm(STARPOLE_CMD_NETGETCONFIRM, 0);
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return confirm_frame;
+}
 
 int Netplay_WaitForClients()
 {
@@ -258,17 +266,33 @@ int Netplay_WaitForClients()
     //     NetLog("pb.addr: 0x%08X\n", &axvpb->pb.addr);
     // }
 
+
     PADRead(g_local_status);                      // poll inputs this frame
     Netplay_SendInputs(g_local_status);           // send inputs to dolphin
 
     // update game sim only when we have all inputs for this frame
     g_rollback.sim_frames = Netplay_ReceiveInputs();
+    g_rollback.confirm_frame = Netplay_ReceiveConfirmFrame();
+
+    if (g_rollback.sim_frames > 0)
+    {
+        NetLog("\nFRAME START\n");
+        NetLog("confirm_frame: %d\n", g_rollback.confirm_frame);
+    }
+
+    // if we simulate more than 1 frame we can assume we rolled back, so increment resim index
+    if (g_rollback.sim_frames > 1)
+    {
+        g_rollback.resim_idx++;
+        
+        // reset is_replayed bool on sounds
+        for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
+            g_audio_log.sfx_start[i].is_replayed = (u32)0;
+            
+        NetLog("resim detected!! resim_idx: %d\n", g_rollback.resim_idx);
+    }
 
     // NetLog("\nwill sim %d frames\n", g_rollback.sim_frames);
-
-    // if we are running more than 1 frame we are resimulating after a rollback, validate sounds
-    // if (g_rollback.sim_frames > 1)
-    //     Audio_ValidateAX();
 
     return g_rollback.sim_frames;
 }
@@ -276,22 +300,13 @@ CODEPATCH_HOOKCREATE(0x80006bd4, "", Netplay_WaitForClients, "", 0)
 
 void Netplay_OnFrameStart(int loop_num)
 {
+    u32 frame = Gm_GetGameData()->update.engine_frames;
+
     // request save/load
-    Netplay_RequestSave(Gm_GetGameData()->update.engine_frames);
+    Netplay_RequestSave(frame);
 
     g_rollback.this_sim_idx = loop_num;
     g_rollback.is_resim_frame = (g_rollback.sim_frames > 1 && g_rollback.this_sim_idx < (g_rollback.sim_frames - 1));
-
-    // check if this is the final forward simulation frame after a resim
-    if (g_rollback.sim_frames > 1 && g_rollback.this_sim_idx == (g_rollback.sim_frames - 1))
-    {
-        // we just finished resimulating after a rollback
-        // lets cleanup AX state if sounds that shouldn't be playing are. lets also clear logs
-        Audio_ValidateAX();
-
-        NetLog("SFX: clearing entire audio log after resimulating from a %d frame rollback\n", g_rollback.sim_frames - 1);
-        Audio_ResetLogs();
-    }
 
     NetLog("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
 
@@ -310,15 +325,27 @@ void Netplay_OnFrameStart(int loop_num)
 }
 CODEPATCH_HOOKCREATE(0x8000682c, "mr 3, 29\t\n", Netplay_OnFrameStart, "", 0)
 
-void Netsync_OutputFrameHash()
+void Netsync_OnFrameEnd()
 {
     if (Scene_GetCurrentMinor() != MNRKIND_3D)
         return;
 
+    // on the final sim
+    if (g_rollback.this_sim_idx == (g_rollback.sim_frames - 1))
+    {
+        // if this is the end of a resim, cleanup AX state if sounds that shouldn't be playing are
+        if (g_rollback.sim_frames > 1)
+            Audio_ValidateAX();
+
+        // expire audio logs for frames we wont be rolling back to anymore
+        Audio_ExpireLogs();
+
+    }
+
     // u32 hash = Replay_HashGameState();
     // NetLog(" frame end. hash: %08X  rng: %08X\n", hash, *hsd_rand_seed);
 }
-CODEPATCH_HOOKCREATE(0x80006a80, "", Netsync_OutputFrameHash, "", 0)
+CODEPATCH_HOOKCREATE(0x80006a30, "", Netsync_OnFrameEnd, "", 0)
 
 void Netsync_AdjustGameLoop()
 {
@@ -339,7 +366,7 @@ void Netsync_AdjustGameLoop()
     CODEPATCH_HOOKAPPLY(0x80006bd4);                            // wait for inputs
     CODEPATCH_HOOKAPPLY(0x8000682c);                            // consume pad
 
-    CODEPATCH_HOOKAPPLY(0x80006a80);                            // output frame hash
+    CODEPATCH_HOOKAPPLY(0x80006a30);                            // output frame hash
 }
 
 // here we will attempt to optimize catchup frames by not processing
@@ -505,33 +532,66 @@ void Audio_InitLog()
 
     memset(g_audio_log.sfx_start, -1, sizeof(g_audio_log.sfx_start));
     memset(g_audio_log.sfx_stop, -1, sizeof(g_audio_log.sfx_stop));
+    memset(g_audio_log.bgm, -1, sizeof(g_audio_log.bgm));
 
-    // audio debug gobj
-    GOBJ_EZCreator(0, 0, 0,
-                    0, 0, 
-                    0, 0, 
-                    Audio_Debug, 23,
-                    0, 0, 0);
+    // // audio debug gobj
+    // GOBJ_EZCreator(0, 0, 0,
+    //                 0, 0, 
+    //                 0, 0, 
+    //                 Audio_Debug, 23,
+    //                 0, 0, 0);
 }
-void Audio_ResetLogs()
+void Audio_ExpireLogs()
 {
+    if (!g_audio_log.enable) 
+        return;
+                
+    u32 this_frame = Gm_GetGameData()->update.engine_frames;
+    NetLog("SFX: checking to expire logs on engine frame %d with confirm frame %d\n", this_frame, g_rollback.confirm_frame); 
 
     // remove start events
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
     {
-        g_audio_log.sfx_start[i].frame = (u32)-1;
+        if (g_rollback.confirm_frame >= g_audio_log.sfx_start[i].frame)
+        {
+            NetLog("SFX: expiring sfx PLAY %08X for sg (%d) with instance %08X on frame %d\n", 
+                g_audio_log.sfx_start[i].sfx_id, 
+                g_audio_log.sfx_start[i].sg,
+                g_audio_log.sfx_start[i].fgm_instance,
+                g_audio_log.sfx_start[i].frame);
+                
+            g_audio_log.sfx_start[i].frame = (u32)-1;
+        }
     }
 
     // remove stop events
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_stop); i++)
     {
-        g_audio_log.sfx_stop[i].frame = (u32)-1;
+        if (g_rollback.confirm_frame > g_audio_log.sfx_stop[i].frame && 
+            this_frame >= g_audio_log.sfx_stop[i].frame)
+        {
+            NetLog("SFX: expiring sfx STOP instance %08X for sg (%d) on frame %d\n", 
+                g_audio_log.sfx_stop[i].fgm_instance, 
+                g_audio_log.sfx_stop[i].sg,
+                g_audio_log.sfx_stop[i].frame);
+                
+            g_audio_log.sfx_stop[i].frame = (u32)-1;
+        }
     }
 
     // remove bgm events
     for (int i = 0; i < GetElementsIn(g_audio_log.bgm); i++)
     {
-        g_audio_log.bgm[i].entrynum = (u32)-1;
+        if (g_rollback.confirm_frame > g_audio_log.bgm[i].frame && 
+            this_frame >= g_audio_log.bgm[i].frame)
+        {
+            NetLog("SFX: expiring bgm kind %d for entrynum %08X on frame %d\n", 
+                g_audio_log.bgm[i].event_kind, 
+                g_audio_log.bgm[i].entrynum,
+                g_audio_log.bgm[i].frame);
+
+            g_audio_log.bgm[i].frame = (u32)-1;
+        }
     }
 }
 
@@ -570,7 +630,7 @@ int Audio_RemoveFromSFXLog(FGMInstance fgm_instance)
         if (this_frame == g_audio_log.sfx_stop[i].frame && 
             g_audio_log.sfx_stop[i].fgm_instance == fgm_instance)
         {
-            // NetLog("SFX:  skipping sfx END on frame %d. matches instance %08X from frame %d\n", this_frame, g_audio_log.sfx_stop[i].fgm_instance, g_audio_log.sfx_stop[i].frame);
+            NetLog("SFX:  skipping sfx END on frame %d. matches instance %08X from frame %d\n", this_frame, g_audio_log.sfx_stop[i].fgm_instance, g_audio_log.sfx_stop[i].frame);
             return 1;
         }
     }
@@ -585,7 +645,7 @@ int Audio_RemoveFromSFXLog(FGMInstance fgm_instance)
         NetLog("SFX: stopped sfx with instance %08X on frame %d\n", fgm_instance, this_frame);
     }
     else
-        NetLog("audio_log over!!\n");
+        NetLog("audio_log END over!!\n");
 
     return 0;
 }
@@ -692,16 +752,8 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
     // lets play it
     int fgm_instance = _SFX_Play(sfx_id, volume, pan, r6, r7, r8, r9, audio_track, sg);
 
-    // // if this is a correction frame and we missed cache, null the entire log
-    // if (g_rollback.is_resim_frame)
-    // {
-    //     NetLog("SFX: missed sfx cache, nulling audio log!\n");
-    //     NetLog("     unable to find sfx %08x while resimming frame %d\n", sfx_id, this_frame);
-    //     Audio_ResetLogs(false);
-    // }
-
     // only log sounds played on prediction frames
-    if (!g_rollback.is_resim_frame)
+    // if (!g_rollback.is_resim_frame)
     {
         // log it for the future
         if (next_free_idx != -1)
@@ -712,6 +764,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
             next_free->audio_track = audio_track;
             next_free->fgm_instance = fgm_instance;
             next_free->sg = sg;
+            next_free->resim_idx = g_rollback.resim_idx;
             next_free->is_replayed = false;
 
             NetLog("SFX: played sfx %08X for sg (%d) with instance %08X on frame %d\n", 
@@ -721,7 +774,7 @@ FGMInstance SFXLog_OnSFXPlay(int sfx_id, int volume, int pan, int r6, int r7, u8
                 this_frame);
         }
         else
-            NetLog("audio_log over!!\n");
+            NetLog("audio_log PLAY over!!\n");
     }
 
     return fgm_instance;
@@ -778,21 +831,36 @@ int BGMLog_OnPlay(char *file_name, int volume, int pan, int r6, int r7, int r8, 
 
 void Audio_ValidateAX()
 {
+    // this function only gets called after a resim
+
+    // only validate up to the confirm frame
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_start); i++)
     {
         // stop sounds that weren't replayed 
         // we can probably assume they shouldn't be playing anymore
-        if (g_audio_log.sfx_start[i].frame != -1 &&
-            !g_audio_log.sfx_start[i].is_replayed && 
-            !Audio_CheckStopLog(g_audio_log.sfx_start[i].fgm_instance))
+        if (g_audio_log.sfx_start[i].frame != -1)
         {
-            bp();
+            NetLog("SFX: validating sfx %08X with fgm instance %08X from frame %d from resim_idx %d with is_replayed %d\n", 
+                    g_audio_log.sfx_start[i].sfx_id,
+                    g_audio_log.sfx_start[i].fgm_instance,
+                    g_audio_log.sfx_start[i].frame,
+                    g_audio_log.sfx_start[i].resim_idx,
+                    g_audio_log.sfx_start[i].is_replayed);
 
-            NetLog("SFX: stopping sfx %08X with fgm instance %08X from frame %d due to not being replayed on resim\n", 
-                g_audio_log.sfx_start[i].sfx_id,
-                g_audio_log.sfx_start[i].fgm_instance,
-                g_audio_log.sfx_start[i].frame);
-            FGM_Stop(g_audio_log.sfx_start[i].fgm_instance);
+            if (//g_audio_log.sfx_start[i].frame >= g_rollback.confirm_frame &&    // sound exists in a prediction branch
+                g_audio_log.sfx_start[i].resim_idx != g_rollback.resim_idx &&   // sound was not just played in this prediction branch
+                !g_audio_log.sfx_start[i].is_replayed &&                        // sound did not replayed on this resim
+                !Audio_CheckStopLog(g_audio_log.sfx_start[i].fgm_instance))
+            {
+                NetLog("SFX: stopping sfx %08X with fgm instance %08X from frame %d due to not being replayed on resim\n", 
+                        g_audio_log.sfx_start[i].sfx_id,
+                        g_audio_log.sfx_start[i].fgm_instance,
+                        g_audio_log.sfx_start[i].frame);
+
+                FGM_Stop(g_audio_log.sfx_start[i].fgm_instance);
+
+                g_audio_log.sfx_start[i].frame = (u32)-1;
+            }
         }
     }
 }

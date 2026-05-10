@@ -325,28 +325,6 @@ void Netplay_OnFrameStart(int loop_num)
 }
 CODEPATCH_HOOKCREATE(0x8000682c, "mr 3, 29\t\n", Netplay_OnFrameStart, "", 0)
 
-void Netsync_OnFrameEnd()
-{
-    if (Scene_GetCurrentMinor() != MNRKIND_3D)
-        return;
-
-    // on the final sim
-    if (g_rollback.this_sim_idx == (g_rollback.sim_frames - 1))
-    {
-        // if this is the end of a resim, cleanup AX state if sounds that shouldn't be playing are
-        if (g_rollback.sim_frames > 1)
-            Audio_ValidateAX();
-
-        // expire audio logs for frames we wont be rolling back to anymore
-        Audio_ExpireLogs();
-
-    }
-
-    // u32 hash = Replay_HashGameState();
-    // NetLog(" frame end. hash: %08X  rng: %08X\n", hash, *hsd_rand_seed);
-}
-CODEPATCH_HOOKCREATE(0x80006a30, "", Netsync_OnFrameEnd, "", 0)
-
 void Netsync_AdjustGameLoop()
 {
     int *is_alarm_active = (int *)0x80550ca8;
@@ -365,8 +343,6 @@ void Netsync_AdjustGameLoop()
     CODEPATCH_REPLACEINSTRUCTION(0x80006bdc, 0x60000000);       // render on 0 ticks
     CODEPATCH_HOOKAPPLY(0x80006bd4);                            // wait for inputs
     CODEPATCH_HOOKAPPLY(0x8000682c);                            // consume pad
-
-    CODEPATCH_HOOKAPPLY(0x80006a30);                            // output frame hash
 }
 
 // here we will attempt to optimize catchup frames by not processing
@@ -592,6 +568,22 @@ void Audio_ExpireLogs()
 
             g_audio_log.bgm[i].frame = (u32)-1;
         }
+    }
+}
+void Audio_Cleanup()
+{
+    if (Scene_GetCurrentMinor() != MNRKIND_3D)
+        return;
+
+    // on the final sim
+    if (g_rollback.this_sim_idx == (g_rollback.sim_frames - 1))
+    {
+        // if this is the end of a resim, cleanup AX state if sounds that shouldn't be playing are
+        if (g_rollback.sim_frames > 1)
+            Audio_ValidateAX();
+
+        // expire audio logs for frames we wont be rolling back to anymore
+        Audio_ExpireLogs();
     }
 }
 
@@ -885,6 +877,27 @@ void Netsync_UpdateRNGText()
     Text_SetText(rng_text, 0, "RNG Seed: %08X", **stc_rng_seed);
 }
 
+static Text *frame_text;
+void Netsync_CreateFrameText()
+{
+    // display test string
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){300, 0, 0};
+    t->viewport_scale = (Vec2){0.2, 0.2};
+    t->aspect = (Vec2){260, 32};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "");
+
+    frame_text = t;
+}
+void Netsync_UpdateFrameText()
+{
+    if (frame_text)
+        Text_SetText(frame_text, 0, "Frame: %d", Gm_GetGameData()->update.engine_frames);
+}
+
 void Netsync_On3DLoadStart()
 {
     // tell dolphin we are starting rollback
@@ -899,6 +912,19 @@ void Netsync_On3DExit()
 {
     // tell dolphin we are ending rollback
     Netplay_EndRollback();
+}
+void Netsync_OnSceneChange()
+{
+    // Netsync_CreateRNGText();
+    Netsync_CreateFrameText();
+}
+void Netsync_OnFrameEnd()
+{
+    Audio_Cleanup();
+    Netsync_UpdateFrameText();
+
+    // u32 hash = Replay_HashGameState();
+    // NetLog(" frame end. hash: %08X  rng: %08X\n", hash, *hsd_rand_seed);
 }
 
 void Netsync_Init()

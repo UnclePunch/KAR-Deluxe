@@ -28,7 +28,7 @@ int frame_idx;
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_NONE;
 
-Text *frame_text;
+static Text *frame_text;
 void Replay_CreateFrameText()
 {
     // display test string
@@ -384,7 +384,9 @@ void Record_OnFrameEnd(GOBJ *g)
 
     Replay_SendFrame(frame_idx);
 
-    Text_SetText(frame_text, 0, "Frame: %d", Gm_GetGameData()->update.engine_frames);
+    if (frame_text)
+        Text_SetText(frame_text, 0, "Frame: %d", Gm_GetGameData()->update.engine_frames);
+    
     frame_idx++;
 }
 
@@ -458,8 +460,10 @@ void Playback_OnFrameEnd(GOBJ *g)
         
     }
 
-    Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
-    frame_idx++;
+    if (frame_text)
+        Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
+    
+        frame_idx++;
 }
 
 float PlyCam_ClampStick(float val)
@@ -800,7 +804,9 @@ void Replay_On3DLoadStart()
     }
 
     desync_text = 0;
-    Replay_CreateFrameText();
+    frame_text = 0;
+
+    // Replay_CreateFrameText();
 }
 void Replay_On3DExit()
 {

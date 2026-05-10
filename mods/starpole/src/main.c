@@ -42,12 +42,13 @@ void OnSceneChange()
     Test_DisplayString();
     Starpole_DisplayAsset();
 
-    // Netsync_CreateRNGText();
+    Netsync_OnSceneChange();
 }
 
 void OnFrameEnd()
 {
     Playback_Listen();
+    Netsync_OnFrameEnd();
 
     // Netsync_UpdateRNGText();
 }

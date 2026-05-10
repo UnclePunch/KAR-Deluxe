@@ -142,9 +142,12 @@ void PadAlarm_NetplayLockstep();
 
 void Netsync_CreateRNGText();
 void Netsync_UpdateRNGText();
+void Netsync_UpdateFrameText();
 
 void Netsync_On3DLoadStart();
 void Netsync_On3DExit();
+void Netsync_OnSceneChange();
+void Netsync_OnFrameEnd();
 
 void Audio_InitLog();
 void Audio_UpdateSFXLog();

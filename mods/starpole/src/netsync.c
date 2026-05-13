@@ -256,6 +256,12 @@ CLEANUP:
     return confirm_frame;
 }
 
+int Netplay_SkipFrameCheck()
+{
+    return Gm_GetGameData()->update.is_req_exit_minor;
+}
+CODEPATCH_HOOKCONDITIONALCREATE(0x80006828, "", Netplay_SkipFrameCheck, "", 0, 0x80006a80)
+
 int Netplay_WaitForClients()
 {
     // if (*(int *)(&stc_bgm_data_arr[1]) != -1)
@@ -341,6 +347,7 @@ void Netsync_AdjustGameLoop()
     // CODEPATCH_REPLACEINSTRUCTION(0x8000682c, 0x60000000);    // remove pad consume
     CODEPATCH_REPLACEINSTRUCTION(0x80006bd4, 0x60000000);       // remove GetPadQueue Call
     CODEPATCH_REPLACEINSTRUCTION(0x80006bdc, 0x60000000);       // render on 0 ticks
+    CODEPATCH_HOOKAPPLY(0x80006828);                            // skip frame if request to leave already
     CODEPATCH_HOOKAPPLY(0x80006bd4);                            // wait for inputs
     CODEPATCH_HOOKAPPLY(0x8000682c);                            // consume pad
 }

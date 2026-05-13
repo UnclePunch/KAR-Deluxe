@@ -6,7 +6,7 @@
     
 #define NETPLAY_DEBUG 0
 #define MAX_ROLLBACK_FRAMES (5)
-#define NET_LOG (1)
+#define NET_LOG (0)
 
 void NetLog(const char* fmt, ...);
 #if NET_LOG==0

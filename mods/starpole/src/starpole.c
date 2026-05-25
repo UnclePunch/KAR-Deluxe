@@ -36,7 +36,7 @@ int Starpole_Imm(StarpoleCmd cmd, u32 args)
     // OSReport("Starpole: sending imm cmd %d\n", cmd);
 
     u32 resp = 0;
-    u32 buf = ((args & 0xFFFFFF) << 16) | (cmd & 0xFFFF); // shove args into payload
+    u32 buf = ((args & 0xFFFF) << 16) | (cmd & 0xFFFF); // shove args into payload
 
     // ensure a device is inserted before waiting for probe
     volatile EXIChannelReg *exi_reg = (EXIChannelReg *)0xCC006800;

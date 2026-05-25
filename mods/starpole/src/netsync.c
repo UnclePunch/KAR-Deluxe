@@ -45,14 +45,14 @@ PreserveMemRegion g_preserve_regions[] = {
     {(void *)0, 0},                                     // audio heap
     {(void *)0, 0},                                     // audio track status
     
+    {(void *)0x80003100, 0x2500},                       // dol text section 1
+    {(void *)0x80005800, 0x483C40},                     // dol text section 2
     {(void *)(0x805f6390 - (32 * 1024)), 32 * 1024},    // stack, address derived from 80005410. im inferring 32kb stack
+
     {&g_audio_log, sizeof(g_audio_log)},                // audio log
     {&g_rollback, sizeof(g_rollback)},                  // rollback specific data
     {&g_debug_pad, sizeof(g_debug_pad)},                // debug pad data
     {&g_remote_status, sizeof(g_remote_status)},        // pad data to use for game frames
-
-    {(void *)0x80003100, 0x2500},                       // dol text section 1
-    {(void *)0x80005800, 0x483C40},                     // dol text section 2
 
     {(void *)0x80550f68, 0x1008},                       // file preload table
     {(void *)0x80508bc8, 0x4 * 3},                      // BGM PID's. needed to stop a song from playing
@@ -116,7 +116,7 @@ void Netplay_GetPreserveRegions(PreserveMemRegion *regions_out)
 int Netplay_StartRollback()
 {
     int result = 0;
-    int enable = OSDisableInterrupts();
+    int level = OSDisableInterrupts();
 
     g_rollback.resim_idx = 0;
 
@@ -138,13 +138,13 @@ int Netplay_StartRollback()
     result = 1;
 
 CLEANUP:
-    OSRestoreInterrupts(enable);
+    OSRestoreInterrupts(level);
     return result;
 }
 int Netplay_EndRollback()
 {
     int result = 0;
-    int enable = OSDisableInterrupts();
+    int level = OSDisableInterrupts();
 
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETEND, 0) <= 0)
@@ -156,13 +156,15 @@ int Netplay_EndRollback()
     result = 1;
 
 CLEANUP:
-    OSRestoreInterrupts(enable);
+    OSRestoreInterrupts(level);
     return result;
 }
 u32 Netplay_RequestSave(u32 frame_idx)
 {
     int result = 0;
     int enable = OSDisableInterrupts();
+
+    NetLog("requesting save/load on frame %d\n", frame_idx);
 
     u32 confirm_frame = Starpole_Imm(STARPOLE_CMD_NETSAVE, frame_idx);
     result = 1;
@@ -206,6 +208,12 @@ int Netplay_ReceiveInputs()
 
     // request pad data and receive the number of frames will receive pad data for
     sim_num = Starpole_Imm(STARPOLE_CMD_NETPADRECV, this_frame_idx);
+
+    if (sim_num > MAX_ROLLBACK_FRAMES + 1)
+    {
+        OSReport("sim_num (%d) over MAX_ROLLBACK_FRAMES on game frame %d.\n", sim_num, this_frame_idx);
+        assert("starpole");
+    }
 
     if (NETPLAY_DEBUG)
     {
@@ -264,15 +272,6 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x80006828, "", Netplay_SkipFrameCheck, "", 0, 0
 
 int Netplay_WaitForClients()
 {
-    // if (*(int *)(&stc_bgm_data_arr[1]) != -1)
-    // {
-    //     VPB *vbp = &ax_live->voice_data[stc_bgm_data_arr[1].vpb_index];
-    //     AXVPB *axvpb = vbp->axvpb;
-    //     int cur = *(int *)(&axvpb->pb.addr.currentAddressHi);
-    //     NetLog("pb.addr: 0x%08X\n", &axvpb->pb.addr);
-    // }
-
-
     PADRead(g_local_status);                      // poll inputs this frame
     Netplay_SendInputs(g_local_status);           // send inputs to dolphin
 
@@ -325,8 +324,11 @@ void Netplay_OnFrameStart(int loop_num)
     }
     else
     {
+        // use this frames inputs for non-netplay
+        PADStatus *status = (dolphin_data->netplay.is) ? g_remote_status[loop_num] : g_local_status;
+
         // insert the pad and consume it
-        HSD_InsertIntoPadQueue(g_remote_status[loop_num], 0);
+        HSD_InsertIntoPadQueue(status, 0);
     }
 }
 CODEPATCH_HOOKCREATE(0x8000682c, "mr 3, 29\t\n", Netplay_OnFrameStart, "", 0)

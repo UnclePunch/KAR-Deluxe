@@ -172,7 +172,7 @@ float normalize_unsigned(u8 val)
     return (float)val / 140.0f;
 }
 
-u32 Replay_HashGameState()
+u32 Replay_HashGameState(u32 kind)
 {
     int object_num;
 
@@ -182,6 +182,7 @@ u32 Replay_HashGameState()
         u16 state;
         u16 frame;
         Vec3 pos;
+        Vec3 forward;
     } ObjectState;
     
     typedef struct
@@ -190,63 +191,97 @@ u32 Replay_HashGameState()
         ObjectState objects[];
     } GameState;
 
-
     // count number of objects to backup
     object_num = 0;
-    for (GOBJ *r = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; r; r = r->next)
-        object_num++;
-    for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
-        object_num++;
-    for (GOBJ *e = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; e; e = e->next)
-        object_num++;
-    for (GOBJ *i = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; i; i = i->next)
-        object_num++;
 
-    if (object_num == 0)
+    if (kind & (1 << GAMEPLINK_RIDER))
+    {
+        for (GOBJ *r = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; r; r = r->next)
+            object_num++;
+    }
+
+    if (kind & (1 << GAMEPLINK_MACHINE))
+    {
+        for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
+        object_num++;
+    }
+
+    if (kind & (1 << GAMEPLINK_ENEMY))
+    {
+        for (GOBJ *e = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; e; e = e->next)
+            object_num++;
+    }
+
+    if (kind & (1 << GAMEPLINK_ITEM))
+    {
+        for (GOBJ *i = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; i; i = i->next)
+        object_num++;
+    }
+
+    if (object_num == 0 && !(kind & (1 << GAMEPLINK_SYS)))
         return 0;
 
     // alloc temp buffer
     int state_size = sizeof(GameState) + sizeof(ObjectState) * object_num;
     GameState *state = HSD_MemAlloc(state_size);
-    memset(&state->objects, 0, sizeof(ObjectState) * object_num);
+    memset(state, 0, state_size);
     object_num = 0;
 
+    if (kind & (1 << GAMEPLINK_SYS))
+        state->rng_seed = *hsd_rand_seed;
+
     // begin collecting data
-    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; g; g = g->next)
+    if (kind & (1 << GAMEPLINK_RIDER))
     {
-        RiderData *rd = g->userdata;
-        ObjectState *this_state = &state->objects[object_num++];
-        this_state->kind = rd->kind;
-        this_state->state = rd->state_idx;
-        this_state->frame = rd->state_frame;
-        this_state->pos = rd->pos;
+        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; g; g = g->next)
+        {
+            RiderData *rd = g->userdata;
+            ObjectState *this_state = &state->objects[object_num++];
+            this_state->kind = rd->kind;
+            this_state->state = rd->state_idx;
+            this_state->frame = rd->state_frame;
+            this_state->pos = rd->pos;
+            this_state->forward = rd->forward;
+        }
     }
-    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
+    if (kind & (1 << GAMEPLINK_MACHINE))
     {
-        MachineData *gp = g->userdata;
-        ObjectState *this_state = &state->objects[object_num++];
-        this_state->kind = gp->kind;
-        this_state->state = 0;
-        this_state->frame = 0;
-        this_state->pos = gp->pos;
+        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
+        {
+            MachineData *gp = g->userdata;
+            ObjectState *this_state = &state->objects[object_num++];
+            this_state->kind = gp->kind;
+            this_state->state = 0;
+            this_state->frame = 0;
+            this_state->pos = gp->pos;
+            this_state->forward = gp->forward;
+        }
     }
-    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; g; g = g->next)
+    if (kind & (1 << GAMEPLINK_ENEMY))
     {
-        EnemyData *gp = g->userdata;
-        ObjectState *this_state = &state->objects[object_num++];
-        this_state->kind = gp->kind;
-        this_state->state = gp->state_idx;
-        this_state->frame = gp->state_frame;
-        this_state->pos = gp->pos;
+        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; g; g = g->next)
+        {
+            EnemyData *gp = g->userdata;
+            ObjectState *this_state = &state->objects[object_num++];
+            this_state->kind = gp->kind;
+            this_state->state = gp->state_idx;
+            this_state->frame = gp->state_frame;
+            this_state->pos = gp->pos;
+            this_state->forward = gp->pos;
+        }
     }
-    for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; g; g = g->next)
+    if (kind & (1 << GAMEPLINK_ITEM))
     {
-        ItemData *gp = g->userdata;
-        ObjectState *this_state = &state->objects[object_num++];
-        this_state->kind = gp->kind;
-        this_state->state = gp->state;
-        this_state->frame = gp->state_frame;
-        this_state->pos = gp->pos;
+        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; g; g = g->next)
+        {
+            ItemData *gp = g->userdata;
+            ObjectState *this_state = &state->objects[object_num++];
+            this_state->kind = gp->kind;
+            this_state->state = gp->state;
+            this_state->frame = gp->state_frame;
+            this_state->pos = gp->pos;
+            this_state->forward = gp->forward;
+        }
     }
 
     u32 hash = hash_32(state, state_size);
@@ -380,7 +415,7 @@ void Record_OnRiderInput(RiderData *rd)
 void Record_OnFrameEnd(GOBJ *g)
 {
     starpole_buf->frame.frame_idx = frame_idx;
-    starpole_buf->frame.hash = Replay_HashGameState();
+    starpole_buf->frame.hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
 
     Replay_SendFrame(frame_idx);
 
@@ -396,7 +431,7 @@ void Playback_OnFrameStart()
     if (!Replay_ReqFrame(frame_idx))
     {
         // couldn't get frame, if the game is frozen, its likely at the time up screen so do noth8ing
-        if (Gm_GetGameData()->update.pause_kind & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3)))
+        if (Gm_GetGameData()->update.pause_kind)
             return;
 
         // error getting the frame, lets end the game
@@ -405,7 +440,7 @@ void Playback_OnFrameStart()
         BGM_Stop();
         FGM_StopAll();
         Pad_StopRumbleAll();
-        Gm_Pause(1); // avoid having all the gobj proc update after this?
+        Gm_Pause(PAUSEKIND_GAME); // avoid having all the gobj proc update after this?
 
         // OSReport("Replay: No frame received, ending game\n");
 
@@ -450,7 +485,8 @@ void Playback_OnFrameEnd(GOBJ *g)
     // OSReport("Frame %d:\n", frame_idx);
 
     // desync detection
-    if (Replay_HashGameState() != starpole_buf->frame.hash)
+    u32 hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
+    if (hash != starpole_buf->frame.hash)
     {
         if (!desync_text)
         {
@@ -539,8 +575,8 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 // Injection to fetch the frame
 void Replay_OnFrameStart()
 {
-    // dont run on start pause
-    if (Gm_GetGameData()->update.pause_kind & (1 << 1))
+    // dont run on game pauses (this includes explodes)
+    if (Gm_GetGameData()->update.pause_kind)
         return;
 
     if (replay_mode == REPLAY_PLAYBACK)
@@ -710,9 +746,11 @@ void Particle2_Think()
     *stc_rng_seed = orig_rng_ptr;
 }
 
-// Mod Callbacks
-void Replay_OnBoot()
+void Replay_Init()
 {
+    if (!REPLAY_ENABLE)
+        return;
+
     CODEPATCH_HOOKAPPLY(0x800b7840);
     CODEPATCH_HOOKAPPLY(0x8018f0cc);
     CODEPATCH_HOOKAPPLY(0x800cb4c8);
@@ -732,12 +770,20 @@ void Replay_OnBoot()
     float *reduce_ratio = (float *)0x805df274; // fullscreen live cam
     (*reduce_ratio) = 0;
 }
+
+// Mod Callbacks
 void Replay_OnSceneChange()
 {
+    if (!REPLAY_ENABLE)
+        return;
+
     replay_mode = REPLAY_NONE;
 }
 void Replay_On3DLoadStart()
 {
+    if (!REPLAY_ENABLE)
+        return;
+
     // ensure starpole is active
     if (!Starpole_IsPresent())
         return;
@@ -795,12 +841,12 @@ void Replay_On3DLoadStart()
     }
 
     // debug display
-    if (0)
+    if (1)
     {
         for (int i = 0; i < GetElementsIn(debug_text); i++)
             debug_text[i] = 0;
 
-        GObj_AddProc(g, Replay_Debug, 20);
+        GObj_AddProc(g, Replay_Debug, stc_gobj_init_data->proc_pri_max - 1);
     }
 
     desync_text = 0;
@@ -810,6 +856,9 @@ void Replay_On3DLoadStart()
 }
 void Replay_On3DExit()
 {
+    if (!REPLAY_ENABLE)
+        return;
+
     if (replay_mode == REPLAY_RECORD)
         Replay_SendEnd();
 }

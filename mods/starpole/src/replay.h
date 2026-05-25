@@ -1,3 +1,4 @@
+#define REPLAY_ENABLE (1)
 #define REPLAY_SYNCRNG (1)
 
 typedef enum
@@ -12,7 +13,7 @@ int Replay_ReqMatch();
 void Replay_On3DLoadStart();
 void Replay_On3DExit();
 void Replay_DisplayString();
-void Replay_OnBoot();
+void Replay_Init();
 void Replay_OnSceneChange();
 
-u32 Replay_HashGameState();
+u32 Replay_HashGameState(u32 kind);

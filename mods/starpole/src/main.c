@@ -24,10 +24,7 @@ OptionDesc mod_settings = {
 void OnBoot()
 {
     Starpole_Init();
-
-    Replay_OnBoot();
     Dolphin_Init();
-    Playback_Init();
 
     Hoshi_ExportMod((void *)&starpole_export);
 
@@ -63,6 +60,7 @@ void On3DLoadEnd()
 {
     Audio_InitLog();
     Netplay_CreatePlayerTags();
+    Hash_Init();
     // StressTest_Create();
 }
 
@@ -74,12 +72,12 @@ void On3DExit()
 
 void On3DPause(int pause_ply)
 {
-    Hash_CreateText();
+    // Hash_CreateText();
 }
 
 void On3DUnpause(int pause_ply)
 {
-    Hash_DestroyText();
+    // Hash_DestroyText();
 }
 
 ModDesc mod_desc = {

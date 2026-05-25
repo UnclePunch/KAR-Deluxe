@@ -48,7 +48,7 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
-    if (!Starpole_IsPresent() || (is_netplay && !DOLPHIN_DEBUG))
+    if (!Starpole_IsPresent() || !REPLAY_ENABLE || (is_netplay && !DOLPHIN_DEBUG))
         return;
 
     if (Playback_CheckForMatch())
@@ -91,9 +91,9 @@ void PlaybackMinor_Load()
 
 void Playback_Init()
 {
-    if (!Starpole_IsPresent())
+    if (!REPLAY_ENABLE)
         return;
-
+        
     // Hoshi_InstallMinorScene(&playback_minor_desc);
     // playback_major_desc.initial_minor_id = playback_minor_desc.idx;
 

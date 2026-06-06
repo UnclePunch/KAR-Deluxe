@@ -121,10 +121,16 @@ void Netplay_Init()
 // Fullscreen
 void Netplay_OverridePlayerView()
 {
-    if (!is_netplay || replay_mode == REPLAY_PLAYBACK)
-        return;
-
     GameData *gd = Gm_GetGameData();
+
+    // if (replay_mode == REPLAY_PLAYBACK)
+    // {
+    //     gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+    //     return;
+    // }
+
+    if (!is_netplay)
+        return;
 
     if (dolphin_data->netplay.ply != -1 && Gm_GetGameData()->ply_desc[dolphin_data->netplay.ply].p_kind == PKIND_HMN)
     {
@@ -284,54 +290,6 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
                 full_scissor.top, 
                 full_scissor.right - full_scissor.left,
                 full_scissor.bottom - full_scissor.top);
-}
-
-// Hash Display
-Text *hash_text;
-void Hash_CreateText()
-{
-    static u8 hash_plinks[] = {GAMEPLINK_SYS, GAMEPLINK_RIDER, GAMEPLINK_MACHINE, GAMEPLINK_ENEMY, GAMEPLINK_ITEM};
-    static char *plink_names[] = {"RNG", "Rider", "Machine", "Enemy", "Item"};
-
-    // display test string
-    Text *t = Hoshi_CreateScreenText();
-    t->kerning = 1;
-    t->use_aspect = 1;
-    t->viewport_scale = (Vec2){0.5, 0.5};
-    t->trans = (Vec3){0, 32 * t->viewport_scale.Y , 0};
-    t->aspect = (Vec2){320, 32 * (GetElementsIn(hash_plinks) + 1)}; // was 320, 32
-    t->viewport_color = (GXColor){0, 0, 0, 128};
-
-
-    // full hash
-    u32 all_plinks = 0;
-    for (int i = 0; i < GetElementsIn(hash_plinks); i++)
-        all_plinks |= (1 << hash_plinks[i]);
-    Text_AddSubtext(t, 0, 32 * 0, "All Hash: %08X", Replay_HashGameState(all_plinks));
-
-    for (int i = 0; i < GetElementsIn(hash_plinks); i++)
-    {    
-        u32 hash = Replay_HashGameState((1 << hash_plinks[i]));
-        Text_AddSubtext(t, 0, 32 * (i + 1), "%s Hash: %08X", plink_names[i], hash);
-    }
-
-    hash_text = t;
-}
-void Hash_DestroyText()
-{
-    if (hash_text)
-        Text_Destroy(hash_text);
-}
-void Hash_Update(GOBJ *g)
-{
-    // update text
-    Hash_DestroyText();
-    Hash_CreateText();
-}
-void Hash_Init()
-{
-    hash_text = 0;
-    GOBJ_EZCreator(0, 0, 0, 0, 0, 0, 0, Hash_Update, stc_gobj_init_data->proc_pri_max - 1, 0, 0, 0);
 }
 
 // frame budget test

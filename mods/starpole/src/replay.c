@@ -43,6 +43,7 @@ void Replay_CreateFrameText()
 
     frame_text = t;
 }
+// desync alert
 Text *desync_text;
 void Replay_CreateDesyncText(int frame)
 {
@@ -62,6 +63,42 @@ void Replay_CreateDesyncText(int frame)
 
     desync_text = t;
 }
+// hash
+Text *hash_text;
+void Hash_CreateText()
+{
+    static u8 hash_plinks[] = {GAMEPLINK_SYS, GAMEPLINK_RIDER, GAMEPLINK_MACHINE, GAMEPLINK_ENEMY, GAMEPLINK_ITEM};
+    static char *plink_names[] = {"RNG", "Rider", "Machine", "Enemy", "Item"};
+
+    // display test string
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->viewport_scale = (Vec2){0.25, 0.25};
+    t->trans = (Vec3){0, 32 * t->viewport_scale.Y , 0};
+    t->aspect = (Vec2){320, 32 * (GetElementsIn(hash_plinks) + 1)}; // was 320, 32
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+
+    // full hash
+    u32 all_plinks = 0;
+    for (int i = 0; i < GetElementsIn(hash_plinks); i++)
+        all_plinks |= (1 << hash_plinks[i]);
+    Text_AddSubtext(t, 0, 32 * 0, "All Hash: %08X", Replay_HashGameState(all_plinks));
+
+    for (int i = 0; i < GetElementsIn(hash_plinks); i++)
+    {    
+        u32 hash = Replay_HashGameState((1 << hash_plinks[i]));
+        Text_AddSubtext(t, 0, 32 * (i + 1), "%s Hash: %08X", plink_names[i], hash);
+    }
+
+    hash_text = t;
+}
+void Hash_DestroyText()
+{
+    if (hash_text)
+        Text_Destroy(hash_text);
+}
+// player positions
 Text *debug_text[4];
 void Replay_Debug(GOBJ *g)
 {
@@ -153,6 +190,10 @@ void Replay_Debug(GOBJ *g)
 
         this_ply++;
     }
+
+    // update hash text onscreen
+    Hash_DestroyText();
+    Hash_CreateText();
 }
 
 s8 denormalize_signed(float val)
@@ -841,7 +882,7 @@ void Replay_On3DLoadStart()
     }
 
     // debug display
-    if (1)
+    if (REPLAY_DEBUG)
     {
         for (int i = 0; i < GetElementsIn(debug_text); i++)
             debug_text[i] = 0;

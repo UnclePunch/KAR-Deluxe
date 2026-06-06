@@ -60,7 +60,6 @@ void On3DLoadEnd()
 {
     Audio_InitLog();
     Netplay_CreatePlayerTags();
-    Hash_Init();
     // StressTest_Create();
 }
 

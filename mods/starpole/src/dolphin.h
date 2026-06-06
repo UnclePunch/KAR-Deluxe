@@ -19,10 +19,6 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass);
 
 void PadAlarm_Remove();
 
-void Hash_CreateText();
-void Hash_DestroyText();
-void Hash_Init();
-
 void StressTest_Create();
 
 

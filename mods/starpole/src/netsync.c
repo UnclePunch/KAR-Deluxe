@@ -530,7 +530,7 @@ void Audio_ExpireLogs()
 {
     if (!g_audio_log.enable) 
         return;
-                
+    
     u32 this_frame = Gm_GetGameData()->update.engine_frames;
     NetLog("SFX: checking to expire logs on engine frame %d with confirm frame %d\n", this_frame, g_rollback.confirm_frame); 
 
@@ -552,8 +552,7 @@ void Audio_ExpireLogs()
     // remove stop events
     for (int i = 0; i < GetElementsIn(g_audio_log.sfx_stop); i++)
     {
-        if (g_rollback.confirm_frame > g_audio_log.sfx_stop[i].frame && 
-            this_frame >= g_audio_log.sfx_stop[i].frame)
+        if (g_rollback.confirm_frame >= g_audio_log.sfx_stop[i].frame)
         {
             NetLog("SFX: expiring sfx STOP instance %08X for sg (%d) on frame %d\n", 
                 g_audio_log.sfx_stop[i].fgm_instance, 
@@ -567,8 +566,7 @@ void Audio_ExpireLogs()
     // remove bgm events
     for (int i = 0; i < GetElementsIn(g_audio_log.bgm); i++)
     {
-        if (g_rollback.confirm_frame > g_audio_log.bgm[i].frame && 
-            this_frame >= g_audio_log.bgm[i].frame)
+        if (g_rollback.confirm_frame >= g_audio_log.bgm[i].frame)
         {
             NetLog("SFX: expiring bgm kind %d for entrynum %08X on frame %d\n", 
                 g_audio_log.bgm[i].event_kind, 
@@ -581,7 +579,7 @@ void Audio_ExpireLogs()
 }
 void Audio_Cleanup()
 {
-    if (Scene_GetCurrentMinor() != MNRKIND_3D)
+    if (!(Scene_GetCurrentMinor() == MNRKIND_3D && g_audio_log.enable))
         return;
 
     // on the final sim

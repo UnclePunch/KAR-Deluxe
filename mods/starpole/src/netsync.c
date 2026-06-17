@@ -846,9 +846,9 @@ void Audio_ValidateAX()
                     g_audio_log.sfx_start[i].resim_idx,
                     g_audio_log.sfx_start[i].is_replayed);
 
-            if (//g_audio_log.sfx_start[i].frame >= g_rollback.confirm_frame &&    // sound exists in a prediction branch
+            if (g_audio_log.sfx_start[i].frame >= g_rollback.confirm_frame &&   // sound exists in a prediction branch
                 g_audio_log.sfx_start[i].resim_idx != g_rollback.resim_idx &&   // sound was not just played in this prediction branch
-                !g_audio_log.sfx_start[i].is_replayed &&                        // sound did not replayed on this resim
+                !g_audio_log.sfx_start[i].is_replayed &&                        // sound did not replay on this resim
                 !Audio_CheckStopLog(g_audio_log.sfx_start[i].fgm_instance))
             {
                 NetLog("SFX: stopping sfx %08X with fgm instance %08X from frame %d due to not being replayed on resim\n", 

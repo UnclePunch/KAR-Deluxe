@@ -17,6 +17,8 @@ void Replay_DisplayString();
 void Replay_Init();
 void Replay_OnSceneChange();
 
+void Record_OnFrameEnd();
+void Playback_OnFrameEnd();
 
 void Hash_CreateText();
 void Hash_DestroyText();

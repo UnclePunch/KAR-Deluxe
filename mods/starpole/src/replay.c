@@ -425,6 +425,17 @@ CLEANUP:
     OSRestoreInterrupts(enable);
     return result;
 }
+void Replay_OnFrameEnd(GOBJ *g)
+{
+    // dont run on game pause
+    if (Gm_CheckPauseKind(PAUSEKIND_GAME))
+        return;
+
+    if (replay_mode == REPLAY_RECORD)
+        Record_OnFrameEnd();
+    else if (replay_mode == REPLAY_PLAYBACK)
+        Playback_OnFrameEnd();
+}
 
 void Record_OnFrameStart()
 {
@@ -453,7 +464,7 @@ void Record_OnRiderInput(RiderData *rd)
 
     starpole_buf->frame.ply_num++;
 }
-void Record_OnFrameEnd(GOBJ *g)
+void Record_OnFrameEnd()
 {
     starpole_buf->frame.frame_idx = frame_idx;
     starpole_buf->frame.hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
@@ -521,7 +532,7 @@ void Playback_OnRiderInput(RiderData *rd)
     OSReport("Replay: WARNING no frame data found for ply %d on frame %d (%p)\n", rd->ply, frame_idx, &starpole_buf->frame);
     // assert("0");
 }
-void Playback_OnFrameEnd(GOBJ *g)
+void Playback_OnFrameEnd()
 {
     // OSReport("Frame %d:\n", frame_idx);
 
@@ -616,8 +627,8 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
 // Injection to fetch the frame
 void Replay_OnFrameStart()
 {
-    // dont run on game pauses (this includes explodes)
-    if (Gm_GetGameData()->update.pause_kind)
+    // dont run on game pauses
+    if (Gm_CheckPauseKind(PAUSEKIND_GAME))
         return;
 
     if (replay_mode == REPLAY_PLAYBACK)
@@ -857,21 +868,17 @@ void Replay_On3DLoadStart()
     }
 
     // create a gobj to transmit per frame match data
-    GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_1, 0,
+    GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_SYS, 0,
                              0, 0,
                              0, 0,
                              0, 0,
                              0, 0, 0);
 
     frame_idx = 0;
+    GObj_AddProc(g, Replay_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
 
-    if (replay_mode == REPLAY_RECORD)
+    if (replay_mode == REPLAY_PLAYBACK)
     {
-        GObj_AddProc(g, Record_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
-    }
-    else if (replay_mode == REPLAY_PLAYBACK)
-    {
-        GObj_AddProc(g, Playback_OnFrameEnd, stc_gobj_init_data->proc_pri_max - 1);
 
         // use live view camera
         GameData *gd = Gm_GetGameData();

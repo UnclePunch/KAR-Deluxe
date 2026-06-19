@@ -6,7 +6,7 @@
     
 #define NETPLAY_DEBUG 0
 #define MAX_ROLLBACK_FRAMES (5)
-#define NET_LOG (1)
+#define NET_LOG (0)
 
 void NetLog(const char* fmt, ...);
 #if NET_LOG==0
@@ -152,8 +152,10 @@ void Netsync_OnFrameEnd();
 void Audio_InitLog();
 void Audio_UpdateSFXLog();
 void Audio_UpdateLog();
-void Audio_ValidateAX();
+void Audio_ValidateAX(u32 rollback_start_frame);
 void Audio_ExpireLogs();
 void Audio_Debug();
+
+int Audio_CheckStopLog(FGMInstance fgm);
 
 #endif

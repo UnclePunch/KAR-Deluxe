@@ -136,7 +136,7 @@ void Netplay_OverridePlayerView()
     {
         for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
             gd->ply_view_desc[i].flag = PLYCAM_OFF;
-        
+                    
         // plugged in and not present, give us live cam to spectate with
         int held = stc_engine_pads[dolphin_data->netplay.ply].held;
         if ((held & (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R)) != (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R))

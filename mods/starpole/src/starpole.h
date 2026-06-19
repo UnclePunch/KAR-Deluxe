@@ -3,6 +3,7 @@
 
 #include "exi.h"
 #include "game.h"
+#include "hoshi/mod.h"
 
 #define STARPOLE_VERSION_MAJOR (1)
 #define STARPOLE_VERSION_MINOR (0)
@@ -15,15 +16,19 @@
 #define STARPOLE_ASSET_FILE "IfStarpole.dat"
 #define STARPOLE_ASSET_SYMBOL "ScInfStarpole_scene_models"
 
+#define STARPOLE_MODSAVE_SIZE (512)
+
 typedef enum
 {
     STARPOLE_CMD_ID,
     STARPOLE_CMD_TEST,
 
+    STARPOLE_CMD_MODSAVE,
     STARPOLE_CMD_MATCH,
     STARPOLE_CMD_FRAME,
     STARPOLE_CMD_END,
     
+    STARPOLE_CMD_REQMODSAVE,
     STARPOLE_CMD_REQMATCH,
     STARPOLE_CMD_REQFRAME,
 
@@ -57,6 +62,14 @@ typedef struct
         char usernames[4][31];
     } netplay;
 } StarpoleDataDolphin;
+
+
+typedef struct
+{
+    u16 num;
+    u16 size;
+    u8 data[];
+} StarpoleDataModSave;
 
 typedef struct
 {
@@ -105,7 +118,7 @@ typedef struct
     }ply[4];
 } StarpoleDataFrame;
 #pragma pack(pop)
-
+        
 typedef struct
 {
     union 
@@ -113,6 +126,7 @@ typedef struct
         StarpoleDataTest test;
         StarpoleDataMatch match;
         StarpoleDataFrame frame;
+        StarpoleDataModSave mod_save;
     };
 } StarpoleBuffer;
 

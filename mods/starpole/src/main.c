@@ -83,6 +83,7 @@ ModDesc mod_desc = {
     .name = "Starpole Communication",
     .version.major = STARPOLE_VERSION_MAJOR,
     .version.minor = STARPOLE_VERSION_MINOR,
+    .affects_gameplay = false,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .On3DLoadStart = On3DLoadStart,

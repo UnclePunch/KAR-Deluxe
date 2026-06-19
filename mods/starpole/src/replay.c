@@ -28,6 +28,8 @@ int frame_idx;
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_NONE;
 
+StarpoleDataModSave *current_mod_save;      // used to save the current mod settings when playing back a replay.
+
 static Text *frame_text;
 void Replay_CreateFrameText()
 {
@@ -331,6 +333,28 @@ u32 Replay_HashGameState(u32 kind)
     return hash;
 }
 
+int Replay_SendModSave()
+{
+    int result = 0;
+    int enable = OSDisableInterrupts();
+    
+    // notify EXI of incoming data
+    if (Starpole_Imm(STARPOLE_CMD_MODSAVE, 0) == -1)
+    {
+        OSReport("Replay: error sending mod saves\n");
+        goto CLEANUP;
+    }
+
+    // send it
+    if (!Starpole_DMA(starpole_buf, sizeof(starpole_buf->mod_save) + starpole_buf->mod_save.size, EXI_WRITE))
+        goto CLEANUP;
+
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
+}
 int Replay_SendMatch()
 {
     int result = 0;
@@ -381,6 +405,28 @@ int Replay_SendEnd()
     return 1;
 }
 
+int Replay_ReqModSave()
+{
+    int result = 0;
+    int enable = OSDisableInterrupts();
+
+    // request data
+    if (Starpole_Imm(STARPOLE_CMD_REQMODSAVE, 0) <= 0)
+    {
+        OSReport("Replay: error receiving mod save\n");
+        goto CLEANUP;
+    }
+
+    // receive it
+    if (!Starpole_DMA(starpole_buf, starpole_buf->mod_save.size, EXI_READ))
+        goto CLEANUP;
+
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
+}
 int Replay_ReqMatch()
 {
     int result = 0;
@@ -478,7 +524,7 @@ void Record_OnFrameEnd()
 }
 
 void Playback_OnFrameStart()
-{
+{   
     // request frame
     if (!Replay_ReqFrame(frame_idx))
     {
@@ -655,6 +701,13 @@ void Playback_BackupMatch()
 {
     if (replay_mode == REPLAY_RECORD)
     {
+        // send mod data
+        starpole_buf->mod_save.size = Hoshi_GetBackupSize();
+        if (starpole_buf->mod_save.size > STARPOLE_MODSAVE_SIZE)
+            assert("Hoshi_GetBackupSize() > STARPOLE_MODSAVE_SIZE");
+        starpole_buf->mod_save.num = Hoshi_BackupModSave(starpole_buf->mod_save.data);
+        Replay_SendModSave();
+        
         GameData *gp = Gm_GetGameData();
 
         // calculate size of frame
@@ -705,32 +758,50 @@ int Playback_RestoreMatch()
 {
     if (replay_mode == REPLAY_PLAYBACK)
     {
-        // copy to game struct
-        GameData *gp = Gm_GetGameData();
-
-        if (REPLAY_SYNCRNG)
-            *hsd_rand_seed = starpole_buf->match.rng_seed;
-
-        gp->city.stadium_kind = starpole_buf->match.stadium_kind;
-        gp->stage_kind = starpole_buf->match.stage_kind;
-        // gp->city_kind = starpole_buf->match.city_kind;
-        // gp->time_seconds = starpole_buf->match.time_seconds;
-        // gp->xaa6_20 = 1;
-        // gp->xaa6_10 = 1;
-        // gp->tempo = starpole_buf->match.tempo;
-        // gp->is_enable_events = starpole_buf->match.is_enable_events;
-        for (int i = 0; i < GetElementsIn(gp->city.ply_stats); i++)
+        if (Replay_ReqModSave())
         {
-            gp->city.is_bike[i] = starpole_buf->match.stadium.is_bike[i];
-            gp->city.machine_kind[i] = starpole_buf->match.stadium.machine_kind[i];
+            // backup current mod save data
+            current_mod_save->size = Hoshi_GetBackupSize();
+            if (current_mod_save->size > STARPOLE_MODSAVE_SIZE)
+                assert("Hoshi_GetBackupSize() > STARPOLE_MODSAVE_SIZE");
+            current_mod_save->num = Hoshi_BackupModSave(current_mod_save->data);
 
-            for (int j = 0; j < GetElementsIn(gp->city.ply_stats[0]); j++)
-            {
-                gp->city.ply_stats[i][j] = (float)starpole_buf->match.stadium.ply_stats[i][j];
-            }
+            // restore replay's mod save data
+            Hoshi_RestoreModSave(starpole_buf->mod_save.data, starpole_buf->mod_save.num);
         }
-        memcpy(&gp->city_kind, starpole_buf->match.misc, sizeof(starpole_buf->match.misc));
-        memcpy(gp->ply_desc, starpole_buf->match.ply_desc, sizeof(starpole_buf->match.ply_desc));
+        else
+            current_mod_save->size = 0;
+
+        // restore match data
+        if (Replay_ReqMatch())
+        {
+            // copy to game struct
+            GameData *gp = Gm_GetGameData();
+
+            if (REPLAY_SYNCRNG)
+                *hsd_rand_seed = starpole_buf->match.rng_seed;
+
+            gp->city.stadium_kind = starpole_buf->match.stadium_kind;
+            gp->stage_kind = starpole_buf->match.stage_kind;
+            // gp->city_kind = starpole_buf->match.city_kind;
+            // gp->time_seconds = starpole_buf->match.time_seconds;
+            // gp->xaa6_20 = 1;
+            // gp->xaa6_10 = 1;
+            // gp->tempo = starpole_buf->match.tempo;
+            // gp->is_enable_events = starpole_buf->match.is_enable_events;
+            for (int i = 0; i < GetElementsIn(gp->city.ply_stats); i++)
+            {
+                gp->city.is_bike[i] = starpole_buf->match.stadium.is_bike[i];
+                gp->city.machine_kind[i] = starpole_buf->match.stadium.machine_kind[i];
+
+                for (int j = 0; j < GetElementsIn(gp->city.ply_stats[0]); j++)
+                {
+                    gp->city.ply_stats[i][j] = (float)starpole_buf->match.stadium.ply_stats[i][j];
+                }
+            }
+            memcpy(&gp->city_kind, starpole_buf->match.misc, sizeof(starpole_buf->match.misc));
+            memcpy(gp->ply_desc, starpole_buf->match.ply_desc, sizeof(starpole_buf->match.ply_desc));
+        }
 
         return 1;
     }
@@ -821,6 +892,9 @@ void Replay_Init()
     // temp patches
     float *reduce_ratio = (float *)0x805df274; // fullscreen live cam
     (*reduce_ratio) = 0;
+
+    // allocate mod save data backup
+    current_mod_save = HSD_MemAlloc(sizeof(StarpoleDataModSave) + STARPOLE_MODSAVE_SIZE);
 }
 
 // Mod Callbacks
@@ -854,19 +928,6 @@ void Replay_On3DLoadStart()
         return;
     }
 
-    // send/receive initial match data
-    int result;
-    if (replay_mode == REPLAY_PLAYBACK)
-        result = Replay_ReqMatch();
-    else
-        result = Replay_SendMatch();
-
-    if (!result)
-    {
-        replay_mode = REPLAY_NONE;
-        return;
-    }
-
     // create a gobj to transmit per frame match data
     GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_SYS, 0,
                              0, 0,
@@ -879,13 +940,16 @@ void Replay_On3DLoadStart()
 
     if (replay_mode == REPLAY_PLAYBACK)
     {
-
-        // use live view camera
         GameData *gd = Gm_GetGameData();
+        
+        // splitscreen camera for all humans
         for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
-            gd->ply_view_desc[i].flag = PLYCAM_OFF;
-
-        gd->ply_view_desc[0].flag = PLYCAM_ON;
+            gd->ply_view_desc[i].flag = (starpole_buf->match.ply_desc[i].p_kind == PKIND_HMN) ? PLYCAM_ON : PLYCAM_OFF;
+        
+        // // use live view camera
+        // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+        //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
+        // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
     }
 
     // debug display
@@ -909,4 +973,9 @@ void Replay_On3DExit()
 
     if (replay_mode == REPLAY_RECORD)
         Replay_SendEnd();
+    else if (replay_mode == REPLAY_PLAYBACK)
+    {
+        if (current_mod_save->size > 0)
+            Hoshi_RestoreModSave(current_mod_save->data, current_mod_save->num);
+    }
 }

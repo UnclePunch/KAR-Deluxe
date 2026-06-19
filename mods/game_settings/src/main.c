@@ -230,6 +230,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = true,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

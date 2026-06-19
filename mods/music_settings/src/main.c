@@ -51,6 +51,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = false,
     .save_size = sizeof(struct MusicSettingsSave),
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

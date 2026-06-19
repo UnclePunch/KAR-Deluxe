@@ -28,6 +28,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 0,
+    .affects_gameplay = false,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
 };

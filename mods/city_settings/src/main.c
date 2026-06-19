@@ -53,6 +53,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = true,
     .save_size = sizeof(struct CitySettingsSave),
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

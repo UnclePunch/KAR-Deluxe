@@ -16,6 +16,7 @@
 #include "replay.h"
 #include "dolphin.h"
 #include "netsync.h"
+#include "hash.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -26,10 +27,11 @@ HSD_Pad *sys_pads = (HSD_Pad *)0x8058b0e4;
 void (*HSD_InsertIntoPadQueue)(PADStatus *status, int unk) = (void *)0x80412480;
 void (*HSD_PadConsume)() = (void *)0x80062978;
 
-extern int is_netplay;
 extern StarpoleDataDolphin *dolphin_data;
 
 DebugPadData g_debug_pad = {.head = 0};
+
+int g_state_hash = 0;
 
 AudioLog g_audio_log;
 RollbackLog g_rollback;
@@ -180,8 +182,9 @@ int Netplay_SendInputs(PADStatus *status)
     u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
 
     // copy pad data to aligned buffer
-    char buffer[sizeof(PADStatus) * 4] __attribute__((aligned(32)));
-    memcpy(buffer, status, sizeof(buffer));
+    StarpoleDataInputs buffer __attribute__((aligned(32)));
+    buffer.hash = g_state_hash;
+    memcpy(buffer.status, status, sizeof(buffer.status));
 
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETPADSEND, this_frame_idx) <= 0)
@@ -191,7 +194,7 @@ int Netplay_SendInputs(PADStatus *status)
     }
 
     // send it
-    if (!Starpole_DMA((StarpoleBuffer *)buffer, sizeof(buffer), EXI_WRITE))
+    if (!Starpole_DMA((StarpoleBuffer *)&buffer, sizeof(buffer), EXI_WRITE))
         goto CLEANUP;
 
     result = 1;
@@ -325,7 +328,7 @@ void Netplay_OnFrameStart(int loop_num)
     else
     {
         // use this frames inputs for non-netplay
-        PADStatus *status = (dolphin_data->netplay.is) ? g_remote_status[loop_num] : g_local_status;
+        PADStatus *status = (Dolphin_IsNetplay()) ? g_remote_status[loop_num] : g_local_status;
 
         // insert the pad and consume it
         HSD_InsertIntoPadQueue(status, 0);
@@ -930,6 +933,10 @@ void Netsync_OnFrameEnd()
 {
     Audio_Cleanup();
     Netsync_UpdateFrameText();
+
+    // get frame hash
+    int hash_flags = (Scene_GetCurrentMinor() == MNRKIND_3D) ? (HASH_ALL) : (HASH_SYS);
+    g_state_hash = Hash_GameState(hash_flags);
 
     // bp();
     // int index = (stc_bgm_pid[1] & AXDRIVER_PIDMASK);

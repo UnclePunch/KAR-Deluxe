@@ -10,7 +10,6 @@
 #include "dolphin.h"
 
 extern StarpoleBuffer *starpole_buf;
-extern int is_netplay;
 extern StarpoleDataDolphin *dolphin_data;
 OSThread playback_thread;
 
@@ -48,7 +47,7 @@ int Playback_CheckForMatch()
 // Thread
 void Playback_Listen()
 {
-    if (!Starpole_IsPresent() || !REPLAY_ENABLE || (is_netplay && !DOLPHIN_DEBUG))
+    if (!Starpole_IsPresent() || !REPLAY_ENABLE || (Dolphin_IsNetplay() && !DOLPHIN_DEBUG))
         return;
 
     if (Playback_CheckForMatch())

@@ -53,6 +53,12 @@ typedef struct
 
 typedef struct
 {
+    u32 hash;
+    PADStatus status[4];
+} StarpoleDataInputs;
+
+typedef struct
+{
     float aspect_mult;
     struct
     {
@@ -62,7 +68,6 @@ typedef struct
         char usernames[4][31];
     } netplay;
 } StarpoleDataDolphin;
-
 
 typedef struct
 {
@@ -124,6 +129,7 @@ typedef struct
     union 
     {
         StarpoleDataTest test;
+        StarpoleDataInputs inputs;
         StarpoleDataMatch match;
         StarpoleDataFrame frame;
         StarpoleDataModSave mod_save;

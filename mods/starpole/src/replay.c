@@ -17,8 +17,10 @@
 #include "hoshi/screen_cam.h"
 
 #include "starpole.h"
+#include "dolphin.h"
 #include "replay.h"
 #include "playback.h"
+#include "hash.h"
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -85,11 +87,11 @@ void Hash_CreateText()
     u32 all_plinks = 0;
     for (int i = 0; i < GetElementsIn(hash_plinks); i++)
         all_plinks |= (1 << hash_plinks[i]);
-    Text_AddSubtext(t, 0, 32 * 0, "All Hash: %08X", Replay_HashGameState(all_plinks));
+    Text_AddSubtext(t, 0, 32 * 0, "All Hash: %08X", Hash_GameState(all_plinks));
 
     for (int i = 0; i < GetElementsIn(hash_plinks); i++)
     {    
-        u32 hash = Replay_HashGameState((1 << hash_plinks[i]));
+        u32 hash = Hash_GameState((1 << hash_plinks[i]));
         Text_AddSubtext(t, 0, 32 * (i + 1), "%s Hash: %08X", plink_names[i], hash);
     }
 
@@ -213,124 +215,6 @@ u8 denormalize_unsigned(float val)
 float normalize_unsigned(u8 val)
 {
     return (float)val / 140.0f;
-}
-
-u32 Replay_HashGameState(u32 kind)
-{
-    int object_num;
-
-    typedef struct
-    {
-        u16 kind;
-        u16 state;
-        u16 frame;
-        Vec3 pos;
-        Vec3 forward;
-    } ObjectState;
-    
-    typedef struct
-    {
-        int rng_seed;
-        ObjectState objects[];
-    } GameState;
-
-    // count number of objects to backup
-    object_num = 0;
-
-    if (kind & (1 << GAMEPLINK_RIDER))
-    {
-        for (GOBJ *r = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; r; r = r->next)
-            object_num++;
-    }
-
-    if (kind & (1 << GAMEPLINK_MACHINE))
-    {
-        for (GOBJ *m = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; m; m = m->next)
-        object_num++;
-    }
-
-    if (kind & (1 << GAMEPLINK_ENEMY))
-    {
-        for (GOBJ *e = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; e; e = e->next)
-            object_num++;
-    }
-
-    if (kind & (1 << GAMEPLINK_ITEM))
-    {
-        for (GOBJ *i = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; i; i = i->next)
-        object_num++;
-    }
-
-    if (object_num == 0 && !(kind & (1 << GAMEPLINK_SYS)))
-        return 0;
-
-    // alloc temp buffer
-    int state_size = sizeof(GameState) + sizeof(ObjectState) * object_num;
-    GameState *state = HSD_MemAlloc(state_size);
-    memset(state, 0, state_size);
-    object_num = 0;
-
-    if (kind & (1 << GAMEPLINK_SYS))
-        state->rng_seed = *hsd_rand_seed;
-
-    // begin collecting data
-    if (kind & (1 << GAMEPLINK_RIDER))
-    {
-        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_RIDER]; g; g = g->next)
-        {
-            RiderData *rd = g->userdata;
-            ObjectState *this_state = &state->objects[object_num++];
-            this_state->kind = rd->kind;
-            this_state->state = rd->state_idx;
-            this_state->frame = rd->state_frame;
-            this_state->pos = rd->pos;
-            this_state->forward = rd->forward;
-        }
-    }
-    if (kind & (1 << GAMEPLINK_MACHINE))
-    {
-        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_MACHINE]; g; g = g->next)
-        {
-            MachineData *gp = g->userdata;
-            ObjectState *this_state = &state->objects[object_num++];
-            this_state->kind = gp->kind;
-            this_state->state = 0;
-            this_state->frame = 0;
-            this_state->pos = gp->pos;
-            this_state->forward = gp->forward;
-        }
-    }
-    if (kind & (1 << GAMEPLINK_ENEMY))
-    {
-        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ENEMY]; g; g = g->next)
-        {
-            EnemyData *gp = g->userdata;
-            ObjectState *this_state = &state->objects[object_num++];
-            this_state->kind = gp->kind;
-            this_state->state = gp->state_idx;
-            this_state->frame = gp->state_frame;
-            this_state->pos = gp->pos;
-            this_state->forward = gp->pos;
-        }
-    }
-    if (kind & (1 << GAMEPLINK_ITEM))
-    {
-        for (GOBJ *g = (*stc_gobj_lookup)[GAMEPLINK_ITEM]; g; g = g->next)
-        {
-            ItemData *gp = g->userdata;
-            ObjectState *this_state = &state->objects[object_num++];
-            this_state->kind = gp->kind;
-            this_state->state = gp->state;
-            this_state->frame = gp->state_frame;
-            this_state->pos = gp->pos;
-            this_state->forward = gp->forward;
-        }
-    }
-
-    u32 hash = hash_32(state, state_size);
-    HSD_Free(state);
-
-    return hash;
 }
 
 int Replay_SendModSave()
@@ -513,7 +397,7 @@ void Record_OnRiderInput(RiderData *rd)
 void Record_OnFrameEnd()
 {
     starpole_buf->frame.frame_idx = frame_idx;
-    starpole_buf->frame.hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
+    starpole_buf->frame.hash = Hash_GameState(HASH_ALL);
 
     Replay_SendFrame(frame_idx);
 
@@ -588,10 +472,9 @@ void Playback_OnFrameEnd()
     if (frame_idx > 0)
     {
         // desync detection
-        u32 hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
+        u32 hash = Hash_GameState(HASH_ALL);
         if (hash != starpole_buf->frame.hash)
         {
-            Replay_CreateDesyncText(frame_idx);
             if (!desync_text)
             {
                 OSReport("Replay: ERROR hash mismatch on frame %d!\n", frame_idx);
@@ -971,6 +854,17 @@ void Replay_On3DLoadStart()
     frame_text = 0;
 
     // Replay_CreateFrameText();
+}
+void Replay_On3DLoadEnd()
+{
+    if (replay_mode == REPLAY_PLAYBACK)
+    {
+        // create player tags from replay if they exist
+        StarpoleDataDolphin dolphin_data __attribute__((aligned(32)));
+        if (Dolphin_ReqData(&dolphin_data))
+            Netplay_CreatePlayerTags(&dolphin_data);
+    }
+
 }
 void Replay_On3DExit()
 {

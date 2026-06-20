@@ -25,6 +25,9 @@ void OnBoot()
 {
     Starpole_Init();
     Dolphin_Init();
+    Replay_Init();
+    Playback_Init();
+    Netsync_Init();
 
     Hoshi_ExportMod((void *)&starpole_export);
 
@@ -53,13 +56,14 @@ void OnFrameEnd()
 void On3DLoadStart()
 {
     Replay_On3DLoadStart();
-    Netplay_OverridePlayerView();
+    Netplay_On3DLoadStart();
     Netsync_On3DLoadStart();
 }
 void On3DLoadEnd()
 {
     Audio_InitLog();
-    Netplay_CreatePlayerTags();
+    Netplay_On3DLoadEnd();
+    Replay_On3DLoadEnd();
     // StressTest_Create();
 }
 

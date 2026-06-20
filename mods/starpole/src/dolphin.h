@@ -11,9 +11,12 @@ typedef struct PlayerTagViewData
 } PlayerTagViewData;
 
 void Dolphin_Init();
+int Dolphin_ReqData(StarpoleDataDolphin *data);
+int Dolphin_IsNetplay();
+
 void Netplay_Init();
-void Netplay_OverridePlayerView();
-void Netplay_CreatePlayerTags();
+void Netplay_OverridePlayerView(StarpoleDataDolphin *dolphin_data);
+void Netplay_CreatePlayerTags(StarpoleDataDolphin *dolphin_data);
 void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp);
 void Netplay_PlayerTagGX(GOBJ *g, int pass);
 
@@ -21,5 +24,7 @@ void PadAlarm_Remove();
 
 void StressTest_Create();
 
+void Netplay_On3DLoadStart();
+void Netplay_On3DLoadEnd();
 
 #endif

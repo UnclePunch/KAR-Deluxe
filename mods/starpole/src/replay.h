@@ -12,6 +12,7 @@ typedef enum
 int Replay_ReqMatch();
 
 void Replay_On3DLoadStart();
+void Replay_On3DLoadEnd();
 void Replay_On3DExit();
 void Replay_DisplayString();
 void Replay_Init();
@@ -22,5 +23,3 @@ void Playback_OnFrameEnd();
 
 void Hash_CreateText();
 void Hash_DestroyText();
-
-u32 Replay_HashGameState(u32 kind);

@@ -20,11 +20,11 @@
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
-int is_netplay = 0;
-
 extern StarpoleExport starpole_export; 
 StarpoleDataDolphin *dolphin_data;
 extern ReplayMode replay_mode;
+
+int is_dolphin = 0;
 
 // EXI
 int Dolphin_ReqData(StarpoleDataDolphin *data)
@@ -35,7 +35,8 @@ int Dolphin_ReqData(StarpoleDataDolphin *data)
     // request data
     if (Starpole_Imm(STARPOLE_CMD_DOLPHIN, 0) <= 0)
     {
-        OSReport("Starpole: Dolphin not detected.\n");
+        OSReport("Starpole: Dolphin not detected.\n");    
+
         goto CLEANUP;
     }
 
@@ -58,7 +59,8 @@ void Dolphin_Init()
 
     // alloc buffer
     dolphin_data = HSD_MemAlloc(sizeof(*dolphin_data));
-
+    is_dolphin = 0;
+    
     if (DOLPHIN_DEBUG)
     {
         static char *test_names[] = {
@@ -68,6 +70,7 @@ void Dolphin_Init()
             "ThePulsarLegend",
         };
 
+        is_dolphin = 1;
         dolphin_data->aspect_mult = 1;
         dolphin_data->netplay.is = 1;
         dolphin_data->netplay.ply = 0;
@@ -79,6 +82,7 @@ void Dolphin_Init()
     // get data
     if (DOLPHIN_DEBUG || Dolphin_ReqData(dolphin_data))
     {
+        is_dolphin = 1;
         OSReport("Starpole: Dolphin detected.\n");
         
         // store pointer to export data
@@ -90,17 +94,9 @@ void Dolphin_Init()
         else
             OSReport("Starpole: Netplay not detected.\n");
     }
-
-    Replay_Init();
-    Playback_Init();
-    Netsync_Init();
-
 }
-
 void Netplay_Init()
 {
-    is_netplay = 1;
-
     OSReport("Starpole: Netplay detected.\n");
 
     if (dolphin_data->netplay.ply != -1)
@@ -118,9 +114,17 @@ void Netplay_Init()
     // PadAlarm_Remove();
 }
 
-// Fullscreen
-void Netplay_OverridePlayerView()
+int Dolphin_IsNetplay()
 {
+    return (is_dolphin && dolphin_data->netplay.is);
+}
+
+// Fullscreen
+void Netplay_OverridePlayerView(StarpoleDataDolphin *data)
+{
+    if (!data->netplay.is)
+        return;
+
     GameData *gd = Gm_GetGameData();
 
     // if (replay_mode == REPLAY_PLAYBACK)
@@ -129,27 +133,24 @@ void Netplay_OverridePlayerView()
     //     return;
     // }
 
-    if (!is_netplay)
-        return;
-
-    if (dolphin_data->netplay.ply != -1 && Gm_GetGameData()->ply_desc[dolphin_data->netplay.ply].p_kind == PKIND_HMN)
+    if (data->netplay.ply != -1 && Gm_GetGameData()->ply_desc[data->netplay.ply].p_kind == PKIND_HMN)
     {
         for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
             gd->ply_view_desc[i].flag = PLYCAM_OFF;
                     
         // plugged in and not present, give us live cam to spectate with
-        int held = stc_engine_pads[dolphin_data->netplay.ply].held;
+        int held = stc_engine_pads[data->netplay.ply].held;
         if ((held & (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R)) != (PAD_BUTTON_A | PAD_TRIGGER_L | PAD_TRIGGER_R))
             gd->ply_view_desc[dolphin_data->netplay.ply].flag = PLYCAM_ON;
     }
 }
 
 // Player Tags
-void Netplay_CreatePlayerTags()
+void Netplay_CreatePlayerTags(StarpoleDataDolphin *data)
 {
-    if (!is_netplay)
+    if (!data->netplay.is)
         return;
-
+        
     Game3dData *g3d = Gm_Get3dData();
     int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUDORTHO, 1, 0);
 
@@ -179,7 +180,7 @@ void Netplay_CreatePlayerTags()
                 continue;
 
             char name[NETPLAY_TAGMAX + 1];
-            strncpy(name, dolphin_data->netplay.usernames[ply], NETPLAY_TAGMAX);
+            strncpy(name, data->netplay.usernames[ply], NETPLAY_TAGMAX);
             name[NETPLAY_TAGMAX] = '\0';
 
             // create a name for them
@@ -339,4 +340,20 @@ void PadAlarm_Remove()
 
     // // move padread to beginning of new frame
     // CODEPATCH_HOOKAPPLY(0x80006b98);
+}
+
+void Netplay_On3DLoadStart()
+{
+    if (!Dolphin_IsNetplay())
+        return;
+
+    Netplay_OverridePlayerView(dolphin_data);
+}
+
+void Netplay_On3DLoadEnd()
+{
+    if (!Dolphin_IsNetplay())
+        return;
+
+    Netplay_CreatePlayerTags(dolphin_data);
 }

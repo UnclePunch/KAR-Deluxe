@@ -21,6 +21,10 @@ def dump_starpole(input_path, output_path):
         # StarpoleDataMatch
         # -----------------------------
 
+        f.seek(0xC)
+        match_offset, = read("<I", f)
+
+        f.seek(match_offset)
         rng_seed, = read(">I", f)
         frame_size, = read(">H", f)
         stage_kind, = read(">H", f)
@@ -74,6 +78,10 @@ def dump_starpole(input_path, output_path):
         # StarpoleDataFrame array
         # -----------------------------
 
+        f.seek(0x18)
+        frame_offset, = read("<I", f)
+
+        f.seek(frame_offset)
         out.write("=== StarpoleDataFrame ===\n")
 
         i = 0

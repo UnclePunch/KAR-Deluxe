@@ -582,22 +582,28 @@ void Playback_OnFrameEnd()
 {
     // OSReport("Frame %d:\n", frame_idx);
 
-    // desync detection
-    u32 hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
-    if (hash != starpole_buf->frame.hash)
+    // music rng occurs at the tail end of frame 0, rng can deviate
+    // if the replay was recorded with/without ura bgm rng roll
+    // so we'll ignore frame 0
+    if (frame_idx > 0)
     {
-        if (!desync_text)
+        // desync detection
+        u32 hash = Replay_HashGameState((1 << GAMEPLINK_SYS) | (1 << GAMEPLINK_RIDER) | (1 << GAMEPLINK_MACHINE) | (1 << GAMEPLINK_ENEMY) | (1 << GAMEPLINK_ITEM));
+        if (hash != starpole_buf->frame.hash)
         {
-            OSReport("Replay: ERROR hash mismatch on frame %d!\n", frame_idx);
             Replay_CreateDesyncText(frame_idx);
+            if (!desync_text)
+            {
+                OSReport("Replay: ERROR hash mismatch on frame %d!\n", frame_idx);
+                Replay_CreateDesyncText(frame_idx);
+            }
         }
-        
     }
 
     if (frame_text)
         Text_SetText(frame_text, 0, "Frame: %d", frame_idx);
     
-        frame_idx++;
+    frame_idx++;
 }
 
 float PlyCam_ClampStick(float val)

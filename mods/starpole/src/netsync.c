@@ -148,8 +148,10 @@ int Netplay_EndRollback()
     int result = 0;
     int level = OSDisableInterrupts();
 
+    int frame_idx = Gm_GetGameData()->update.engine_frames;
+
     // notify of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_NETEND, 0) <= 0)
+    if (Starpole_Imm(STARPOLE_CMD_NETEND, frame_idx) <= 0)
     {
         NetLog("Starpole: unable to end rollback.\n");
         goto CLEANUP;

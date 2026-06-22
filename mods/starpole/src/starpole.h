@@ -41,6 +41,7 @@ typedef enum
     STARPOLE_CMD_NETPADSEND,
     STARPOLE_CMD_NETPADRECV,
     STARPOLE_CMD_NETGETCONFIRM,
+    STARPOLE_CMD_NETGAMESTATE,
     STARPOLE_CMD_NETEND,
 
     STARPOLE_CMD_NUM,    
@@ -53,7 +54,12 @@ typedef struct
 
 typedef struct
 {
+    u32 frame;
     u32 hash;
+} StarpoleDataGameState;
+
+typedef struct
+{
     PADStatus status[4];
 } StarpoleDataInputs;
 
@@ -133,6 +139,7 @@ typedef struct
         StarpoleDataMatch match;
         StarpoleDataFrame frame;
         StarpoleDataModSave mod_save;
+        StarpoleDataGameState game_state;
     };
 } StarpoleBuffer;
 

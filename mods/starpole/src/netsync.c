@@ -185,7 +185,6 @@ int Netplay_SendInputs(PADStatus *status)
 
     // copy pad data to aligned buffer
     StarpoleDataInputs buffer __attribute__((aligned(32)));
-    buffer.hash = g_state_hash;
     memcpy(buffer.status, status, sizeof(buffer.status));
 
     // notify of incoming data
@@ -267,6 +266,34 @@ u32 Netplay_ReceiveConfirmFrame()
 CLEANUP:
     OSRestoreInterrupts(enable);
     return confirm_frame;
+}
+int Netplay_SendGameState(u32 hash)
+{
+    int result = 0;
+    int enable = OSDisableInterrupts();
+    u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
+
+    // copy pad data to aligned buffer
+    StarpoleDataGameState buffer __attribute__((aligned(32)));
+    buffer.frame = this_frame_idx;
+    buffer.hash = hash;
+
+    // notify of incoming data
+    if (Starpole_Imm(STARPOLE_CMD_NETGAMESTATE, 0) <= 0)
+    {
+        NetLog("Starpole: unable to send game state.\n");
+        goto CLEANUP;
+    }
+
+    // send it
+    if (!Starpole_DMA((StarpoleBuffer *)&buffer, sizeof(buffer), EXI_WRITE))
+        goto CLEANUP;
+
+    result = 1;
+
+CLEANUP:
+    OSRestoreInterrupts(enable);
+    return result;
 }
 
 int Netplay_SkipFrameCheck()
@@ -936,9 +963,9 @@ void Netsync_OnFrameEnd()
     Audio_Cleanup();
     Netsync_UpdateFrameText();
 
-    // get frame hash
+    // send frame hash
     int hash_flags = (Scene_GetCurrentMinor() == MNRKIND_3D) ? (HASH_ALL) : (HASH_SYS);
-    g_state_hash = Hash_GameState(hash_flags);
+    Netplay_SendGameState(Hash_GameState(hash_flags));
 
     // bp();
     // int index = (stc_bgm_pid[1] & AXDRIVER_PIDMASK);

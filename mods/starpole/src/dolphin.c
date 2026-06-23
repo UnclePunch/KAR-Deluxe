@@ -204,16 +204,11 @@ void Netplay_CreatePlayerTags(StarpoleDataDolphin *data)
                     text_color = &plynum_dobj->mobj->mat->diffuse;
             }
 
-            // name outline
-            int y = (text_color->r * 299 + text_color->g * 587 + text_color->b * 114) / 1000;
-            if (y < 80)
-                t->color = (GXColor){255, 255, 255, 255};
-            else
-                t->color = (GXColor){0, 0, 0, 255};
-            Text_AddSubtext(t, -2, -2, name);
-            Text_AddSubtext(t, -2, 2, name);
-            Text_AddSubtext(t, 2, -2, name);
-            Text_AddSubtext(t, 2, 2, name);
+            // get outline color
+            GXColor *outline_color;
+            outline_color = UI_GetTextOutlineColor(text_color);
+
+            Text_AddOutline(t, outline_color, name);
 
             t->color = *text_color;
             Text_AddSubtext(t, 0, 0, name);
@@ -273,7 +268,11 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
         if (g3d->plyview_num >= 2)
         {
             CamScissor view_scissor;
-            PlyCam_Get2PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
+            if (g3d->plyview_num == 2)
+                PlyCam_Get2PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
+            else
+                PlyCam_Get4PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
+            
             GXSetScissor(view_scissor.left, 
                         view_scissor.top, 
                         view_scissor.right - view_scissor.left,
@@ -283,6 +282,145 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
         // call render func
         Text_GX(t->gobj, pass);
     }
+
+    // restore scissor
+    CamScissor full_scissor;
+    PlyCam_GetFullscreenScissor(&full_scissor);
+    GXSetScissor(full_scissor.left, 
+                full_scissor.top, 
+                full_scissor.right - full_scissor.left,
+                full_scissor.bottom - full_scissor.top);
+}
+
+// Player Tags
+void Netplay_CreateSelfTag(StarpoleDataDolphin *data)
+{
+    if (!data->netplay.is)
+        return;
+
+    if (Gm_GetPlyViewNum() == 1)
+        return;
+
+    Game3dData *g3d = Gm_Get3dData();
+    int canvas_idx = Text_CreateCanvas(0, 1, 0, 0, 0, GAMEGX_HUD, 1, 0);
+
+    // loop through all player views
+    for (int i = 0; i < 4; i++)
+    {
+        if (Ply_GetPKind(i) == PKIND_NONE || !Ply_IsViewOn(i))
+            continue;
+
+        GOBJ *plynm_gobj = g3d->plynm_gobj[i];
+        if (!plynm_gobj)
+            continue;
+
+        // create a gobj to manage the tag for this viewport
+        GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_HUD, 0,
+                        sizeof(PlayerTagViewData), Netplay_DestroySelfTagViewGObj,
+                        0, 0,
+                        0, 0, 
+                        Netplay_SelfTagGX, GAMEGX_HUD, 0);
+
+        // init data
+        SelfTagViewData *gp = g->userdata;
+        gp->ply = i;
+        gp->t = 0;
+
+        // create text
+        char name[NETPLAY_TAGMAX + 1];
+        strncpy(name, data->netplay.usernames[i], NETPLAY_TAGMAX);
+        name[NETPLAY_TAGMAX] = '\0';
+
+        // create a name for them
+        Text *t = Text_CreateText(0, canvas_idx);
+        t->gobj->gx_cb = 0;
+        t->viewport_scale = (Vec2){0.05, 0.05};
+        t->trans = (Vec3){0, 0, 0};
+        t->viewport_color = (GXColor){0,0,0,0};
+        t->aspect = (Vec2){150,32};
+        t->use_aspect = 1;
+        t->align = 1;
+        t->kerning = 1;
+
+        // get text color
+        GXColor *text_color;
+        DOBJ *plynum_dobj = JObj_GetDObjIndex(plynm_gobj->hsd_object, 2, 0);
+        if (plynum_dobj)
+            text_color = &plynum_dobj->mobj->mat->diffuse;
+
+        // get outline color
+        GXColor *outline_color;
+        outline_color = UI_GetTextOutlineColor(text_color);
+
+        Text_AddOutline(t, outline_color, name);
+
+        t->color = *text_color;
+        Text_AddSubtext(t, 0, 0, name);
+
+        gp->t = t;
+    }
+}
+void Netplay_DestroySelfTagViewGObj(SelfTagViewData *gp)
+{
+    for (int i = 0; i < GetElementsIn(gp->t); i++)
+    {
+        if (gp->t)
+            Text_Destroy(gp->t);
+    }
+}
+void Netplay_SelfTagGX(GOBJ *g, int pass)
+{
+    // only on transparency pass
+    if (pass != 2)
+        return; 
+
+    Game3dData *g3d = Gm_Get3dData();
+    SelfTagViewData *gp = g->userdata;
+    Text* t = gp->t;
+
+    // get plynum hud gobj
+    GOBJ* plynm_gobj = g3d->plynm_gobj[gp->ply];
+    if (!plynm_gobj)
+        return;
+
+    HUDElementData* hp = plynm_gobj->userdata;
+
+    // check if plynum was rendered
+    if (!hp->is_visible)
+        t->hidden = 1;
+    else
+    {
+        t->hidden = 0;
+        static SelfTagParam tag_param_2p = {.offset = {0, -1.9}, .scale = 0.9, .width = 140};
+        static SelfTagParam tag_param_4p = {.offset = {0.2, -1.2}, .scale = 0.7, .width = 120};
+
+        SelfTagParam *param = (Gm_GetPlyViewNum() == 2) ? &tag_param_2p : &tag_param_4p;
+
+        // move text to PlyNum
+        Vec3 plynm_pos;
+        JObj_GetChildPosition(plynm_gobj->hsd_object, 2, &plynm_pos);
+        t->trans.X = plynm_pos.X + param->offset.X;
+        t->trans.Y = -(plynm_pos.Y + param->offset.Y);
+        t->viewport_scale.X = 0.05 * param->scale;
+        t->viewport_scale.Y = 0.05 * param->scale;
+        t->aspect.X = param->width;
+    }
+
+    // splitscreen logic
+    if (g3d->plyview_num >= 2)
+    {
+        CamScissor view_scissor;
+        if (g3d->plyview_num == 2)
+            PlyCam_Get2PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
+        else
+            PlyCam_Get4PScissor(Ply_GetViewIndex(hp->ply), &view_scissor);
+        
+        GXSetScissor(view_scissor.left, view_scissor.top, view_scissor.right - view_scissor.left,
+                    view_scissor.bottom - view_scissor.top);
+    }
+
+    // call render func
+    Text_GX(t->gobj, pass);
 
     // restore scissor
     CamScissor full_scissor;
@@ -317,6 +455,36 @@ void StressTest_Create()
                     0, 0,
                     StressTest_Think, 20, 
                     0, 0, 0);
+}
+
+GXColor *UI_GetTextOutlineColor(GXColor *color)
+{
+    // name outline
+    int y = (color->r * 299 + color->g * 587 + color->b * 114) / 1000;
+    if (y < 80)
+    {
+        static GXColor white = {255, 255, 255, 255};
+        return &white;
+    }
+    else
+    {
+        static GXColor black = {0, 0, 0, 255};
+        return &black;
+    }
+}
+void Text_AddOutline(Text *t, GXColor *color, char *s)
+{
+    static float offsets[4][2] = {
+        {-2, -2},
+        {-2, 2},
+        {2, 2},
+        {2, -2},
+    };
+
+    t->color = *color;
+
+    for (int i = 0; i < GetElementsIn(offsets); i++)
+        Text_AddSubtext(t, offsets[i][0], offsets[i][1], s);
 }
 
 // Pad stuff

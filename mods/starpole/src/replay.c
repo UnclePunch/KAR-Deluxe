@@ -862,7 +862,10 @@ void Replay_On3DLoadEnd()
         // create player tags from replay if they exist
         StarpoleDataDolphin dolphin_data __attribute__((aligned(32)));
         if (Dolphin_ReqData(&dolphin_data))
+        {
             Netplay_CreatePlayerTags(&dolphin_data);
+            Netplay_CreateSelfTag(&dolphin_data);
+        }
     }
 
 }

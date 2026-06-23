@@ -994,6 +994,10 @@ void Netsync_Init()
     // prevent duplicate music events
     CODEPATCH_REPLACECALL(0x804456f0, BGMLog_OnPlay);
     
+    // pause menu always uses 1p button directions on netplay (so spectators dont desync)
+    if (Dolphin_IsNetplay())
+        CODEPATCH_REPLACEINSTRUCTION(0x80040fd4, 0x38600001);
+
     // temp disable music
     // CODEPATCH_REPLACEINSTRUCTION(0x804456c0, 0x4e800020);
 }

@@ -156,7 +156,7 @@ int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
     // remove hud, restore camera, play sfx
     Gm_PlayPauseSFX();
 
-    BGM_LowerVolume();
+    // BGM_LowerVolume();
     Gm_HidePauseHUD();
     Gm_SetCameraNormal();
 

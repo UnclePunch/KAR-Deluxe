@@ -331,6 +331,77 @@ int SongData_PlayRandomSong(int volume)
 
     return 1;
 }
+int SongData_PlayRandomStageSong()
+{
+    MajorKind mj = Scene_GetCurrentMajor();
+
+    int volume = (stc_event_global->is_song_playing) ? 0 : 255; // song comes in muted when an event is in progress
+
+    if (mj == MJRKIND_AIR)
+    {
+        SongData_PlayRandomSong(volume);
+    }
+    else if (mj == MJRKIND_CITY)
+    {
+        MusicSettingsPlaylist playlist_kind = -1;
+        GroundKind gr_kind = Gm_GetCurrentGrKind();
+
+        switch (gr_kind)
+        {
+        case (GRKIND_CITY1):
+        case (52): // free run
+        {
+            playlist_kind = PLAYLIST_CITY;
+        }
+        case (GRKIND_DRAG1):
+        case (GRKIND_DRAG2):
+        case (GRKIND_DRAG3):
+        case (GRKIND_DRAG4):
+        {
+            playlist_kind = PLAYLIST_DRAGRACE;
+        }
+        case (GRKIND_AIRGLIDER):
+        {
+            playlist_kind = PLAYLIST_AIRGLIDER;
+        }
+        case (GRKIND_TARGETFLIGHT):
+        {
+            playlist_kind = PLAYLIST_TARGETFLIGHT;
+        }
+        case (GRKIND_HIGHJUMP):
+        {
+            playlist_kind = PLAYLIST_HIGHJUMP;
+        }
+        case (GRKIND_KIRBYMELEE1):
+        case (GRKIND_KIRBYMELEE2):
+        {
+            playlist_kind = PLAYLIST_KIRBYMELEE;
+        }
+        case (GRKIND_DESTRUCTIONDERBY1):
+        case (GRKIND_DESTRUCTIONDERBY2):
+        case (GRKIND_DESTRUCTIONDERBY3):
+        case (GRKIND_DESTRUCTIONDERBY4):
+        case (GRKIND_DESTRUCTIONDERBY5):
+        {
+            playlist_kind = PLAYLIST_DESTRUCTIONDERBY;
+        }
+        }
+
+        if (playlist_kind != 1)
+        {
+            int is_played = SongData_PlayFromPlaylist(playlist_kind, volume);
+
+            if (!is_played)
+                SongData_PlayRandomSong(volume);
+        }
+    }
+
+    // raise music volume
+    if (volume > 0)
+        BGM_RaiseVolume();
+          
+    return 1;
+}
 
 int SongData_GetCurPlayingEntrynum()
 {

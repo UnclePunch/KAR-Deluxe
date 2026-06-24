@@ -9,10 +9,18 @@
 #include "musicsettings.h"
 #include "music_change.h"
 
+MusicExport export = {
+    .SongData_PlayRandomSong = SongData_PlayRandomSong,
+    .SongData_PlayRandomStageSong = SongData_PlayRandomStageSong,
+};
+
 void OnBoot()
 {
     MusicSettings_Init();
     MusicChange_Init();
+
+    Hoshi_ExportMod(&export);
+
     return;
 }
 void OnSceneChange()

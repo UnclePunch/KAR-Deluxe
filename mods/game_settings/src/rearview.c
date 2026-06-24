@@ -52,17 +52,23 @@ CODEPATCH_HOOKCREATE(0x800cc2d8, "mr 3,30\n\t"
                      Rearview_Check, "", 0)
 
 // Camera
-int camerazoom_kind = 1;
+int camera_default_zoom_kind = 1;
+int camera_max_zoom_kind = 0;
 void Camera_InitDefaultZoom()
 {
-    if (camerazoom_kind == 0)
-        return;
+    // update camera zoom max
+    static float mult[] = {1, 2, 3};
+    stc_plycam_lookup->param->zoom_dist_max = 8.4 * mult[camera_max_zoom_kind];
+    stc_plycam_lookup->param->x350 = 4 * mult[camera_max_zoom_kind];
 
-    // init camera height for all players
-    for (int i = 0; i < 4; i++)
+    if (camera_default_zoom_kind > 0)
     {
-        stc_plycam_lookup->ply_distance[i].normal = 8.4;
-        stc_plycam_lookup->ply_distance[i].rail = 6;
+        // init camera height for all players
+        for (int i = 0; i < 4; i++)
+        {
+            stc_plycam_lookup->ply_distance[i].normal = stc_plycam_lookup->param->zoom_dist_max;
+            stc_plycam_lookup->ply_distance[i].rail = 6;
+        }
     }
 
     return;

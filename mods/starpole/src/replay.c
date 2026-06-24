@@ -515,7 +515,7 @@ void PlyCam_UseRiderInputsForMachineCameraControl(CamData *cam_data, int control
     float rstickX = PlyCam_ClampStick(rd->input.rstick.X);
     float rstickY = PlyCam_ClampStick(rd->input.rstick.Y);
 
-    float *tuning = (float *)stc_plycam_lookup->x234;
+    float *tuning = (float *)stc_plycam_lookup->param;
 
     /* ---------- ROTATION (YAW) ---------- */
 
@@ -647,22 +647,8 @@ int Playback_RestoreMatch()
 {
     if (replay_mode == REPLAY_PLAYBACK)
     {
-        if (Replay_ReqModSave())
-        {
-            // backup current mod save data
-            current_mod_save->size = Hoshi_GetBackupSize();
-            if (current_mod_save->size > STARPOLE_MODSAVE_SIZE)
-                assert("Hoshi_GetBackupSize() > STARPOLE_MODSAVE_SIZE");
-            current_mod_save->num = Hoshi_BackupModSave(current_mod_save->data);
-
-            // restore replay's mod save data
-            Hoshi_RestoreModSave(starpole_buf->mod_save.data, starpole_buf->mod_save.num);
-        }
-        else
-            current_mod_save->size = 0;
-
         // restore match data
-        if (Replay_ReqMatch())
+        // if (Replay_ReqMatch())
         {
             // copy to game struct
             GameData *gp = Gm_GetGameData();
@@ -830,15 +816,35 @@ void Replay_On3DLoadStart()
     if (replay_mode == REPLAY_PLAYBACK)
     {
         GameData *gd = Gm_GetGameData();
-        
-        // splitscreen camera for all humans
-        for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
-            gd->ply_view_desc[i].flag = (starpole_buf->match.ply_desc[i].p_kind == PKIND_HMN) ? PLYCAM_ON : PLYCAM_OFF;
-        
-        // // use live view camera
-        // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
-        //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
-        // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+    
+        // restore mod settings from the replay file
+        if (Replay_ReqModSave())
+        {
+            // backup current mod save data
+            current_mod_save->size = Hoshi_GetBackupSize();
+            if (current_mod_save->size > STARPOLE_MODSAVE_SIZE)
+                assert("Hoshi_GetBackupSize() > STARPOLE_MODSAVE_SIZE");
+            current_mod_save->num = Hoshi_BackupModSave(current_mod_save->data);
+
+            // restore replay's mod save data
+            Hoshi_RestoreModSave(starpole_buf->mod_save.data, starpole_buf->mod_save.num);
+        }
+        else
+            current_mod_save->size = 0;
+
+        if (Replay_ReqMatch())
+        {
+            // use splitscreen camera for all humans
+            for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+                gd->ply_view_desc[i].flag = (starpole_buf->match.ply_desc[i].p_kind == PKIND_HMN) ? PLYCAM_ON : PLYCAM_OFF;
+            
+            // // use live view camera
+            // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+            //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
+            // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
+        }
+
+
     }
 
     // debug display

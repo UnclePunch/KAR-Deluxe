@@ -110,79 +110,14 @@ void MusicChange_Think(GOBJ *g)
 
     // check to change song
     if (Pad_GetDown(Gm_GetGameData()->pause_ply) & PAD_TRIGGER_Z)
-    {
-        int is_changed = 0;
-        MajorKind mj = Scene_GetCurrentMajor();
-
-        int volume = (stc_event_global->is_song_playing) ? 0 : 255; // song comes in muted when an event is in progress
-
-        if (mj == MJRKIND_AIR)
+    {   
+        if (SongData_PlayRandomStageSong())
         {
-            SongData_PlayRandomSong(volume);
+            SFX_Play(FGMMENU_CS_MV);
+
+            // update song name
+            MusicChange_UpdateSongName(gp);
         }
-        else if (mj == MJRKIND_CITY)
-        {
-            MusicSettingsPlaylist playlist_kind = -1;
-            GroundKind gr_kind = Gm_GetCurrentGrKind();
-
-            switch (gr_kind)
-            {
-            case (GRKIND_CITY1):
-            case (52): // free run
-            {
-                playlist_kind = PLAYLIST_CITY;
-            }
-            case (GRKIND_DRAG1):
-            case (GRKIND_DRAG2):
-            case (GRKIND_DRAG3):
-            case (GRKIND_DRAG4):
-            {
-                playlist_kind = PLAYLIST_DRAGRACE;
-            }
-            case (GRKIND_AIRGLIDER):
-            {
-                playlist_kind = PLAYLIST_AIRGLIDER;
-            }
-            case (GRKIND_TARGETFLIGHT):
-            {
-                playlist_kind = PLAYLIST_TARGETFLIGHT;
-            }
-            case (GRKIND_HIGHJUMP):
-            {
-                playlist_kind = PLAYLIST_HIGHJUMP;
-            }
-            case (GRKIND_KIRBYMELEE1):
-            case (GRKIND_KIRBYMELEE2):
-            {
-                playlist_kind = PLAYLIST_KIRBYMELEE;
-            }
-            case (GRKIND_DESTRUCTIONDERBY1):
-            case (GRKIND_DESTRUCTIONDERBY2):
-            case (GRKIND_DESTRUCTIONDERBY3):
-            case (GRKIND_DESTRUCTIONDERBY4):
-            case (GRKIND_DESTRUCTIONDERBY5):
-            {
-                playlist_kind = PLAYLIST_DESTRUCTIONDERBY;
-            }
-            }
-
-            if (playlist_kind != 1)
-            {
-                int is_played = SongData_PlayFromPlaylist(playlist_kind, volume);
-
-                if (!is_played)
-                    SongData_PlayRandomSong(volume);
-            }
-        }
-
-        SFX_Play(FGMMENU_CS_MV);
-
-        // raise music volume
-        if (volume > 0)
-            BGM_RaiseVolume();
-
-        // update song name
-        MusicChange_UpdateSongName(gp);
     }
 
     // update text scroll logic

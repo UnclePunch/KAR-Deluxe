@@ -31,6 +31,8 @@ void Netplay_Init();
 void Netplay_OverridePlayerView(StarpoleDataDolphin *dolphin_data);
 void Netplay_CreatePlayerTags(StarpoleDataDolphin *dolphin_data);
 void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp);
+void Netplay_CreatePlyNum(int ply, JOBJDesc *jobjdesc, void *gx_cb);
+
 void Netplay_PlayerTagGX(GOBJ *g, int pass);
 void Netplay_CreateSelfTag(StarpoleDataDolphin *data);
 void Netplay_DestroySelfTagViewGObj(SelfTagViewData *gp);

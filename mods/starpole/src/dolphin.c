@@ -93,6 +93,9 @@ void Dolphin_Init()
             Netplay_Init();
         else
             OSReport("Starpole: Netplay not detected.\n");
+
+        // hijack code that creates PlyNum model
+        // CODEPATCH_REPLACECALL(0x8011fd9c, Netplay_CreatePlyNum);
     }
 }
 void Netplay_Init()
@@ -257,7 +260,8 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
             t->hidden = 0;
             JOBJ *plynum_jobj = plynum_gobj->hsd_object;
 
-            static float tag_offsets[] = {0, 6.3, 5.8, 5, 5};
+            // static float tag_offsets[] = {0, 6.3, 5.8, 5, 5};
+            static float tag_offsets[] = {0, 3.8, 3.8, 3, 3};
 
             // move text to PlyNum
             t->trans.X = plynum_jobj->trans.X;
@@ -290,6 +294,17 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
                 full_scissor.top, 
                 full_scissor.right - full_scissor.left,
                 full_scissor.bottom - full_scissor.top);
+}
+void Netplay_CreatePlyNum(int ply, JOBJDesc *jobjdesc, void *gx_cb)
+{
+    void (*HUD_CreateIndicatorGObjCustomGX)(int ply, JOBJDesc *jobjdesc, void *gx_cb) = (void *)0x801149a0; 
+
+    // we need to know if we're in netplay or a recording
+    if (Dolphin_IsNetplay() || replay_mode == REPLAY_PLAYBACK)
+
+    HUD_CreateIndicatorGObjCustomGX(ply, 0, gx_cb);
+
+    // this sucks actually, maybe just swap it out later idk
 }
 
 // Player Tags

@@ -88,6 +88,8 @@ typedef struct
     u16 frame_size;
     u16 stage_kind;
     u8 stadium_kind;
+    u8 stadium_round;
+    u32 stadium_score[4];
     // u8 city_kind;
     // u16 time_seconds;
     // u8 is_enable_events : 1;

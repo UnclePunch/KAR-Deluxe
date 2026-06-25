@@ -618,6 +618,8 @@ void Playback_BackupMatch()
         starpole_buf->match.frame_size = replay_frame_size;
         starpole_buf->match.stage_kind = gp->stage_kind;
         starpole_buf->match.stadium_kind = gp->city.stadium_kind;
+        starpole_buf->match.stadium_round = gp->city.stadium_round;
+        memcpy(&starpole_buf->match.stadium_score, &gp->city.stadium_score, sizeof(starpole_buf->match.stadium_score));
         // starpole_buf->match.city_kind = gp->city_kind;
         // starpole_buf->match.time_seconds = gp->time_seconds;
         // starpole_buf->match.tempo = gp->tempo;
@@ -656,6 +658,8 @@ int Playback_RestoreMatch()
             if (REPLAY_SYNCRNG)
                 *hsd_rand_seed = starpole_buf->match.rng_seed;
 
+            memcpy(&gp->city.stadium_score, &starpole_buf->match.stadium_score, sizeof(gp->city.stadium_score));
+            gp->city.stadium_round = starpole_buf->match.stadium_round;
             gp->city.stadium_kind = starpole_buf->match.stadium_kind;
             gp->stage_kind = starpole_buf->match.stage_kind;
             // gp->city_kind = starpole_buf->match.city_kind;

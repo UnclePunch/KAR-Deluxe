@@ -31,7 +31,10 @@ void Netplay_Init();
 void Netplay_OverridePlayerView(StarpoleDataDolphin *dolphin_data);
 void Netplay_CreatePlayerTags(StarpoleDataDolphin *dolphin_data);
 void Netplay_DestroyPlayerTagViewGObj(PlayerTagViewData *gp);
-void Netplay_CreatePlyNum(int ply, JOBJDesc *jobjdesc, void *gx_cb);
+
+JOBJSet ***Netplay_GetPlyNumSet();
+void Netplay_AdjustPlyNum(JOBJ *j);
+void Netplay_LoadAltPlyNumFile();
 
 void Netplay_PlayerTagGX(GOBJ *g, int pass);
 void Netplay_CreateSelfTag(StarpoleDataDolphin *data);
@@ -45,6 +48,7 @@ void PadAlarm_Remove();
 
 void StressTest_Create();
 
+void Dolphin_OnSceneChange();
 void Netplay_On3DLoadStart();
 void Netplay_On3DLoadEnd();
 

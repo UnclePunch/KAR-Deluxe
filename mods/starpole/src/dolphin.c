@@ -20,9 +20,11 @@
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
-extern StarpoleExport starpole_export; 
 StarpoleDataDolphin *dolphin_data;
+extern StarpoleExport starpole_export; 
 extern ReplayMode replay_mode;
+
+HSD_Archive *netplay_archive;
 
 int is_dolphin = 0;
 
@@ -49,72 +51,6 @@ int Dolphin_ReqData(StarpoleDataDolphin *data)
 CLEANUP:
     OSRestoreInterrupts(enable);
     return result;
-}
-
-// Init
-void Dolphin_Init()
-{
-    if (!Starpole_IsPresent() && !DOLPHIN_DEBUG)
-        return;
-
-    // alloc buffer
-    dolphin_data = HSD_MemAlloc(sizeof(*dolphin_data));
-    is_dolphin = 0;
-    
-    if (DOLPHIN_DEBUG)
-    {
-        static char *test_names[] = {
-            "UnclePunch",
-            "charity",
-            "Taco",
-            "ThePulsarLegend",
-        };
-
-        is_dolphin = 1;
-        dolphin_data->aspect_mult = 1;
-        dolphin_data->netplay.is = 1;
-        dolphin_data->netplay.ply = 0;
-        dolphin_data->netplay.rng_seed = 0;
-        for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
-            strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
-    }
-
-    // get data
-    if (DOLPHIN_DEBUG || Dolphin_ReqData(dolphin_data))
-    {
-        is_dolphin = 1;
-        OSReport("Starpole: Dolphin detected.\n");
-        
-        // store pointer to export data
-        starpole_export.dolphin_data = dolphin_data;
-
-        // init netplay flag
-        if (dolphin_data->netplay.is)
-            Netplay_Init();
-        else
-            OSReport("Starpole: Netplay not detected.\n");
-
-        // hijack code that creates PlyNum model
-        // CODEPATCH_REPLACECALL(0x8011fd9c, Netplay_CreatePlyNum);
-    }
-}
-void Netplay_Init()
-{
-    OSReport("Starpole: Netplay detected.\n");
-
-    if (dolphin_data->netplay.ply != -1)
-    {
-        OSReport(" You are player %d \"%s\"\n", 
-            dolphin_data->netplay.ply, 
-            dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
-    }
-    else
-        OSReport(" You are spectating.\n");
-
-    // init rng seed
-    *hsd_rand_seed = dolphin_data->netplay.rng_seed;
-
-    // PadAlarm_Remove();
 }
 
 int Dolphin_IsNetplay()
@@ -151,7 +87,8 @@ void Netplay_OverridePlayerView(StarpoleDataDolphin *data)
 // Player Tags
 void Netplay_CreatePlayerTags(StarpoleDataDolphin *data)
 {
-    if (!data->netplay.is)
+    if (!data->netplay.is || 
+        !netplay_archive)       // needs the edited PlyNum jobj
         return;
         
     Game3dData *g3d = Gm_Get3dData();
@@ -204,7 +141,10 @@ void Netplay_CreatePlayerTags(StarpoleDataDolphin *data)
             {
                 DOBJ *plynum_dobj = JObj_GetDObjIndex(plynum_gobj->hsd_object, 0, 0);
                 if (plynum_dobj)
+                {
                     text_color = &plynum_dobj->mobj->mat->diffuse;
+                    plynum_dobj->flags |= DOBJ_HIDDEN;  // hide pX indicator
+                }
             }
 
             // get outline color
@@ -261,7 +201,7 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
             JOBJ *plynum_jobj = plynum_gobj->hsd_object;
 
             // static float tag_offsets[] = {0, 6.3, 5.8, 5, 5};
-            static float tag_offsets[] = {0, 3.8, 3.8, 3, 3};
+            static float tag_offsets[] = {0, 4, 3.8, 3.1, 3.1};
 
             // move text to PlyNum
             t->trans.X = plynum_jobj->trans.X;
@@ -295,17 +235,44 @@ void Netplay_PlayerTagGX(GOBJ *g, int pass)
                 full_scissor.right - full_scissor.left,
                 full_scissor.bottom - full_scissor.top);
 }
-void Netplay_CreatePlyNum(int ply, JOBJDesc *jobjdesc, void *gx_cb)
+
+// Alt PlyNum - Netplay player tags require a custom jobj to hide the P1 texture...
+void Netplay_LoadAltPlyNumFile()
 {
-    void (*HUD_CreateIndicatorGObjCustomGX)(int ply, JOBJDesc *jobjdesc, void *gx_cb) = (void *)0x801149a0; 
-
-    // we need to know if we're in netplay or a recording
-    if (Dolphin_IsNetplay() || replay_mode == REPLAY_PLAYBACK)
-
-    HUD_CreateIndicatorGObjCustomGX(ply, 0, gx_cb);
-
-    // this sucks actually, maybe just swap it out later idk
+    // load netplay assets
+    if (!netplay_archive)
+        netplay_archive = Archive_LoadFile("IfNetplay");
 }
+JOBJSet ***Netplay_GetPlyNumSet()
+{
+    JOBJSet ***plynum_set = (JOBJSet ***)(&((u8 *)Gm_Get3dData())[0xc0]);
+
+    // if we've loaded the alt plynum file, use it in place of the original
+    if (netplay_archive)
+    {
+        JOBJSet **set = Archive_GetPublicAddress(netplay_archive, "ScInfPlynum_scene_models");
+        if (set)
+            *plynum_set = set;
+    }
+        
+    return plynum_set;
+}
+CODEPATCH_HOOKCREATE(0x8011fd4c, "", Netplay_GetPlyNumSet, 
+                    "mr 30, 3\n\t"
+                    "cmpwi	27, 1\n\t"
+                    "b 0x8\n\t", 0)
+void Netplay_AdjustPlyNum(JOBJ *j)
+{
+    if (!netplay_archive)
+        return;
+        
+    // the more_colors mod only edits the color dobj 0, copy that to the newly added dobj 1
+    JObj_GetDObjIndex(j, 0, 1)->mobj->mat->diffuse = JObj_GetDObjIndex(j, 0, 0)->mobj->mat->diffuse;
+
+}
+CODEPATCH_HOOKCREATE(0x8011fe94, "mr 3,28\n\t",
+                     Netplay_AdjustPlyNum, "mulli	3, 26, 20\n\t", 0)
+
 
 // Player Tags
 void Netplay_CreateSelfTag(StarpoleDataDolphin *data)
@@ -525,14 +492,85 @@ void PadAlarm_Remove()
     // CODEPATCH_HOOKAPPLY(0x80006b98);
 }
 
+// Init
+void Dolphin_Init()
+{
+    if (!Starpole_IsPresent() && !DOLPHIN_DEBUG)
+        return;
+
+    // alloc buffer
+    dolphin_data = HSD_MemAlloc(sizeof(*dolphin_data));
+    is_dolphin = 0;
+    
+    if (DOLPHIN_DEBUG)
+    {
+        static char *test_names[] = {
+            "UnclePunch",
+            "charity",
+            "Taco",
+            "ThePulsarLegend",
+        };
+
+        is_dolphin = 1;
+        dolphin_data->aspect_mult = 1;
+        dolphin_data->netplay.is = 1;
+        dolphin_data->netplay.ply = 0;
+        dolphin_data->netplay.rng_seed = 0;
+        for (int i = 0; i < GetElementsIn(dolphin_data->netplay.usernames); i++)
+            strcpy(dolphin_data->netplay.usernames[i], test_names[i]);
+    }
+
+    // get data
+    if (DOLPHIN_DEBUG || Dolphin_ReqData(dolphin_data))
+    {
+        is_dolphin = 1;
+        OSReport("Starpole: Dolphin detected.\n");
+        
+        // store pointer to export data
+        starpole_export.dolphin_data = dolphin_data;
+
+        // init netplay flag
+        if (dolphin_data->netplay.is)
+            Netplay_Init();
+        else
+            OSReport("Starpole: Netplay not detected.\n");
+
+        // hijack code that creates PlyNum model
+        CODEPATCH_HOOKAPPLY(0x8011fd4c);
+        CODEPATCH_HOOKAPPLY(0x8011fe94);
+    }
+}
+void Netplay_Init()
+{
+    OSReport("Starpole: Netplay detected.\n");
+
+    if (dolphin_data->netplay.ply != -1)
+    {
+        OSReport(" You are player %d \"%s\"\n", 
+            dolphin_data->netplay.ply, 
+            dolphin_data->netplay.usernames[dolphin_data->netplay.ply]);
+    }
+    else
+        OSReport(" You are spectating.\n");
+
+    // init rng seed
+    *hsd_rand_seed = dolphin_data->netplay.rng_seed;
+
+    // PadAlarm_Remove();
+}
+
+void Dolphin_OnSceneChange()
+{
+    netplay_archive = 0;
+}
 void Netplay_On3DLoadStart()
 {
     if (!Dolphin_IsNetplay())
         return;
-
+    
+    Netplay_LoadAltPlyNumFile();
     Netplay_OverridePlayerView(dolphin_data);
 }
-
 void Netplay_On3DLoadEnd()
 {
     if (!Dolphin_IsNetplay())

@@ -38,6 +38,7 @@ void OnSceneChange()
 {
     TextConsole_Init();
 
+    Dolphin_OnSceneChange();
     Replay_OnSceneChange();
     Test_DisplayString();
     Starpole_DisplayAsset();

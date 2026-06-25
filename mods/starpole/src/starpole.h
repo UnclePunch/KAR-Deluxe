@@ -135,6 +135,7 @@ typedef struct
     union 
     {
         StarpoleDataTest test;
+        StarpoleDataDolphin dolphin;
         StarpoleDataInputs inputs;
         StarpoleDataMatch match;
         StarpoleDataFrame frame;

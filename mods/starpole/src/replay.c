@@ -832,6 +832,11 @@ void Replay_On3DLoadStart()
         else
             current_mod_save->size = 0;
 
+        if (Dolphin_ReqData(&starpole_buf->dolphin))
+        {
+            Netplay_LoadAltPlyNumFile();
+        }
+
         if (Replay_ReqMatch())
         {
             // use splitscreen camera for all humans

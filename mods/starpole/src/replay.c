@@ -29,6 +29,7 @@ int frame_idx;
 
 int replay_frame_size;
 ReplayMode replay_mode = REPLAY_NONE;
+u8 g_match_instance = 0;                    // dolphin uses this to group the city with the stadium
 
 StarpoleDataModSave *current_mod_save;      // used to save the current mod settings when playing back a replay.
 
@@ -280,10 +281,18 @@ CLEANUP:
     OSRestoreInterrupts(enable);
     return result;
 }
-int Replay_SendEnd()
+int Replay_SendMatchEnd()
 {
     // notify EXI of incoming data
-    if (Starpole_Imm(STARPOLE_CMD_END, 0) == -1)
+    if (Starpole_Imm(STARPOLE_CMD_MATCHEND, 0) == -1)
+        return 0;
+
+    return 1;
+}
+int Replay_SendSeqEnd()
+{
+    // notify EXI of incoming data
+    if (Starpole_Imm(STARPOLE_CMD_SEQEND, 0) == -1)
         return 0;
 
     return 1;
@@ -748,6 +757,10 @@ void Particle2_Think()
     *stc_rng_seed = orig_rng_ptr;
 }
 
+// Injection to increment the match instance variable
+CODEPATCH_HOOKCREATE(0x80040164, "", Replay_SendSeqEnd, "", 0)      // End Game in pause menu for both air ride and city trial
+CODEPATCH_HOOKCREATE(0x80041460, "", Replay_SendSeqEnd, "", 0)      // city trial stadium -> results
+
 void Replay_Init()
 {
     if (!REPLAY_ENABLE)
@@ -767,6 +780,10 @@ void Replay_Init()
     CODEPATCH_HOOKAPPLY(0x80233994);
     CODEPATCH_REPLACEFUNC(0x80233b74, Particle1_Think);
     CODEPATCH_REPLACEFUNC(0x80233ba0, Particle2_Think);
+
+    // sequence end
+    CODEPATCH_HOOKAPPLY(0x80041460);
+    CODEPATCH_HOOKAPPLY(0x80040164);
 
     // temp patches
     float *reduce_ratio = (float *)0x805df274; // fullscreen live cam
@@ -879,7 +896,7 @@ void Replay_On3DLoadEnd()
         if (Dolphin_ReqData(&dolphin_data))
         {
             Netplay_CreatePlayerTags(&dolphin_data);
-            Netplay_CreateSelfTag(&dolphin_data);
+            Netplay_CreateViewportTag(&dolphin_data);
         }
     }
 
@@ -890,7 +907,7 @@ void Replay_On3DExit()
         return;
 
     if (replay_mode == REPLAY_RECORD)
-        Replay_SendEnd();
+        Replay_SendMatchEnd();
     else if (replay_mode == REPLAY_PLAYBACK)
     {
         if (current_mod_save->size > 0)

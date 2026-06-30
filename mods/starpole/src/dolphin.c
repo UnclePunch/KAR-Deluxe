@@ -577,4 +577,17 @@ void Netplay_On3DLoadEnd()
         return;
 
     Netplay_CreatePlayerTags(dolphin_data);
+
+    // show onscreen names if someone is unplugged (spectating)
+    if (dolphin_data->netplay.ply == -1)
+        Netplay_CreateViewportTag(dolphin_data);
+
+    if (music_export && dolphin_data->netplay.ply != -1)
+    {
+        GOBJ_EZCreator(0, 0, 0,
+                    0, 0,
+                    0, 0, 
+                    Netplay_MusicChange, stc_gobj_init_data->proc_pri_max - 1,
+                    0, 0, 0);
+    }
 }

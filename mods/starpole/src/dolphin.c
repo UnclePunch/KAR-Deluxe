@@ -275,7 +275,7 @@ CODEPATCH_HOOKCREATE(0x8011fe94, "mr 3,28\n\t",
 
 
 // Player Tags
-void Netplay_CreateSelfTag(StarpoleDataDolphin *data)
+void Netplay_CreateViewportTag(StarpoleDataDolphin *data)
 {
     if (!data->netplay.is)
         return;
@@ -298,13 +298,13 @@ void Netplay_CreateSelfTag(StarpoleDataDolphin *data)
 
         // create a gobj to manage the tag for this viewport
         GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_HUD, 0,
-                        sizeof(PlayerTagViewData), Netplay_DestroySelfTagViewGObj,
+                        sizeof(PlayerTagViewData), Netplay_DestroyViewportTagViewGObj,
                         0, 0,
                         0, 0, 
-                        Netplay_SelfTagGX, GAMEGX_HUD, 0);
+                        Netplay_ViewportTagGX, GAMEGX_HUD, 0);
 
         // init data
-        SelfTagViewData *gp = g->userdata;
+        ViewportTagViewData *gp = g->userdata;
         gp->ply = i;
         gp->t = 0;
 
@@ -342,7 +342,7 @@ void Netplay_CreateSelfTag(StarpoleDataDolphin *data)
         gp->t = t;
     }
 }
-void Netplay_DestroySelfTagViewGObj(SelfTagViewData *gp)
+void Netplay_DestroyViewportTagViewGObj(ViewportTagViewData *gp)
 {
     for (int i = 0; i < GetElementsIn(gp->t); i++)
     {
@@ -350,14 +350,14 @@ void Netplay_DestroySelfTagViewGObj(SelfTagViewData *gp)
             Text_Destroy(gp->t);
     }
 }
-void Netplay_SelfTagGX(GOBJ *g, int pass)
+void Netplay_ViewportTagGX(GOBJ *g, int pass)
 {
     // only on transparency pass
     if (pass != 2)
         return; 
 
     Game3dData *g3d = Gm_Get3dData();
-    SelfTagViewData *gp = g->userdata;
+    ViewportTagViewData *gp = g->userdata;
     Text* t = gp->t;
 
     // get plynum hud gobj
@@ -373,10 +373,10 @@ void Netplay_SelfTagGX(GOBJ *g, int pass)
     else
     {
         t->hidden = 0;
-        static SelfTagParam tag_param_2p = {.offset = {0, -1.9}, .scale = 0.9, .width = 140};
-        static SelfTagParam tag_param_4p = {.offset = {0.2, -1.2}, .scale = 0.7, .width = 120};
+        static ViewportTagParam tag_param_2p = {.offset = {0, -1.9}, .scale = 0.9, .width = 140};
+        static ViewportTagParam tag_param_4p = {.offset = {0.2, -1.2}, .scale = 0.7, .width = 120};
 
-        SelfTagParam *param = (Gm_GetPlyViewNum() == 2) ? &tag_param_2p : &tag_param_4p;
+        ViewportTagParam *param = (Gm_GetPlyViewNum() == 2) ? &tag_param_2p : &tag_param_4p;
 
         // move text to PlyNum
         Vec3 plynm_pos;

@@ -10,18 +10,18 @@ typedef struct PlayerTagViewData
     Text *t[5];
 } PlayerTagViewData;
 
-typedef struct SelfTagViewData
+typedef struct ViewportTagViewData
 {
     int ply;
     Text *t;
-} SelfTagViewData;
+} ViewportTagViewData;
 
-typedef struct SelfTagParam
+typedef struct ViewportTagParam
 {
     Vec2 offset;
     float scale;
     float width;
-} SelfTagParam;
+} ViewportTagParam;
 
 void Dolphin_Init();
 int Dolphin_ReqData(StarpoleDataDolphin *data);
@@ -37,9 +37,9 @@ void Netplay_AdjustPlyNum(JOBJ *j);
 void Netplay_LoadAltPlyNumFile();
 
 void Netplay_PlayerTagGX(GOBJ *g, int pass);
-void Netplay_CreateSelfTag(StarpoleDataDolphin *data);
-void Netplay_DestroySelfTagViewGObj(SelfTagViewData *gp);
-void Netplay_SelfTagGX(GOBJ *g, int pass);
+void Netplay_CreateViewportTag(StarpoleDataDolphin *data);
+void Netplay_DestroyViewportTagViewGObj(ViewportTagViewData *gp);
+void Netplay_ViewportTagGX(GOBJ *g, int pass);
 
 GXColor *UI_GetTextOutlineColor(GXColor *color);
 void Text_AddOutline(Text *t, GXColor *color, char *s);

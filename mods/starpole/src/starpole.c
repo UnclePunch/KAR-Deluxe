@@ -15,6 +15,11 @@
 #include "hoshi/screen_cam.h"
 
 #include "starpole.h"
+
+#include "replay.h"
+#include "netsync.h"
+#include "playback.h"
+
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
@@ -182,6 +187,10 @@ void Starpole_Init()
         OSReport("Received test data: %s\n", &starpole_data_test.str);
     }
     
+    Replay_Init();
+    Playback_Init();
+    Netsync_Init();
+
     return;
 }
 

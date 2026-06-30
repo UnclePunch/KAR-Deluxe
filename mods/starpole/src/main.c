@@ -25,9 +25,6 @@ void OnBoot()
 {
     Starpole_Init();
     Dolphin_Init();
-    Replay_Init();
-    Playback_Init();
-    Netsync_Init();
 
     Hoshi_ExportMod((void *)&starpole_export);
 

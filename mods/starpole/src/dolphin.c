@@ -20,9 +20,12 @@
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
 
+#include "../../music_settings/src/musicsettings.h"
+
 StarpoleDataDolphin *dolphin_data;
 extern StarpoleExport starpole_export; 
 extern ReplayMode replay_mode;
+extern MusicExport *music_export;
 
 HSD_Archive *netplay_archive;
 
@@ -411,6 +414,17 @@ void Netplay_ViewportTagGX(GOBJ *g, int pass)
                 full_scissor.top, 
                 full_scissor.right - full_scissor.left,
                 full_scissor.bottom - full_scissor.top);
+}
+
+// Music Change
+void Netplay_MusicChange(GOBJ *g)
+{
+    if (Pad_GetDown(dolphin_data->netplay.ply) & PAD_BUTTON_DPAD_DOWN)
+    {
+        int rng_backup = **stc_rng_seed;
+        music_export->SongData_PlayRandomStageSong();
+        **stc_rng_seed = rng_backup;
+    }
 }
 
 // frame budget test

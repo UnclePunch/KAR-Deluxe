@@ -11,7 +11,10 @@
 #include "netsync.h"
 #include "playback.h"
 
+#include "../../music_settings/src/musicsettings.h"
+
 StarpoleExport starpole_export = {0};
+MusicExport *music_export;
 
 OptionDesc mod_settings = {
     .name = "Starpole",
@@ -29,6 +32,11 @@ void OnBoot()
     Hoshi_ExportMod((void *)&starpole_export);
 
     return;
+}
+
+void OnSaveLoaded()
+{
+    music_export = Hoshi_ImportMod("Music Settings", 1, 0);
 }
 
 void OnSceneChange()
@@ -87,6 +95,7 @@ ModDesc mod_desc = {
     .version.minor = STARPOLE_VERSION_MINOR,
     .affects_gameplay = false,
     .OnBoot = OnBoot,
+    .OnSaveLoaded = OnSaveLoaded,
     .OnSceneChange = OnSceneChange,
     .On3DLoadStart = On3DLoadStart,
     .On3DLoadEnd = On3DLoadEnd,

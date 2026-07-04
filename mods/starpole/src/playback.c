@@ -70,6 +70,9 @@ int Playback_IsMajor()
 }
 void PlaybackMajor_Enter()
 {
+    // i think i need to do this in minor load... somehow
+    // doing it early might be causing the game to defrag some persistent stuff
+    // like RdKirby
     if (Replay_ReqMatch())
         Preload_SetGrKind(starpole_buf->match.stage_kind);
 }

@@ -25,7 +25,7 @@ OptionDesc ModSettings = {
 
 void OnBoot()
 {
-    // Profiler_Init();
+    Profiler_Init();
 
     Debug_Init();
 
@@ -61,6 +61,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 0,
+    .affects_gameplay = false,
     .option_desc = &ModSettings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

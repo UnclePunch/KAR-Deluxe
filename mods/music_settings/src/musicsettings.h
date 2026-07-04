@@ -144,7 +144,7 @@ void Music_MajorEnter();
 void Music_MajorExit();
 void MusicSettings_Enter();
 void MusicSettings_Exit(void *data);
-void MusicSettings_Think(void *data);
+void MusicSettings_Think();
 
 void MusicSettings_Create();
 void MusicSettings_Destroy();

@@ -20,7 +20,7 @@ void CreditsMajor_Exit();
 
 void CreditsMinor_Enter();
 void CreditsMinor_Exit(void *data);
-void CreditsMinor_Think(void *data);
+void CreditsMinor_Think();
 
 GOBJ *Credits_ScrollCreate();
 void Credits_ScrollThink(GOBJ *g);

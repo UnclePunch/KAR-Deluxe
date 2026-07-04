@@ -17,7 +17,6 @@
 #include "../../wide/src/wide_export.h"
 
 static GOBJ *stc_music_change_gobj;
-static Text *stc_text;
 static NowPlayingAssets *music_assets;
 static int music_text_canvas_idx;
 
@@ -74,7 +73,7 @@ GOBJ *MusicChange_Create()
 
     // create hud element gobj
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,
-                             sizeof(MusicChangeData), HSD_Free,
+                             sizeof(MusicChangeData), MusicChange_OnDestroy,
                              HSD_OBJKIND_JOBJ, set->jobj,
                              MusicChange_Think, 20,
                              JObj_GX, GAMEGX_HUD, gx_pri);
@@ -111,20 +110,18 @@ GOBJ *MusicChange_Create()
     t->trans.Y = gp->param->pos.Y;
     Text_AddSubtext(t, 0, 0, "");
 
-    stc_text = t;
+    gp->text = t;
 
     // update song name
     MusicChange_UpdateSongName(gp);
 
     return g;
 }
-void MusicChange_Destroy()
+void MusicChange_OnDestroy(MusicChangeData *gp)
 {
-    GObj_Destroy(stc_music_change_gobj);
-    stc_music_change_gobj = 0;
+    Text_Destroy(gp->text);
 
-    Text_Destroy(stc_text);
-    stc_text = 0;
+    HSD_Free(gp);
 
     return;
 }
@@ -136,83 +133,18 @@ void MusicChange_Think(GOBJ *g)
 
     // check to change song
     if (Pad_GetDown(Gm_GetGameData()->pause_ply) & PAD_TRIGGER_Z)
-    {
-        int is_changed = 0;
-        MajorKind mj = Scene_GetCurrentMajor();
-
-        int volume = (stc_event_global->is_song_playing) ? 0 : 255; // song comes in muted when an event is in progress
-
-        if (mj == MJRKIND_AIR)
+    {   
+        if (SongData_PlayRandomStageSong())
         {
-            SongData_PlayRandomSong(volume);
+            SFX_Play(FGMMENU_CS_MV);
+
+            // update song name
+            MusicChange_UpdateSongName(gp);
         }
-        else if (mj == MJRKIND_CITY)
-        {
-            MusicSettingsPlaylist playlist_kind = -1;
-            GroundKind gr_kind = Gm_GetCurrentGrKind();
-
-            switch (gr_kind)
-            {
-            case (GRKIND_CITY1):
-            case (52): // free run
-            {
-                playlist_kind = PLAYLIST_CITY;
-            }
-            case (GRKIND_DRAG1):
-            case (GRKIND_DRAG2):
-            case (GRKIND_DRAG3):
-            case (GRKIND_DRAG4):
-            {
-                playlist_kind = PLAYLIST_DRAGRACE;
-            }
-            case (GRKIND_AIRGLIDER):
-            {
-                playlist_kind = PLAYLIST_AIRGLIDER;
-            }
-            case (GRKIND_TARGETFLIGHT):
-            {
-                playlist_kind = PLAYLIST_TARGETFLIGHT;
-            }
-            case (GRKIND_HIGHJUMP):
-            {
-                playlist_kind = PLAYLIST_HIGHJUMP;
-            }
-            case (GRKIND_KIRBYMELEE1):
-            case (GRKIND_KIRBYMELEE2):
-            {
-                playlist_kind = PLAYLIST_KIRBYMELEE;
-            }
-            case (GRKIND_DESTRUCTIONDERBY1):
-            case (GRKIND_DESTRUCTIONDERBY2):
-            case (GRKIND_DESTRUCTIONDERBY3):
-            case (GRKIND_DESTRUCTIONDERBY4):
-            case (GRKIND_DESTRUCTIONDERBY5):
-            {
-                playlist_kind = PLAYLIST_DESTRUCTIONDERBY;
-            }
-            }
-
-            if (playlist_kind != 1)
-            {
-                int is_played = SongData_PlayFromPlaylist(playlist_kind, volume);
-
-                if (!is_played)
-                    SongData_PlayRandomSong(volume);
-            }
-        }
-
-        SFX_Play(FGMMENU_CS_MV);
-
-        // raise music volume
-        if (volume > 0)
-            BGM_RaiseVolume();
-
-        // update song name
-        MusicChange_UpdateSongName(gp);
     }
 
     // update text scroll logic
-    Text *text = stc_text;
+    Text *text = gp->text;
     switch (gp->state)
     {
     case MUSICCHANGE_SCROLLSTATE_STARTWAIT:
@@ -260,7 +192,12 @@ void MusicChange_Think(GOBJ *g)
     text->trans.X = gp->param->pos.X + gp->offset.X; // original pos + offset
     // text->trans.X += Hoshi_AdjustWidePos(PROJ_PERSPECTIVE, WIDEALIGN_RIGHT, 0);
 }
-
+void MusicChange_Destroy()
+{
+    GObj_Destroy(stc_music_change_gobj);
+    stc_music_change_gobj = 0;
+    return;
+}
 void MusicChange_TextCObj(GOBJ *g)
 {
     if (!CObj_SetCurrent(g->hsd_object))
@@ -387,10 +324,10 @@ float MusicChange_GetScrollAmount(Text *t, float textbox_width)
 void MusicChange_UpdateSongName(MusicChangeData *gp)
 {
     char *song_name = "None";
-    u32 vpb_index = stc_bgm_data_arr[1].vpb_index;
+    u32 vpb_index = stc_bgm_pid[1] & AXDRIVER_PIDMASK;
 
     // check if no song is playing
-    if (vpb_index != 63)
+    if (vpb_index != AXDRIVER_PIDMASK)
     {
         int cur_playing_entrynum = ax_live->voice_data[vpb_index].x30[2];
         SongData *sd = SongData_GetDataByEntrynum(cur_playing_entrynum);
@@ -413,9 +350,9 @@ void MusicChange_UpdateSongName(MusicChangeData *gp)
         extension_ptr[0] = '\0';
 
     // update song name
-    Text_SetText(stc_text, 0, buf);
+    Text_SetText(gp->text, 0, buf);
 
-    float width = MusicChange_GetScrollAmount(stc_text, gp->param->textbox_width);
+    float width = MusicChange_GetScrollAmount(gp->text, gp->param->textbox_width);
     if (width > 0)
         gp->state = MUSICCHANGE_SCROLLSTATE_STARTWAIT;
     else

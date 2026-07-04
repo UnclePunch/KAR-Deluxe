@@ -20,7 +20,8 @@ extern StartupKind startup_kind;
 extern int quickstats_enabled;
 extern int brake_enabled;
 extern int rearview_enabled;
-extern int camerazoom_kind;
+extern int camera_default_zoom_kind;
+extern int camera_max_zoom_kind;
 extern int attractmode_enabled;
 extern int unpause_delay_enabled;
 extern int is_run_enabled;
@@ -149,6 +150,40 @@ OptionDesc mod_settings = {
                     },
                 },
                 &(OptionDesc){
+                    // Camera Menu
+                    .name = "Camera",
+                    .description = "Adjust settings for the in-game camera.",
+                    .kind = OPTKIND_MENU,
+                    .menu_ptr = &(MenuDesc){
+                        .option_num = 2,
+                        .options = {
+                        &(OptionDesc){
+                            .name = "Default Zoom",
+                            .description = "Set your default camera zoom level.",
+                            .kind = OPTKIND_VALUE,
+                            .val = &camera_default_zoom_kind,
+                            .value_num = 2,
+                            .value_names = (char *[]){
+                                "Original",
+                                "Zoomed Out",
+                            },
+                        },
+                        &(OptionDesc){
+                            .name = "Max Zoom",
+                            .description = "Set your maximum camera zoom level.",
+                            .kind = OPTKIND_VALUE,
+                            .val = &camera_max_zoom_kind,
+                            .value_num = 3,
+                            .value_names = (char *[]){
+                                "Original",
+                                "Far",
+                                "Very Far",
+                                },
+                            },
+                        },
+                    },
+                },
+                &(OptionDesc){
                     .name = "Startup",
                     .description = "Pick which menu appears on startup.",
                     .kind = OPTKIND_VALUE,
@@ -161,17 +196,6 @@ OptionDesc mod_settings = {
                         "City Trial",
                         "Air Ride",
                         "LAN",
-                    },
-                },
-                &(OptionDesc){
-                    .name = "Camera",
-                    .description = "Set your default camera zoom level.",
-                    .kind = OPTKIND_VALUE,
-                    .val = &camerazoom_kind,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Original",
-                        "Zoomed Out",
                     },
                 },
                 &(OptionDesc){
@@ -230,6 +254,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = true,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

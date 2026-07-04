@@ -204,7 +204,7 @@ void CitySettings_Load()
 
     return;
 }
-void CitySettings_Think(void *data)
+void CitySettings_Think()
 {
     if (!settings_data.menu.gobj_cur)
         return;

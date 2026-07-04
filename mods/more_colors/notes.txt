@@ -1,3 +1,11 @@
 there may be a race condition happening when loading RdKirbyMore with disc speed unlocked.
 
 can i more efficiently load RdKirbyMore? it seems to be loaded on stadium select and then again in player select
+
+
+loading RdKirbyMore seems to be overwriting the memory where it thinks RdKirby.dat is
+
+so when i load RdKirbyMore, it triggers a defrag. the defrag moves 
+RdKirby.dat and it doesn't re-initialize the header so the pointers 
+that have already been relocated are stale. the question is why is it
+even moving RdKirby? should it be reloading it instead?

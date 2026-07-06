@@ -906,9 +906,9 @@ void Replay_On3DExit()
     if (!REPLAY_ENABLE)
         return;
 
-    if (replay_mode == REPLAY_RECORD)
-        Replay_SendMatchEnd();
-    else if (replay_mode == REPLAY_PLAYBACK)
+    Replay_SendMatchEnd();
+
+    if (replay_mode == REPLAY_PLAYBACK)
     {
         if (current_mod_save->size > 0)
             Hoshi_RestoreModSave(current_mod_save->data, current_mod_save->num);

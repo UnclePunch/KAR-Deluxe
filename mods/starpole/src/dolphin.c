@@ -416,6 +416,143 @@ void Netplay_ViewportTagGX(GOBJ *g, int pass)
                 full_scissor.bottom - full_scissor.top);
 }
 
+// Input Display
+void Netplay_CreateInputDisplay()
+{
+    Game3dData *g3d = Gm_Get3dData();
+
+    HSD_Archive *archive = Archive_LoadFile("IfReplay");
+    if (!archive)
+        return;
+    
+    JOBJSet **set = Archive_GetPublicAddress(archive, "ScInfInput_scene_models");
+    if (!set)
+        return;
+
+    GOBJ *plypos_gobj = g3d->plyview_pos_gobj;
+    
+    // loop through all player views
+    for (int i = 0; i < 4; i++)
+    {
+        if (Ply_GetPKind(i) == PKIND_NONE || !Ply_IsViewOn(i))
+            continue;
+
+        // create a gobj to manage the tag for this viewport
+        GOBJ *g = HUD_CreateElement(i, set[0]->jobj);
+        HUD_AddElementData(g, 0, i, i);
+        GObj_AddProc(g, Netplay_UpdateInputDisplay, 20);
+        g->gx_cb = Netplay_RenderInputDisplay;
+
+        JOBJ *j = g->hsd_object;
+
+        if (plypos_gobj)
+        {
+            JObj_GetChildPosition(plypos_gobj->hsd_object, 1 + i, &j->trans);
+            JObj_SetMtxDirtySub(j);
+        }
+        
+        // adjust position
+        struct InputPosParam
+        {
+            Vec2 offset;
+            float scale;
+        } ;
+        static struct InputPosParam pos_param_1p = {.offset = {-22.2, -7.8}, .scale = 1.2};
+        static struct InputPosParam pos_param_2p = {.offset = {-26, -9.3}, .scale = 0.7};
+        static struct InputPosParam pos_param_3p = {.offset = {-11.7, -5.3}, .scale = 0.5};
+        struct InputPosParam *pos_param;
+        switch (Gm_GetPlyViewNum())
+        {
+            default:
+            case 1:
+                pos_param = &pos_param_1p;
+                break; 
+            case 2:
+                pos_param = &pos_param_2p;
+                break; 
+            case 3:
+            case 4:
+                pos_param = &pos_param_3p;
+                break; 
+        }
+        j->trans.X += pos_param->offset.X;
+        j->trans.Y += pos_param->offset.Y;
+        j->scale.X *= pos_param->scale;
+        j->scale.Y *= pos_param->scale;
+        JObj_SetMtxDirtySub(j);
+
+        JObj_AddSetAnim(j, 0, set[0], 0, 0);
+    }
+}
+void Netplay_UpdateInputDisplay(GOBJ *g)
+{
+    HUDElementData *gp = g->userdata;
+    JOBJ *j = g->hsd_object;
+
+    GOBJ *r = Ply_GetRiderGObj(gp->ply);
+    if (!r)
+    {
+        GObj_Destroy(g);
+        return;
+    }
+
+    RiderData *rd = r->userdata;
+
+    JOBJ *stick_j = JObj_GetIndex(j, 2);
+    stick_j->trans.X = rd->input.lstick.X * (1.3 / 0.76);
+    stick_j->trans.Y = rd->input.lstick.Y * (1.3 / 0.76);
+    JObj_SetMtxDirtySub(stick_j);
+    
+    struct ButtonParam
+    {
+        u16 joint_idx;
+        u16 button_mask;
+    } ;
+    static struct ButtonParam button_param[] = {
+        {
+            .joint_idx = 3,
+            .button_mask = PAD_BUTTON_A,
+        },
+        {
+            .joint_idx = 4,
+            .button_mask = PAD_BUTTON_B,
+        },
+        // {
+        //     .joint_idx = 5,
+        //     .button_mask = PAD_TRIGGER_Z,
+        // },
+    };
+
+    for (int i = 0; i < GetElementsIn(button_param); i++)
+    {
+        JOBJ *button_j = JObj_GetIndex(j, button_param[i].joint_idx);
+        JObj_SetFrameAndRate(button_j, (rd->input.held & button_param[i].button_mask) ? 1 : 0, 0);
+    }
+}
+void Netplay_RenderInputDisplay(GOBJ *g, int pass)
+{
+    if (pass != 2)
+        return;
+        
+    HUDElementData *gp = g->userdata;
+    JOBJ *j = g->hsd_object;
+
+    Game3dData *g3d = Gm_Get3dData();
+
+    // get plynum hud gobj
+    GOBJ* plyspeed_gobj = g3d->ply_speedometer_gobj[gp->ply];
+    if (!plyspeed_gobj)
+        return;
+
+    HUDElementData* hp = plyspeed_gobj->userdata;
+
+    // check if plynum was rendered
+    if (!hp->is_visible)
+        return;
+
+    JObj_GX(g, pass);
+}
+
 // Music Change
 void Netplay_MusicChange(GOBJ *g)
 {

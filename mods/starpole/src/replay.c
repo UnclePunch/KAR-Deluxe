@@ -869,8 +869,6 @@ void Replay_On3DLoadStart()
             //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
             // gd->ply_view_desc[0].flag = PLYCAM_LIVE;
         }
-
-
     }
 
     // debug display
@@ -898,6 +896,8 @@ void Replay_On3DLoadEnd()
             Netplay_CreatePlayerTags(&dolphin_data);
             Netplay_CreateViewportTag(&dolphin_data);
         }
+
+        Netplay_CreateInputDisplay();
     }
 
 }

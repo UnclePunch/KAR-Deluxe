@@ -41,6 +41,10 @@ void Netplay_CreateViewportTag(StarpoleDataDolphin *data);
 void Netplay_DestroyViewportTagViewGObj(ViewportTagViewData *gp);
 void Netplay_ViewportTagGX(GOBJ *g, int pass);
 
+void Netplay_CreateInputDisplay();
+void Netplay_UpdateInputDisplay(GOBJ *g);
+void Netplay_RenderInputDisplay(GOBJ *g, int pass);
+
 GXColor *UI_GetTextOutlineColor(GXColor *color);
 void Text_AddOutline(Text *t, GXColor *color, char *s);
 

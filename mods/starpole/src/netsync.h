@@ -26,6 +26,7 @@ typedef struct
 {
     void *addr;
     u32 size;
+    int is_audio;
 } PreserveMemRegion;
 
 typedef struct 

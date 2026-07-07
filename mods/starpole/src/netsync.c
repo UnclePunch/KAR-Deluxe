@@ -206,12 +206,14 @@ CLEANUP:
 }
 int Netplay_ReceiveInputs()
 {
-    int sim_num;
+    int result;
     u32 this_frame_idx = Gm_GetGameData()->update.engine_frames;
     int enable = OSDisableInterrupts();
 
     // request pad data and receive the number of frames will receive pad data for
-    sim_num = Starpole_Imm(STARPOLE_CMD_NETPADRECV, this_frame_idx);
+    result = Starpole_Imm(STARPOLE_CMD_NETPADRECV, this_frame_idx);
+
+    int sim_num = result & 0x7FFFFFF;
 
     if (sim_num > MAX_ROLLBACK_FRAMES + 1)
     {
@@ -253,7 +255,7 @@ int Netplay_ReceiveInputs()
 
 CLEANUP:
     OSRestoreInterrupts(enable);
-    return sim_num;
+    return result;
 }
 u32 Netplay_ReceiveConfirmFrame()
 {
@@ -308,7 +310,10 @@ int Netplay_WaitForClients()
     Netplay_SendInputs(g_local_status);           // send inputs to dolphin
 
     // update game sim only when we have all inputs for this frame
-    g_rollback.sim_frames = Netplay_ReceiveInputs();
+    int result = Netplay_ReceiveInputs();
+    g_rollback.is_rollback = (result & 0x80000000) >> 31;
+    g_rollback.is_render = (result & 0x40000000) >> 30;
+    g_rollback.sim_frames = (result & 0x7FFFFFFF);
     g_rollback.confirm_frame = Netplay_ReceiveConfirmFrame();
 
     if (g_rollback.sim_frames > 0)
@@ -318,7 +323,7 @@ int Netplay_WaitForClients()
     }
 
     // if we simulate more than 1 frame we can assume we rolled back, so increment resim index
-    if (g_rollback.sim_frames > 1)
+    if (g_rollback.is_rollback)
     {
         g_rollback.resim_idx++;
         
@@ -343,7 +348,7 @@ void Netplay_OnFrameStart(int loop_num)
     Netplay_RequestSave(frame);
 
     g_rollback.this_sim_idx = loop_num;
-    g_rollback.is_resim_frame = (g_rollback.sim_frames > 1 && g_rollback.this_sim_idx < (g_rollback.sim_frames - 1));
+    g_rollback.is_resim_frame = (g_rollback.is_rollback && g_rollback.this_sim_idx < (g_rollback.sim_frames - 1));
 
     NetLog("now simulating frame %d!\n", Gm_GetGameData()->update.engine_frames);
 
@@ -365,6 +370,33 @@ void Netplay_OnFrameStart(int loop_num)
 }
 CODEPATCH_HOOKCREATE(0x8000682c, "mr 3, 29\t\n", Netplay_OnFrameStart, "", 0)
 
+int Netplay_CheckRender()
+{
+    if (!g_rollback.is_render)
+    {
+        GOBJ *developtextcam_gobj = (*stc_gobj_lookup)[61];
+
+        if (developtextcam_gobj && 
+            developtextcam_gobj->obj_kind == HSD_OBJKIND_COBJ)
+        {
+            HSD_StartRender(0);
+
+            // draw black quad
+            CObj_SetEraseColor(0, 0, 0, 0);
+            CObj_EraseScreen(developtextcam_gobj->hsd_object, 1, 1, 1);
+
+            HSD_VICopyXFBASync(0);
+        }
+
+
+
+        return 1;
+    }
+
+    return 0;
+}
+CODEPATCH_HOOKCONDITIONALCREATE(0x80006a8c, "", Netplay_CheckRender, "", 0, 0x80006b28)
+
 void Netsync_AdjustGameLoop()
 {
     int *is_alarm_active = (int *)0x80550ca8;
@@ -384,6 +416,7 @@ void Netsync_AdjustGameLoop()
     CODEPATCH_HOOKAPPLY(0x80006828);                            // skip frame if request to leave already
     CODEPATCH_HOOKAPPLY(0x80006bd4);                            // wait for inputs
     CODEPATCH_HOOKAPPLY(0x8000682c);                            // consume pad
+    CODEPATCH_HOOKAPPLY(0x80006a8c);                            // gate render
 }
 
 // here we will attempt to optimize catchup frames by not processing
@@ -567,7 +600,7 @@ void Audio_Cleanup()
     if (g_rollback.this_sim_idx == (g_rollback.sim_frames - 1))
     {
         // if this is the end of a resim, cleanup AX state if sounds that shouldn't be playing are
-        if (g_rollback.sim_frames > 1)
+        if (g_rollback.is_rollback)
             Audio_ValidateAX((Gm_GetGameData()->update.engine_frames + 1) - g_rollback.sim_frames); // need to +1 because engine frames increments after this hook
 
         // expire audio logs for frames we wont be rolling back to anymore

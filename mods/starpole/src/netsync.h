@@ -107,6 +107,8 @@ typedef struct
 typedef struct
 {
     u32 resim_idx : 6;
+    u32 is_rollback;
+    u32 is_render;
     u32 sim_frames;
     u32 is_resim_frame;
     u32 this_sim_idx;

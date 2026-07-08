@@ -25,7 +25,6 @@
 
 int is_starpole = 0;                // bool indicating whether or not starpole is present (checked on startup)
 StarpoleBuffer *starpole_buf;
-extern StarpoleExport starpole_export; 
 
 StarpoleDataTest starpole_data_test;
 
@@ -171,7 +170,6 @@ void Starpole_Init()
         return;
 
     is_starpole = 1;
-    starpole_export.is_present = 1;
 
     OSReport("Starpole detected!\n");
 

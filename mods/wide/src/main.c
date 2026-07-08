@@ -32,7 +32,9 @@ void OnBoot()
 void OnSaveLoaded()
 {
     starpole_export = (StarpoleExport *)Hoshi_ImportMod("Starpole Communication", 1, 0);
-    if (starpole_export) // set aspect ratio
+    
+    // set aspect ratio
+    if (starpole_export && starpole_export->dolphin_data) 
         *stc_cobj_aspect = ORIG_ASPECT * starpole_export->dolphin_data->aspect_mult;
 }
 

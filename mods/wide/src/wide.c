@@ -7,7 +7,7 @@
 
 #include "code_patch/code_patch.h"
 
-extern StarpoleDolphinData *starpole_export;
+extern StarpoleExport *starpole_export;
 
 WideKind wide_kind = WIDEKIND_43;
 static float wide_kind_fractions[] = {
@@ -122,7 +122,7 @@ float Wide_GetAspectMult()
 }
 void Wide_OnOptionChange(int val)
 {
-    if (starpole_export)
+    if (starpole_export && starpole_export->dolphin_data)
         return;
 
     WideKind kind = (WideKind)val;

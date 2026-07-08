@@ -149,6 +149,7 @@ typedef struct
 
 typedef struct StarpoleExport
 {
+    int is_present;
     StarpoleDataDolphin *dolphin_data;
 } StarpoleExport;
 

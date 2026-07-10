@@ -6,6 +6,7 @@
     
 #define NETPLAY_DEBUG 0
 #define MAX_ROLLBACK_FRAMES (5)
+#define MAX_SIM_FRAMES (10)
 #define NET_LOG (0)
 
 void NetLog(const char* fmt, ...);
@@ -108,6 +109,7 @@ typedef struct
 {
     u32 resim_idx : 6;
     u32 is_rollback;
+    u32 is_render_prev;
     u32 is_render;
     u32 sim_frames;
     u32 is_resim_frame;

@@ -37,7 +37,7 @@ AudioLog g_audio_log;
 RollbackLog g_rollback;
 
 PADStatus g_local_status[4] = {0};
-PADStatus g_remote_status[MAX_ROLLBACK_FRAMES + 1][4] = {0};
+PADStatus g_remote_status[MAX_SIM_FRAMES + 1][4] = {0};
 PreserveMemRegion g_preserve_regions[] = {
     {(void *)0, 0, false},                                     // stay
     {(void *)0, 0, false},                                     // AllM
@@ -215,9 +215,9 @@ int Netplay_ReceiveInputs()
 
     int sim_num = result & 0x7FFFFFF;
 
-    if (sim_num > MAX_ROLLBACK_FRAMES + 1)
+    if (sim_num > MAX_SIM_FRAMES + 1)
     {
-        OSReport("sim_num (%d) over MAX_ROLLBACK_FRAMES on game frame %d.\n", sim_num, this_frame_idx);
+        OSReport("sim_num (%d) over MAX_SIM_FRAMES on game frame %d.\n", sim_num, this_frame_idx);
         assert("starpole");
     }
 
@@ -236,7 +236,7 @@ int Netplay_ReceiveInputs()
         }
 
         // alloc stack buffer to receive to
-        PADStatus buffer[MAX_ROLLBACK_FRAMES + 1][4] __attribute__((aligned(32)));
+        PADStatus buffer[MAX_SIM_FRAMES][4] __attribute__((aligned(32)));
         
         memset(buffer, 0, sizeof(buffer));
 
@@ -370,30 +370,68 @@ void Netplay_OnFrameStart(int loop_num)
 }
 CODEPATCH_HOOKCREATE(0x8000682c, "mr 3, 29\t\n", Netplay_OnFrameStart, "", 0)
 
+void Netplay_CheckVIWaitForRetrace()
+{
+    // the idea here is to not sleep the main thread every frame waiting for
+    // VI interrupt when we not rendering anything. avoiding this allows us to
+    // process game frames faster. we take care to render a black quad to screen 
+    // for the first frame so there isnt a lingering image while we completely 
+    // ignore VI
+    if (g_rollback.is_render)
+        VIWaitForRetrace();
+}
+CODEPATCH_HOOKCREATE(0x80006b94, "", Netplay_CheckVIWaitForRetrace, "b 0x8\n\t", 0)
+
 int Netplay_CheckRender()
 {
+    void (*BGM_AdjustVolume)(int volume) = (void *)0x8005fb64;
+    void (*FGM_AdjustVolume)(int volume) = (void *)0x8005fae4;
+
+    int result;
+
     if (!g_rollback.is_render)
     {
-        GOBJ *developtextcam_gobj = (*stc_gobj_lookup)[61];
-
-        if (developtextcam_gobj && 
-            developtextcam_gobj->obj_kind == HSD_OBJKIND_COBJ)
+        // draw a black quad for the first frame we skip rendering
+        if (g_rollback.is_render_prev)
         {
-            HSD_StartRender(0);
+            // mute audio
+            BGM_AdjustVolume(0);
+            FGM_AdjustVolume(0);
 
-            // draw black quad
-            CObj_SetEraseColor(0, 0, 0, 0);
-            CObj_EraseScreen(developtextcam_gobj->hsd_object, 1, 1, 1);
+            GOBJ *developtextcam_gobj = (*stc_gobj_lookup)[61];
 
-            HSD_VICopyXFBASync(0);
+            if (developtextcam_gobj && 
+                developtextcam_gobj->obj_kind == HSD_OBJKIND_COBJ)
+            {
+                HSD_StartRender(0);
+
+                // draw black quad
+                CObj_SetEraseColor(0, 0, 0, 0);
+                CObj_EraseScreen(developtextcam_gobj->hsd_object, 1, 1, 1);
+
+                HSD_VICopyXFBASync(0);
+            }
         }
 
-
-
-        return 1;
+        result = 1;
     }
+    else
+    {
+        if (!g_rollback.is_render_prev)
+        {
+            // unmute audio
+            BGM_AdjustVolume(178);
+            FGM_AdjustVolume(178);
+        }
+       
+        result = 0;
+    }
+    
+    // update previous render state
+    g_rollback.is_render_prev = g_rollback.is_render;
 
-    return 0;
+    return result;
+
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x80006a8c, "", Netplay_CheckRender, "", 0, 0x80006b28)
 
@@ -402,12 +440,16 @@ void Netsync_AdjustGameLoop()
     int *is_alarm_active = (int *)0x80550ca8;
     OSAlarm *alarm_ptr = (OSAlarm *)0x80550d28;
 
+    g_rollback.is_render_prev = 1;
+    g_rollback.is_render = 1;
+
     // cancel any active alarms
     if (*is_alarm_active)
         OSCancelAlarm(alarm_ptr);
     CODEPATCH_REPLACEINSTRUCTION(0x80062660, 0x4e800020);       // disable pad alarm creation
 
-    CODEPATCH_REPLACECALL(0x80006b94, VIWaitForRetrace);        // replace pad alarm jam with viwaitforretrace
+    CODEPATCH_HOOKAPPLY(0x80006b94);                            // replace pad alarm jam with viwaitforretrace
+    // CODEPATCH_REPLACECALL(0x80006b94, VIWaitForRetrace);        // replace pad alarm jam with viwaitforretrace
 
     // netpause at the top of each frame
     // CODEPATCH_REPLACEINSTRUCTION(0x8000682c, 0x60000000);    // remove pad consume

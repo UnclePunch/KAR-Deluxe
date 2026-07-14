@@ -38,59 +38,60 @@ RollbackLog g_rollback;
 
 PADStatus g_local_status[4] = {0};
 PADStatus g_remote_status[MAX_SIM_FRAMES + 1][4] = {0};
-PreserveMemRegion g_preserve_regions[] = {
-    {(void *)0, 0, false},                                     // stay
-    {(void *)0, 0, false},                                     // AllM
-    {(void *)0x00000000, 0x96000, false},                      // XFB buffer 1 80589a48
-    {(void *)0x00000000, 0x96000, false},                      // XFB buffer 2 80589a4c
-    {(void *)0x00000000, 0x80000, false},                      // gx init alloc in arena lo, performed at 8040fc3c
-    {(void *)0, 0, true},                                      // audio heap
-    {(void *)0, 0, true},                                      // audio track status
+MemRegion g_preserve_regions[] = {
+    {(void *)0, 0, false, false},                                     // stay
+    {(void *)0, 0, false, false},                                     // AllM
+    {(void *)0x00000000, 0x96000, false, false},                      // XFB buffer 1 80589a48
+    {(void *)0x00000000, 0x96000, false, false},                      // XFB buffer 2 80589a4c
+    {(void *)0x00000000, 0x80000, false, false},                      // gx init alloc in arena lo, performed at 8040fc3c
+    {(void *)0, 0, false, true},                                      // audio heap
+    {(void *)0, 0, false, true},                                      // audio track status
+    {(void *)0, 0, true, true},                                       // HPS chunk buffers in ARAM
     
-    {(void *)0x80003100, 0x2500, false},                       // dol text section 1
-    {(void *)0x80005800, 0x483C40, false},                     // dol text section 2
-    {(void *)(0x805f6390 - (32 * 1024)), 32 * 1024, false},    // stack, address derived from 80005410. im inferring 32kb stack
+    {(void *)0x80003100, 0x2500, false, false},                       // dol text section 1
+    {(void *)0x80005800, 0x483C40, false, false},                     // dol text section 2
+    {(void *)(0x805f6390 - (32 * 1024)), 32 * 1024, false, false},    // stack, address derived from 80005410. im inferring 32kb stack
 
-    {&g_audio_log, sizeof(g_audio_log), true},                 // audio log
-    {&g_rollback, sizeof(g_rollback), false},                  // rollback specific data
-    {&g_debug_pad, sizeof(g_debug_pad), false},                // debug pad data
-    {&g_remote_status, sizeof(g_remote_status), false},        // pad data to use for game frames
+    {&g_audio_log, sizeof(g_audio_log), false, true},                 // audio log
+    {&g_rollback, sizeof(g_rollback), false, false},                  // rollback specific data
+    {&g_debug_pad, sizeof(g_debug_pad), false, false},                // debug pad data
+    {&g_remote_status, sizeof(g_remote_status), false, false},        // pad data to use for game frames
 
-    {(void *)0x80550f68, 0x1008, false},                       // file preload table
-    {(void *)0x80508bc8, 0x4 * 3, true},                       // BGM PID's. needed to stop a song from playing
+    {(void *)0x80550f68, 0x1008, false, false},                       // file preload table
+    {(void *)0x80508bc8, 0x4 * 3, false, true},                       // BGM PID's. needed to stop a song from playing
     
-    {(void *)(0x805dd0e0 + 0xF20), 0xF68 - 0xF20, true},      // ARQ and hsd audio sbss
-    {(void *)(0x805dd0e0 + 0xAC), 0x8, true},                 // 64 bitfield that is raised when the corresponding sg has its volume changed, 0x8044c450
-    {(void *)0x80599c60, 0x8059a818 - 0x80599c60, true},      // more audio stuff. sg indexed volume data in here @ 8059a178 and 8059a160?
-    {(void *)(0x805dd0e0 + 0x1358), 0x1470 - 0x1358, true},   // hsd audio sbss
-    {(void *)0x8056ccb4, 0x24, true},                         // DVD Waiting Queue
-    {(void *)0x8056cb40, 0xE0, true},                         // DVD Interrupt stuff @ 803c40b4. includes alarm
-    {(void *)0x8056cc20, 0x94, true},                         // DVD state stuff @ 803c67f0. another alarm at 0x70 of this?
+    {(void *)(0x805dd0e0 + 0xF20), 0xF68 - 0xF20, false, true},      // ARQ and hsd audio sbss
+    {(void *)(0x805dd0e0 + 0xAC), 0x8, false, true},                 // 64 bitfield that is raised when the corresponding sg has its volume changed, 0x8044c450
+    {(void *)0x80599c60, 0x8059a818 - 0x80599c60, false, true},      // more audio stuff. sg indexed volume data in here @ 8059a178 and 8059a160?
+    {(void *)(0x805dd0e0 + 0x1358), 0x1470 - 0x1358, false, true},   // hsd audio sbss
+    {(void *)0x8056ccb4, 0x24, false, true},                         // DVD Waiting Queue
+    {(void *)0x8056cb40, 0xE0, false, true},                         // DVD Interrupt stuff @ 803c40b4. includes alarm
+    {(void *)0x8056cc20, 0x94, false, true},                         // DVD state stuff @ 803c67f0. another alarm at 0x70 of this?
 
-    {(void *)(0x805dd0e0 + 0xC60), 0xCF4 - 0xC60, true},      // disc read variables
-    {(void *)(0x805dd0e0 + 0xDC8), 0xDD0 - 0xDC8, true},      // OSAlarm variables
-    {(void *)(0x805dd0e0 + 0x4C8), 0x4, true},                // file async load flag
+    {(void *)(0x805dd0e0 + 0xC60), 0xCF4 - 0xC60, false, true},      // disc read variables
+    {(void *)(0x805dd0e0 + 0xDC8), 0xDD0 - 0xDC8, false, true},      // OSAlarm variables
+    {(void *)(0x805dd0e0 + 0x4C8), 0x4, false, true},                // file async load flag
 
-    {(void *)0x8056e9e8, 0x80587A60 - 0x8056e9e8, true},      // all the AX data i know of, AXStack head -> end of __AXVPB
-    {(void *)(0x805dd0e0 + 0xF30), 0x1054 - 0xF30, true},     // AX region sbss
+    {(void *)0x8056e9e8, 0x80587A60 - 0x8056e9e8, false, true},      // all the AX data i know of, AXStack head -> end of __AXVPB
+    {(void *)(0x805dd0e0 + 0xF30), 0x1054 - 0xF30, false, true},     // AX region sbss
 
-    {(void *)0x8058e298, 64 * 0x4, true},                     // array of VPB pointers? indexed by FGMInstance index
-    {(void *)0x8058E398, 0x8F8, true},                        // unknown in between chunks, part of this is the fgm_kind struct, referenced @ 80442a24
-    {(void *)0x8058ec90, 0x90, true},                         // hps stream unk struct @ 804464bc
-    {(void *)0x8058ed20, 2 * 0x4000, true},                   // hps double buffer?
-    {(void *)0x80596d20, 0x40, true},                         // hps streaming @ 80446a74
-    {(void *)0x80596d60, 0x50, true},                         // hps streaming stuff
-    {(void *)0x80596da0, 160 + (512*3), true},                // FGM region, multiple offsets of this loaded around 80447ee4. also includes some HPS streaming stuff
-    {(void *)0x80597440, 0x220, true},                        // unknown in between chunks
+    {(void *)0x8058e298, 64 * 0x4, false, true},                     // array of VPB pointers? indexed by FGMInstance index
+    {(void *)0x8058E398, 0x8F8, false, true},                        // unknown in between chunks, part of this is the fgm_kind struct, referenced @ 80442a24
+    {(void *)0x8058ec90, 0x90, false, true},                         // hps stream unk struct @ 804464bc
+    {(void *)0x8058ed20, 2 * 0x4000, false, true},                   // hps double buffer?
+    {(void *)0x80596d20, 0x40, false, true},                         // hps streaming @ 80446a74
+    {(void *)0x80596d60, 0x50, false, true},                         // hps streaming stuff
+    {(void *)0x80596da0, 160 + (512*3), false, true},                // FGM region, multiple offsets of this loaded around 80447ee4. also includes some HPS streaming stuff
+    {(void *)0x80597440, 0x220, false, true},                        // unknown in between chunks
 
-    {(void *)0x80597660, 64 * 0x98, true},                    // AXLive voice array. (8044ccf0)
-    {(void *)0x80597F20, 64 * 152, true},                     // static audio lookup 0X8c0 (8044ccf0)
+    {(void *)0x80597660, 64 * 0x98, false, true},                    // AXLive voice array. (8044ccf0)
+    {(void *)0x80597F20, 64 * 152, false, true},                     // static audio lookup 0X8c0 (8044ccf0)
 
-    {(void *)0x8059a880, 0x618, false},                        // memcard thread data? referenced by the function 8045b848 in the thread func
-    {(void *)0x805b4698, 0x35C, false},                        // memcard thread data
+    {(void *)0x8059a880, 0x618, false, false},                        // memcard thread data? referenced by the function 8045b848 in the thread func
+    {(void *)0x805b4698, 0x35C, false, false},                        // memcard thread data
 };
 
-void Netplay_GetPreserveRegions(PreserveMemRegion *regions_out)
+void Netplay_GetPreserveRegions(MemRegion *regions_out)
 {
     memcpy(regions_out, g_preserve_regions, sizeof(g_preserve_regions));
 
@@ -110,6 +111,9 @@ void Netplay_GetPreserveRegions(PreserveMemRegion *regions_out)
     // audio track status
     regions_out[6].addr = (*stc_audio_track_unk);
     regions_out[6].size = sizeof(u16) * (*stc_audio_track_num);
+    // hps chunk buffers in aram
+    regions_out[7].addr = *(void **)0x805de534;
+    regions_out[7].size = *(u32 *)0x805de53c * 0x10000;
     
 
     return;
@@ -124,7 +128,7 @@ int Netplay_StartRollback()
 
     // create buffer of memory regions to preserve
     char buffer[sizeof(g_preserve_regions)] __attribute__((aligned(32)));
-    Netplay_GetPreserveRegions((PreserveMemRegion *)&buffer);
+    Netplay_GetPreserveRegions((MemRegion *)&buffer);
 
     // notify of incoming data
     if (Starpole_Imm(STARPOLE_CMD_NETSTART, GetElementsIn(g_preserve_regions)) <= 0)

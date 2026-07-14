@@ -377,7 +377,8 @@ void Netplay_CheckVIWaitForRetrace()
     // process game frames faster. we take care to render a black quad to screen 
     // for the first frame so there isnt a lingering image while we completely 
     // ignore VI
-    if (g_rollback.is_render)
+
+    // if (g_rollback.is_render)
         VIWaitForRetrace();
 }
 CODEPATCH_HOOKCREATE(0x80006b94, "", Netplay_CheckVIWaitForRetrace, "b 0x8\n\t", 0)
@@ -386,6 +387,8 @@ int Netplay_CheckRender()
 {
     void (*BGM_AdjustVolume)(int volume) = (void *)0x8005fb64;
     void (*FGM_AdjustVolume)(int volume) = (void *)0x8005fae4;
+    int *AX_is_updating = (int *)0x805ddfd4;
+    void (*AXOutAiCallback)() = (void *)0x803ed268;
 
     int result;
 
@@ -397,6 +400,11 @@ int Netplay_CheckRender()
             // mute audio
             BGM_AdjustVolume(0);
             FGM_AdjustVolume(0);
+
+            // raise AI interrupt in progress flag so the interrupt never runs
+            // int level = OSDisableInterrupts();
+            // *AX_is_updating = 1;
+            // OSRestoreInterrupts(level);
 
             GOBJ *developtextcam_gobj = (*stc_gobj_lookup)[61];
 
@@ -413,12 +421,25 @@ int Netplay_CheckRender()
             }
         }
 
+        // update AX 3 times per game tick
+        // (normally runs approx every 5ms, so 3 times is about 1 frames worth)
+        // int level = OSDisableInterrupts();
+        // for (int i = 0; i < 3; i++)
+        //     AXOutAiCallback();
+        // OSRestoreInterrupts(level);
+
+
         result = 1;
     }
     else
     {
         if (!g_rollback.is_render_prev)
         {
+            // lower AI interrupt in progress flag so the interrupt runs
+            // int level = OSDisableInterrupts();
+            // *AX_is_updating = 0;
+            // OSRestoreInterrupts(level);
+
             // unmute audio
             BGM_AdjustVolume(178);
             FGM_AdjustVolume(178);
@@ -1042,11 +1063,9 @@ void Netsync_OnFrameEnd()
     int hash_flags = (Scene_GetCurrentMinor() == MNRKIND_3D) ? (HASH_ALL) : (HASH_SYS);
     Netplay_SendGameState(Hash_GameState(hash_flags));
 
-    // bp();
     // int index = (stc_bgm_pid[1] & AXDRIVER_PIDMASK);
     // OSReport("VPB: %x\n", &ax_live->voice_data[index]);
-    // OSReport("AXVPB Volume: %x\n", &ax_live->voice_data[index].axvpb[0]->pb.ve);
-    // OSReport("User Volume: %x\n", &ax_live->user_vol[index]);
+    // OSReport("PB Addr: %p\n", &ax_live->voice_data[index].axvpb[0]->pb.addr);
 
 
     // u32 hash = Replay_HashGameState();

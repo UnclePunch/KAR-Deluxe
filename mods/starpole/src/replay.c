@@ -860,6 +860,12 @@ void Replay_On3DLoadStart()
 
         if (Replay_ReqMatch())
         {
+            // // fullscreen for player X
+            // int fullscreen_ply = 0;
+            // for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
+            //     gd->ply_view_desc[i].flag = PLYCAM_OFF;
+            // gd->ply_view_desc[fullscreen_ply].flag = PLYCAM_ON;
+
             // use splitscreen camera for all humans
             for (int i = 0; i < GetElementsIn(gd->ply_view_desc); i++)
                 gd->ply_view_desc[i].flag = (starpole_buf->match.ply_desc[i].p_kind == PKIND_HMN) ? PLYCAM_ON : PLYCAM_OFF;

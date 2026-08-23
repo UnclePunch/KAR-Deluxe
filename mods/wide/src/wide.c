@@ -198,7 +198,7 @@ void MovieCObj_AdjustWide(GOBJ *g)
     CObj_AdjustWideOrtho((COBJ*)g->hsd_object);
 }
 CODEPATCH_HOOKCREATE(0x8000d454, "lwz 3, 0x470 (13)\n\t", MovieCObj_AdjustWide, "", 0)
-CODEPATCH_HOOKCREATE(0x8000d87c, "lwz 3, 0x480 (13)\n\t", MovieCObj_AdjustWide, "", 0)
+CODEPATCH_HOOKCREATE(0x8000d87c, "lwz 3, 0x484 (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x80049608, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x8004950c, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x80049704, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
@@ -271,10 +271,10 @@ COBJDesc desc = {
     .projection_param.ortho.top = 0,
     .projection_param.ortho.bottom = 480,
 };
-void Wide_CreateTestGObj()
+void Wide_CreatePillarbox()
 {
     MinorKind minor_kind = Scene_GetCurrentMinor();
-    if (minor_kind == MNRKIND_3D)
+    if (minor_kind == MNRKIND_3D || minor_kind == MNRKIND_MAINMENU)
         return;
 
     int gx_link = HOSHI_SCREENCAM_GXLINK - 1;

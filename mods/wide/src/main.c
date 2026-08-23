@@ -40,7 +40,7 @@ void OnSaveLoaded()
 
 void OnSceneChange()
 {
-    Wide_CreateTestGObj();
+    // Wide_CreatePillarbox();
 }
 void On3DLoadStart()
 {

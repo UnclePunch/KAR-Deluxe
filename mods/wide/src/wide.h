@@ -35,7 +35,7 @@ typedef struct StarpoleExport
 void Wide_Init();
 float Wide_GetAspectMult();
 void Wide_OnOptionChange(int val);
-void Wide_CreateTestGObj();
+void Wide_CreatePillarbox();
 void CObj_AdjustWideOrtho(COBJ *c);
 
 #endif

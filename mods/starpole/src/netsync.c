@@ -427,10 +427,10 @@ int Netplay_CheckRender()
 
         // update AX 3 times per game tick
         // (normally runs approx every 5ms, so 3 times is about 1 frames worth)
-        // int level = OSDisableInterrupts();
-        // for (int i = 0; i < 3; i++)
-        //     AXOutAiCallback();
-        // OSRestoreInterrupts(level);
+        int level = OSDisableInterrupts();
+        for (int i = 0; i < 3; i++)
+            AXOutAiCallback();
+        OSRestoreInterrupts(level);
 
 
         result = 1;

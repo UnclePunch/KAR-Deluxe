@@ -108,6 +108,7 @@ GOBJ *MusicChange_Create()
     t->aspect = gp->param->aspect;
     t->trans.X = gp->param->pos.X;
     t->trans.Y = gp->param->pos.Y;
+    t->trans.Z = -0.1;
     Text_AddSubtext(t, 0, 0, "");
 
     gp->text = t;

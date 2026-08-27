@@ -19,6 +19,7 @@
 #include "replay.h"
 #include "netsync.h"
 #include "playback.h"
+#include "dolphin.h"
 
 #include "code_patch/code_patch.h"
 #include "text_joint/text_joint.h"
@@ -189,6 +190,7 @@ void Starpole_Init()
     
     Replay_Init();
     Playback_Init();
+    Dolphin_Init();
     Netsync_Init();
 
     return;

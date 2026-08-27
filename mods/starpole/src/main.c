@@ -27,7 +27,6 @@ OptionDesc mod_settings = {
 void OnBoot()
 {
     Starpole_Init();
-    Dolphin_Init();
 
     Hoshi_ExportMod((void *)&starpole_export);
 

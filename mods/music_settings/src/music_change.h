@@ -1,7 +1,6 @@
 #ifndef MUSICCHANGE_H
 #define MUSICCHANGE_H
 
-#define SONGNAME_GXLINK 45
 #define MUSICCHANGE_SCROLLSPEED (0.05)
 
 typedef enum HUDLayoutKind
@@ -33,11 +32,9 @@ typedef struct NowPlayingAssets
 
 typedef struct MusicChangeTextParams
 {
-    Vec2 pos;
     Vec2 scale;
     Vec2 aspect;
-    u16 scissor_left;
-    u16 scissor_width;
+    int joint_text_pos_idx;
     float textbox_width;
 } MusicChangeTextParams;
 
@@ -45,7 +42,8 @@ typedef struct MusicChangeData
 {
     int state;
     int timer;
-    Vec2 offset;
+    Vec2 pos;
+    Vec2 scroll_offset;
     Text *text;
     MusicChangeTextParams *param;
 } MusicChangeData;

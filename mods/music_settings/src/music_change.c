@@ -79,7 +79,6 @@ GOBJ *MusicChange_Create()
     Vec3 text_pos = {0, 0, 0};
     JObj_GetChildPosition(j, gp->param->joint_text_pos_idx, &text_pos);
     gp->pos = (Vec2){text_pos.X, -text_pos.Y};
-    OSReport("text pos: %0.2f, %0.2f\n", text_pos.X, -text_pos.Y);
 
     stc_music_change_gobj = g;
 

@@ -37,5 +37,6 @@ float Wide_GetAspectMult();
 void Wide_OnOptionChange(int val);
 void Wide_CreatePillarbox();
 void CObj_AdjustWideOrtho(COBJ *c);
+float Wide_GetInverseScale();
 
 #endif

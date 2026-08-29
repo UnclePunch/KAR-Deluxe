@@ -109,15 +109,10 @@ void DebugHUD_GX(GOBJ *g, int pass)
         }
     }
 }
-void Camera_AdjustWidth(float left_in, float right_in, float *left_out, float *right_out)
+void Camera_AdjustWidth(WideAlign align, float left_in, float right_in, float *left_out, float *right_out)
 {
     float aspect_mult = Wide_GetAspectMult();
-    float center_x_normalized = ((right_in + left_in) / 2) / 640.0f;
-
-    OSReport("in:\n");
-    OSReport("left %.2f, right %.2f\n", left_in, right_in);
-    OSReport("center_normalized: %.2f\n", center_x_normalized);
-
+    
     float edge_x = 0;
     float width = 640.f;
     if (aspect_mult > 1.33333333333)
@@ -125,18 +120,56 @@ void Camera_AdjustWidth(float left_in, float right_in, float *left_out, float *r
         width = (640.f * 1.33333333333) / aspect_mult;
         edge_x = (640.f - width) / 2;
     }
+    
+    // OSReport("in:\n");
+    // OSReport("left %.2f, right %.2f\n", left_in, right_in);
 
-    float view_width = right_in - left_in;
+    switch (align)
+    {
+        // case (WIDEALIGN_CENTER):
+        // {
+        //     float center_x_normalized = ((right_in + left_in) / 2) / 640.0f;
+        //     float new_center_x = edge_x + (center_x_normalized * width);
+
+        //     float view_width = right_in - left_in;    
+        //     float adjusted_view_width = (view_width / aspect_mult); // shrinks with wider AR (preserves pixel width when display stretches the image)
+
+        //     // OSReport("center_normalized: %.2f\n", center_x_normalized);
+        //     // OSReport("new_center_x: %.2f\n", new_center_x);
+
+        //     // OSReport("view_width: %.2f\n", view_width);
+        //     // OSReport("adjusted_view_width: %.2f\n", adjusted_view_width);
+
+        //     *left_out = new_center_x - (adjusted_view_width / 2);
+        //     *right_out = new_center_x + (adjusted_view_width / 2);
         
-    float adjusted_fb_width = (640.0f / aspect_mult);       // shrinks with wider AR (preserves pixel width when display stretches the image)
-    float adjusted_view_width = (view_width / aspect_mult); // shrinks with wider AR (preserves pixel width when display stretches the image)
+        //     break;
+        // }
 
-    float new_center_x = edge_x + (center_x_normalized * width);
-    *left_out = new_center_x - (adjusted_view_width / 2);
-    *right_out = new_center_x + (adjusted_view_width / 2);
+        case (WIDEALIGN_LEFT):
+        case (WIDEALIGN_RIGHT):
+        {
 
-    OSReport("out:\n");
-    OSReport("left %.2f, right %.2f\n", *left_out, *right_out);
+            float inverse_scale = Wide_GetInverseScale();
+            OSReport("inverse_scale: %.2f\n", inverse_scale);
+
+            if (align == WIDEALIGN_LEFT)
+            {
+                *left_out = edge_x + (left_in * inverse_scale);
+                *right_out = edge_x + (right_in * inverse_scale);
+            }
+            else
+            {
+                *left_out = edge_x + (640 - (640 - left_in) * inverse_scale);
+                *right_out = edge_x + (640 - (640 - right_in) * inverse_scale);
+            }
+
+            break;
+        }
+    }
+    
+    // OSReport("out:\n");
+    // OSReport("left %.2f, right %.2f\n", *left_out, *right_out);
 }
 
 GOBJ *HUDMain_Create(GOBJ *g)
@@ -269,16 +302,18 @@ void HUDAdjust_Camera(COBJ *c)
     int scissor_wdith = c->scissor_right - c->scissor_left;
     float left, right;
 
+    WideAlign align = (c->viewport_left + (viewport_width / 2) > 320.f) ? WIDEALIGN_RIGHT : WIDEALIGN_LEFT;
+
     if (viewport_width < 640.f)
     {
-        Camera_AdjustWidth(c->viewport_left, c->viewport_right, &left, &right);
+        Camera_AdjustWidth(align, c->viewport_left, c->viewport_right, &left, &right);
         c->viewport_left = left;
         c->viewport_right = right;
     }
 
     if (scissor_wdith < 640)
     {
-        Camera_AdjustWidth(c->scissor_left, c->scissor_right, &left, &right);
+        Camera_AdjustWidth(align, c->scissor_left, c->scissor_right, &left, &right);
         c->scissor_left = left;
         c->scissor_right = right;
     }
@@ -515,9 +550,41 @@ void CObj_CheckVisibleAdjust(CamScissor *scissor)
 }
 CODEPATCH_HOOKCREATE(0x800674fc, "addi 3, 1, 0x8\n\t", CObj_CheckVisibleAdjust, "", 0)
 
+void Vec_Log(char *s, Vec3 *v)
+{
+    OSReport("%s  X: %0.2f, Y: %0.2f, Z: %0.2f\n", 
+                s,
+                v->X,
+                v->Y,
+                v->Z);
+}
+void Viewport_Log(char *s, float *v)
+{
+    OSReport("%s  l: %0.2f, r: %0.2f, t: %0.2f, b: %0.2f\n", 
+                s,
+                v[0],
+                v[1],
+                v[2],
+                v[3]);
+}
+void Scissor_Log(char *s, CamScissor *scissor)
+{
+    OSReport("%s  l: %d, r: %d, t: %d, b: %d\n", 
+                s,
+                scissor->left,
+                scissor->right,
+                scissor->top,
+                scissor->bottom);
+}
+
 // mini map
 void Minimap_AdjustViewport(COBJ *c)
 {
+    // c->viewport_left = 480;
+    // c->viewport_right = 640;
+    // c->scissor_left = 480;
+    // c->scissor_right = 640;
+
     HUDAdjust_Camera(c);
 }
 CODEPATCH_HOOKCREATE(0x80067364, "mr 3,31\n\t", Minimap_AdjustViewport, "", 0)

@@ -30,9 +30,7 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
 
     switch (cam->projection_type)
     {
-        /* -------------------- */
-        /* Perspective camera   */
-        /* -------------------- */
+        // perspective cam
         case 1:
         {
             float fov = cam->projection_param.perspective.fov;
@@ -40,7 +38,7 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
 
             float aspect = cam->projection_param.perspective.aspect;
 
-            // Horizontal FOV derived from engine FOV
+            // hotizontal fov derived from engine fov
             float fov_x = 2.0f * atan(tan(fov_radians * 0.5f) * aspect);
 
             float width  = 2.0f * depth * tan(fov_x * 0.5f);
@@ -53,12 +51,9 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
             break;
         }
 
-        /* -------------------- */
-        /* Custom frustum       */
-        /* -------------------- */
+        // frustum
         case 2:
         {
-            // Frustum params are usually specified at near plane
             float near = cam->near;
             float scale = depth / near;
 
@@ -69,9 +64,7 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
             break;
         }
 
-        /* -------------------- */
-        /* Orthographic camera  */
-        /* -------------------- */
+        // ortho
         case 3:
         {
             out->left   = cam->projection_param.ortho.left;

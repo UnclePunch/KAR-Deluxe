@@ -12,6 +12,7 @@ typedef enum WideAlign
 {
     WIDEALIGN_LEFT,
     WIDEALIGN_RIGHT,
+    WIDEALIGN_CENTER,
 } WideAlign;
 
 void HUDAdjust_Init();

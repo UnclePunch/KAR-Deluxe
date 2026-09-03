@@ -10,6 +10,7 @@ extern int tilt_disabled;
 extern int fovspeed_disabled;
 extern int shake_disabled;
 extern int fov_level;
+extern int rotate_level;
 
 OptionDesc mod_settings = {
     // Controls Menu
@@ -18,7 +19,7 @@ OptionDesc mod_settings = {
     .pri = MENUPRI_HIGH,
     .kind = OPTKIND_MENU,
     .menu_ptr = &(MenuDesc){
-        .option_num = 4,
+        .option_num = 5,
         .options =
             {
                 &(OptionDesc){
@@ -55,8 +56,22 @@ OptionDesc mod_settings = {
                     },
                 },
                 &(OptionDesc){
+                    .name = "Rotation Speed",
+                    .description = "How quickly the camera turns.",
+                    .kind = OPTKIND_VALUE,
+                    .val = &rotate_level,
+                    .value_num = 5,
+                    .value_names = (char *[]){
+                        "Very Slow",
+                        "Slow",
+                        "Normal",
+                        "Fast",
+                        "Very Fast",
+                    },
+                },
+                &(OptionDesc){
                     .name = "Field of View",
-                    .description = "Adjust the width of your view.",
+                    .description = "The width of your view.",
                     .kind = OPTKIND_VALUE,
                     .val = &fov_level,
                     .value_num = 3,

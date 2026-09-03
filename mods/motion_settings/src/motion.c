@@ -1,6 +1,7 @@
 
 #include "text.h"
 #include "os.h"
+#include "camera.h"
 #include "hsd.h"
 #include "preload.h"
 #include "scene.h"
@@ -46,22 +47,37 @@ void Motion_FOVSpeed_Hook(CamData *cam_data, int r4, void *r5, float *out_fov, f
 }
 
 int fov_level = 1;
-float Motion_FOVLevel_Hook(float fov)
+int rotate_level = 1;
+void Motion_ParamAdjust_Hook(float fov)
 {
+    cmMainParamCommon *param = stc_plycam_lookup->param;
+
     static float fov_mult[] = {
         0.9,
         1.0,
         1.1,
     };
+    param->fov_1p = 78 * fov_mult[fov_level];
+    param->fov_2p = 68 * fov_mult[fov_level];
+    param->fov_4p = 80 * fov_mult[fov_level];
 
-    return fov *= fov_mult[fov_level];
+    static float rotate_mult[] = {
+        0.25,
+        0.5,
+        1.0,
+        1.5,
+        2,
+    };
+    param->x334 = 7 * rotate_mult[rotate_level];
+
+    return;
 }
-CODEPATCH_HOOKCREATE(0x800c0684, "fmr 1, 28\n\t", Motion_FOVLevel_Hook, "fmr 28, 1\n\t", 0)
+CODEPATCH_HOOKCREATE(0x800bc420, "", Motion_ParamAdjust_Hook, "", 0)
 
 void Motion_Init()
 {
     CODEPATCH_REPLACECALL(0x800b390c, Motion_Tilt_Hook);
     CODEPATCH_REPLACECALL(0x800c132c, Motion_FOVSpeed_Hook);
     CODEPATCH_REPLACECALL(0x8006dbd8, Motion_EffectShake_Hook);
-    CODEPATCH_HOOKAPPLY(0x800c0684);
+    CODEPATCH_HOOKAPPLY(0x800bc420);
 }

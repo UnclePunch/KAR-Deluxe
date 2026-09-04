@@ -74,6 +74,8 @@ void Motion_ParamAdjust_Hook(float fov)
 }
 CODEPATCH_HOOKCREATE(0x800bc420, "", Motion_ParamAdjust_Hook, "", 0)
 
+int border_enabled = 0;
+
 void Motion_Init()
 {
     CODEPATCH_REPLACECALL(0x800b390c, Motion_Tilt_Hook);

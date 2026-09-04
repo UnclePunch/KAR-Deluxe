@@ -11,15 +11,16 @@ extern int fovspeed_disabled;
 extern int shake_disabled;
 extern int fov_level;
 extern int rotate_level;
+extern int border_enabled;
 
 OptionDesc mod_settings = {
-    // Controls Menu
+    // Menu
     .name = "Motion Settings",
     .description = "Reduce camera motion.",
     .pri = MENUPRI_HIGH,
     .kind = OPTKIND_MENU,
     .menu_ptr = &(MenuDesc){
-        .option_num = 5,
+        .option_num = 6,
         .options =
             {
                 &(OptionDesc){
@@ -79,6 +80,17 @@ OptionDesc mod_settings = {
                         "Low",
                         "Normal",
                         "High",
+                    },
+                },
+                &(OptionDesc){
+                    .name = "Border",
+                    .description = "Place a border onscreen.",
+                    .kind = OPTKIND_VALUE,
+                    .val = &border_enabled,
+                    .value_num = 2,
+                    .value_names = (char *[]){
+                        "Off",
+                        "On",
                     },
                 },
             },

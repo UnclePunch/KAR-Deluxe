@@ -11,7 +11,7 @@
 #include "competitive/run.h"
 #include "competitive/drop_ability.h"
 #include "competitive/sd_as_ko.h"
-#include "competitive/intang_after_ko.h"
+#include "competitive/after_ko.h"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
@@ -28,6 +28,7 @@ extern int is_run_enabled;
 extern int ability_drop_enabled;
 extern int sd_as_ko_enabled;
 extern int intang_after_ko_enabled;
+extern int hp_after_ko_enabled;
 
 OptionDesc mod_settings = {
     // Controls Menu
@@ -111,7 +112,7 @@ OptionDesc mod_settings = {
                     .description = "Adjust rules for a more fair fight!",
                     .kind = OPTKIND_MENU,
                     .menu_ptr = &(MenuDesc){
-                        .option_num = 2,
+                        .option_num = 4,
                         .options = {
                             &(OptionDesc){
                                 .name = "Invincible on Foot",
@@ -133,6 +134,17 @@ OptionDesc mod_settings = {
                                 .value_names = (char *[]){
                                     "Off",
                                     "On",
+                                },
+                            },
+                            &(OptionDesc){
+                                .name = "Machine HP",
+                                .description = "Machines will have full HP after getting KO'd!",
+                                .kind = OPTKIND_VALUE,
+                                .val = &hp_after_ko_enabled,
+                                .value_num = 2,
+                                .value_names = (char *[]){
+                                    "Original",
+                                    "Full After KO",
                                 },
                             },
                             &(OptionDesc){
@@ -233,7 +245,7 @@ void OnSaveLoaded()
     Run_Init();
     AbilityDrop_Init();
     SD_as_KO_Init();
-    IntangAfterKO_Init();
+    AfterKO_Init();
 
     return;
 }
@@ -242,7 +254,7 @@ void On3DLoad()
     QuickStat_On3DStart();
     UnpauseDelay_On3DStart();
     Rearview_InitFlags();
-    IntangAfterKO_On3DLoad();
+    AfterKO_On3DLoad();
 }
 void On3DPause(int pause_ply)
 {

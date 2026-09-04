@@ -5,8 +5,8 @@
 
 #define INTANG_TIME (2 * 60)
 
-void IntangAfterKO_On3DLoad();
-void IntangAfterKO_Init();
+void AfterKO_On3DLoad();
+void AfterKO_Init();
 void Rider_ApplyWalkIntang(GOBJ *r);
 
 #endif

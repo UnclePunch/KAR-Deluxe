@@ -38,6 +38,8 @@ void QuickStat_Think(GOBJ *r)
 
         // remove temp pause hud
         HUD_PauseDestroy();
+
+        Gm_HideHUD();
     }
     else if (cityui_stat_gobj)
     {
@@ -53,6 +55,8 @@ void QuickStat_Think(GOBJ *r)
                 GObj_Destroy(g3d->cityui_statbar_gobj[rp->ply][i]);
                 g3d->cityui_statbar_gobj[rp->ply][i] = 0;
             }
+
+            Gm_ShowHUD();
         }
         // update bars
         else

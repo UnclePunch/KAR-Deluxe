@@ -19,6 +19,12 @@ void On3DLoadStart()
     return;
 }
 
+void On3DLoadEnd()
+{
+    Bingo_On3DLoadEnd();
+    return;
+}
+
 void On3DPause(int pause_ply)
 {
     Bingo_On3DPause(pause_ply);
@@ -40,6 +46,7 @@ ModDesc mod_desc = {
     .option_desc = 0,
     .OnBoot = OnBoot,
     .On3DLoadStart = On3DLoadStart,
+    .On3DLoadEnd = On3DLoadEnd,
     .On3DPause = On3DPause,
     .On3DUnpause = On3DUnpause,
 };

@@ -11,6 +11,8 @@
 
 #include "hoshi/func.h"
 
+#include "code_patch/code_patch.h"
+
 #include <string.h>
 
 #include "bingo.h"
@@ -22,31 +24,126 @@ JOBJSet *icon_set;
 int is_bingo_mode = 1;
 GOBJ *bingo_card_gobj[5];
 int text_canvas_idx = 0;
-Text *temp_text = 0;
 GOBJ *BingoCardView_Create()
 {
+    Vec3 text_pos;
+    Text *t;
+
     // create gobj and model
     GOBJ *b = GOBJ_EZCreator(0, GAMEPLINK_CAMHUD, 0,
-                            4, BingoCardView_Destroy,
+                            sizeof(BingoUIData), BingoCardView_Destroy,
                             HSD_OBJKIND_JOBJ, card_set->jobj, 
                             GOBJ_Anim, 0, 
                             JObj_GX, GAMEGX_HUD, 3);
 
+    BingoUIData *bp = b->userdata;
+
     // create text
-    Vec3 text_pos;
-    JObj_GetChildPosition(b->hsd_object, 4, &text_pos);
-    Text *t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
-    // t->viewport_color = (GXColor){255, 0, 0, 128};
-    t->kerning = 1;
-    t->align = 0;
-    t->viewport_scale = (Vec2){0.045, 0.055};
-    t->use_aspect = 1;
-    t->aspect = (Vec2){370, 64};
-    t->trans.X = text_pos.X;
-    t->trans.Y = -text_pos.Y;
-    Text_AddSubtext(t, 0, 0, "Lorem ipsum dolor sit amet");
-    Text_AddSubtext(t, 0, 30, "sed do eiusmod tempor incididunt.");
-    temp_text = t;
+    {
+        int x_pos;
+
+        // details 
+        JObj_GetChildPosition(b->hsd_object, BINGO_UI_DESCRIPTION_TEXT_JOINT, &text_pos);
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 0;
+        t->viewport_scale = (Vec2){0.045, 0.055};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){370, 64};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        x_pos = 0;
+        Text_AddSubtext(t, x_pos, 0, "Lorem ipsum dolor sit amet");
+        Text_AddSubtext(t, x_pos, 30, "sed do eiusmod tempor incididunt.");
+        bp->text.details = t;
+
+        // create scoreboard
+        JObj_GetChildPosition(b->hsd_object, BINGO_UI_SCOREBOARD_TEXT_JOINT, &text_pos);
+
+        // labels
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 0;
+        t->viewport_scale = (Vec2){0.045 * 0.8, 0.055 * 0.8};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){250, 160};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        Text_AddSubtext(t, 0, 0, "Game Info");
+        Text_AddSubtext(t, 330, 0, "Leaderboard");
+        bp->text.scoreboard.label = t;
+
+        // game info
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 0;
+        t->viewport_scale = (Vec2){0.045 * 0.8, 0.055 * 0.8};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){250, 160};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        x_pos = 0;
+        Text_AddSubtext(t, x_pos, 50, "Mode: " "\x0C\xFF\xFF\x50" "Standard");
+        Text_AddSubtext(t, x_pos, 80, "Goal: " "\x0C\xFF\xFF\x50" "%d items", 100);
+        Text_AddSubtext(t, x_pos, 110, "Time Limit: Off");
+        Text_AddSubtext(t, x_pos, 140, "Team: " "\x0C\x26\x26\xD9" "Blue");
+        bp->text.scoreboard.game_info = t;
+
+        // leaderboard numbers
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 1;
+        t->viewport_scale = (Vec2){0.045 * 0.8, 0.055 * 0.8};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){250, 160};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        x_pos = 340;
+        Text_AddSubtext(t, x_pos, 50, "1.");
+        Text_AddSubtext(t, x_pos, 80, "2.");
+        Text_AddSubtext(t, x_pos, 110, "3.");
+        Text_AddSubtext(t, x_pos, 140, "4.");
+        bp->text.scoreboard.leaderboard_nums = t;
+        
+        // teams
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 0;
+        t->viewport_scale = (Vec2){0.045 * 0.8, 0.055 * 0.8};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){100, 160};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        x_pos = 375;
+        Text_AddSubtext(t, x_pos, 50, "\x0C\x26\x26\xD9" "Blue:" );
+        Text_AddSubtext(t, x_pos, 80, "\x0C\xFF\xB2\xCC" "Pink:");
+        Text_AddSubtext(t, x_pos, 110, "\x0C\x40\xFF\x40" "Green:");
+        Text_AddSubtext(t, x_pos, 140, "\x0C\xFF\x40\x40" "Red:");
+        bp->text.scoreboard.leaderboard_teams = t;
+
+        // team scores
+        t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        // t->viewport_color = (GXColor){255, 0, 0, 128};
+        t->kerning = 1;
+        t->align = 0;
+        t->viewport_scale = (Vec2){0.045 * 0.8, 0.055 * 0.8};
+        t->use_aspect = 1;
+        t->aspect = (Vec2){140, 160};
+        t->trans.X = text_pos.X;
+        t->trans.Y = -text_pos.Y;
+        x_pos = 490;
+        Text_AddSubtext(t, x_pos, 50, "12 items");
+        Text_AddSubtext(t, x_pos, 80, "0 items");
+        Text_AddSubtext(t, x_pos, 110, "0 items");
+        Text_AddSubtext(t, x_pos, 140, "0 items");
+        bp->text.scoreboard.leaderboard_scores = t;
+
+    }
 
     // create bingo icons
     JOBJ *card_j = JObj_GetIndex(b->hsd_object, 1);
@@ -60,18 +157,55 @@ GOBJ *BingoCardView_Create()
             JObj_AddSetAnim(icon_j, 0, icon_set, 6, 0);
             JObj_AddNext(card_j, icon_j);
 
-            bp();
-            JOBJ *objective_j = JObj_GetIndex(icon_j, 2);
-            JObj_SetFrameAndRate(objective_j, HSD_Randi(51), 0);
-            JOBJ *num_j = JObj_GetIndex(icon_j, 3);
-            JObj_SetFrameAndRate(num_j, HSD_Randi(9) + 1, 0);
+            // display objective icon
+            int icon_frame_idx = HSD_Randi(51);
+            JOBJ *objective_icon_j = JObj_GetIndex(icon_j, 2);
+            JObj_SetFrameAndRate(objective_icon_j, icon_frame_idx, 0);
 
+            JOBJ *fill_icon_j = JObj_GetIndex(icon_j, 1);
+            int fill_frame = (x == 2 && y == 2) ? 1 : 0;
+            JObj_SetFrameAndRate(fill_icon_j, fill_frame, 0);
+
+            // display objective number
+            {
+                int objective_num = HSD_Randi(18) + 1;
+                int disabled_num_joint_idx, enabled_num_joint_idx;
+                if (objective_num > 9) {
+                    enabled_num_joint_idx = 5;
+                    disabled_num_joint_idx = 3;
+                }
+                else {
+                    enabled_num_joint_idx = 3;
+                    disabled_num_joint_idx = 5;
+                }
+
+                // hide unused digits first
+                JObj_SetFlagsAll(JObj_GetIndex(icon_j, disabled_num_joint_idx), JOBJ_HIDDEN);
+
+                // display digits
+                JOBJ *digit_j = JObj_GetIndex(icon_j, enabled_num_joint_idx);
+                int num = objective_num;
+                int loop_num = 0;
+                while (num > 0)
+                {
+                    int digit = num % 10;
+                    
+                    JOBJ *num_j = JObj_GetIndex(digit_j, 1 + loop_num);
+                    JObj_SetFrameAndRate(num_j, digit, 0);
+        
+                    num = num / 10;
+                    loop_num++;
+                }
+
+            }
+
+            // position on grid
             icon_j->trans.X = -(width / 2) + (width * (x / (grid_size - 1)));
             icon_j->trans.Y = -(width / 2) + (width * (y / (grid_size - 1)));
             JObj_SetMtxDirtySub(icon_j);
         }
     }
-    // JObj_SetMtxDirtySub(card_j);
+    JObj_SetMtxDirtySub(card_j);
 
     return b;
 }
@@ -86,6 +220,11 @@ void BingoCardView_Think(GOBJ *r)
 
     GOBJ *b = bingo_card_gobj[rp->ply];
 
+    if (rp->input.held & PAD_BUTTON_Y)
+    {
+
+    }
+    
     if (!b && rp->input.held & PAD_BUTTON_Y)
     {
         bingo_card_gobj[rp->ply] = BingoCardView_Create();        
@@ -108,9 +247,16 @@ void BingoCardView_Think(GOBJ *r)
         }
     }
 }
-void BingoCardView_Destroy(void *data)
+void BingoCardView_Destroy(BingoUIData *bp)
 {
-    Text_Destroy(temp_text);
+    Text_Destroy(bp->text.details);
+    Text_Destroy(bp->text.scoreboard.game_info);
+    Text_Destroy(bp->text.scoreboard.label);
+    Text_Destroy(bp->text.scoreboard.leaderboard_nums);
+    Text_Destroy(bp->text.scoreboard.leaderboard_teams);
+    Text_Destroy(bp->text.scoreboard.leaderboard_scores);
+
+    HSD_Free(bp);
 }
 void Bingo_DestroyOnPause()
 {
@@ -145,8 +291,6 @@ void Bingo_CreateViewCheck()
     // add new proc to each rider with a viewport
     for (int i = 0; i < GetElementsIn(bingo_card_gobj); i++)
     {
-        bingo_card_gobj[i] = 0;
-
         if (Ply_GetPKind(i) == PKIND_NONE || Gm_Get3dData()->plyview_lookup[i] == -1)
             continue;
 
@@ -155,15 +299,33 @@ void Bingo_CreateViewCheck()
     }
 }
 
+void Bingo_OnDPadToStick(RiderData *rd)
+{
+    int button_mask = ~(PAD_BUTTON_DPAD_DOWN | PAD_BUTTON_DPAD_UP | PAD_BUTTON_DPAD_LEFT | PAD_BUTTON_DPAD_RIGHT);
+ 
+    // if a bingo card view is being shown, remove all dpad inputs
+    if (bingo_card_gobj[rd->ply])
+    {
+        rd->input.held &= button_mask;
+        rd->input.down &= button_mask;
+        rd->input.x3dc &= button_mask;
+    }
+}
+CODEPATCH_HOOKCREATE(0x8018f0bc, "mr 3, 31\n\t", Bingo_OnDPadToStick, "", 0)
+
 void Bingo_Init()
 {
     // apply our code patches
-    ;
+    CODEPATCH_HOOKAPPLY(0x8018f0bc);
 
     // Hoshi_AddPreloadGameFile(BINGO_ASSET_FILENAME, PRELOADHEAPKIND_ALLM);
 }
 void Bingo_On3DLoadStart()
 {
+    // init gobj pointers
+    for (int i = 0; i < GetElementsIn(bingo_card_gobj); i++)
+        bingo_card_gobj[i] = 0;
+
     OSReport("Load bingo card assets\n");
 
     // get our file

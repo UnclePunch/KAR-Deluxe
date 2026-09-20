@@ -1,0 +1,25 @@
+deal X damage to empty machines
+destroy X empty machines
+deal X damage to other players
+KO another player
+
+ride X different lifts
+
+fly through X boost rings
+
+grind rails for X distance
+land on a rail from the sky
+
+perform X perfect landings (maybe 1 in each area to make it take longer to complete)
+
+touch the top of every building
+touch the top of city hall
+visit the hidden flower
+touch the tip of the sky island
+
+find the hidden volcano entrance
+break the starpole
+
+
+to-do:
+    - need a way to detect item pickups, do i monitor the playerblock array or hook a function

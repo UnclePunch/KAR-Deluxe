@@ -37,6 +37,12 @@ void On3DUnpause(int pause_ply)
     return;
 }
 
+void OnPlayerSelectLoad()
+{
+    Bingo_OnPlayerSelectLoad();
+    return;
+}
+
 ModDesc mod_desc = {
     .name = "Bingo",
     .author = "UnclePunch, Kim-Lan",
@@ -49,4 +55,5 @@ ModDesc mod_desc = {
     .On3DLoadEnd = On3DLoadEnd,
     .On3DPause = On3DPause,
     .On3DUnpause = On3DUnpause,
+    .OnPlayerSelectLoad = OnPlayerSelectLoad,
 };

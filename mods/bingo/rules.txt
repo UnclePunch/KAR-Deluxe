@@ -1,0 +1,65 @@
+stat collect:
+    Easy:
+        - collect 3-5 of this stat
+    Medium:
+        - collect 6-10 of this stat
+    Hard:
+        - collect max of this stat
+
+item collect fall:
+    Hard:
+        - collect an item falling from the sky before it touches the ground
+
+food:
+    Easy:
+        - collect 1 of this food
+    Medium:
+        - collect 2 of this food
+    Hard:
+        - collect 3-4 of this food
+
+position:
+    easy:
+        - reach the top of the sky island 
+    medium:
+        - reach the flower on the volcanic rocks
+    hard:
+        - reach the flower on city hall
+
+box:
+    easy:
+        - break 10 boxes
+        - break 3 X boxes
+        - break a box with X copy ability/item attack
+    medium:
+        - break 20 boxes
+        - break 10 X boxes
+        - break 3 boxes with X copy ability/item attack
+    hard:
+        - break 30 boxes
+        - break 15 X boxes
+        - break 5 boxes with X copy ability/item attack
+
+pvp:
+    easy:
+        - hit another player
+    medium:
+        - hit another player with X copy ability/item (maybe the spawn rate of this item should be increased)
+    hard:
+        - KO another player (or hit a player on foot to prevent hopping off to avoid dying?)
+
+machine:
+    easy:
+        - destroy an unoccupied machine
+    medium:
+        - destroy 2 unoccupied machines
+        - get on machine X
+    hard:
+        - destroy 3 unoccupied machines
+         
+rail:
+    easy:
+        - ride the rail for *enitre city distance* units
+    medium:
+        - land on a rail while dropping from the sky
+

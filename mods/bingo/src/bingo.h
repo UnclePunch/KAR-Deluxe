@@ -12,14 +12,10 @@
 
 #define BINGO_UI_GRID_SIZE (5)
 
-typedef enum BingoActionKind
-{
-    ACTION_NONE,
-    ACTION_HAVE,
-    ACTION_USE,
-    ACTION_HIT,
-    ACTION_KO,
-} BingoActionKind;
+#define BINGO_UI_JOINT_SINGLE_ICON (2)
+#define BINGO_UI_JOINT_DOUBLE_ICON (3)
+#define BINGO_UI_JOINT_SINGLE_DIGIT (6)
+#define BINGO_UI_JOINT_DOUBLE_DIGIT (8)
 
 typedef enum BingoAttackKind
 {
@@ -28,26 +24,26 @@ typedef enum BingoAttackKind
     ATTACK_NUM,
 } BingoAttackKind;
 
-typedef enum BingoTargetKind
+typedef enum BingoGoalKind
 {
-    TARGET_PLAYER,
-    TARGET_MACHINE,
-    TARGET_ITEM,
-    TARGET_ENEMY,
-    TARGET_YAKUMONO,
-    TARGET_NUM,
-} BingoTargetKind;
-
-typedef enum BingoConditionKind
-{
-    CONDITION_HIT,
-    CONDITION_ITEM,
-    CONDITION_POSITION,
-    CONDITION_SPEED,
-    CONDITION_AIR,
-    CONDITION_MACHINE,
-    CONDITION_NUM,
-} BingoConditionKind;
+    GOAL_STATGET,
+    GOAL_FOODGET,
+    GOAL_ITEMFALLGET,
+    GOAL_POSITION,
+    GOAL_BREAKBOXANY,
+    GOAL_BREAKBOXKIND,
+    GOAL_BREAKBOXWITHATTACK,
+    GOAL_HITPLAYER,
+    GOAL_HITPLAYERWITHATTACK,
+    GOAL_KOPLAYER,
+    GOAL_DESTROYMACHINE,
+    GOAL_RIDEMACHINEKIND,
+    GOAL_RAILDISTANCE,
+    GOAL_RAILLAND,
+    GOAL_GLIDETIME,
+    GOAL_BOOSTRING,
+    GOAL_NUM,
+} BingoGoalKind;
 
 typedef enum ZoneKind
 {
@@ -55,6 +51,13 @@ typedef enum ZoneKind
     ZONEKIND_LIFT,
     ZONEKIND_NUM,
 } ZoneKind;
+
+typedef enum AreaKind
+{
+    AREAKIND_ISLAND = 7,
+    AREAKIND_ROCKFLOWER,
+    AREAKIND_CITYHALLFLOWER,
+} AreaKind;
 
 typedef enum BingoComparisonKind
 {
@@ -72,62 +75,171 @@ typedef enum BingoDamageSource
     DMGSOURCE_NUM,
 } BingoDamageSource;
 
-typedef struct BingoConditionData
+typedef enum BingoDifficultyKind
 {
-    int num : 5;                                // number of times to complete this condition
-    int is_expires : 1;                         // goal is marked as incomplete if conditions to succeed later become untrue
-    BingoConditionKind condition_kind : 3;      // up to 7
-    union                                       // 23 bits available for this
-    {
-        int _size : 23;
-        struct
-        {
-            BingoTargetKind target : 3;    
-            union 
-            {
-                MachineKind machine : 6;
-                ItemKind item : 7;
-                int enemy : 6;
-                int yakumono : 6;
-            } target_kind;
-            
-            BingoAttackKind attack_kind : 2;         // hit or ko
+    DFCLT_EASY,
+    DFCLT_MEDIUM,
+    DFCLT_HARD,
+    DFCLT_NUM,
+} BingoDifficultyKind;
 
-            BingoDamageSource dmg_source : 4;    
-            union 
-            {
-                int player_attack : 7;
-                int weapon_kind : 7;
-                int map_kind : 7;
-            } dmg_source_kind;
-        } hit;
-        ItemKind item_kind : 7;
+typedef struct BingoGoalDesc
+{
+    BingoGoalKind kind : 8;
+    int num : 8;
+    union
+    {
         struct
         {
-            int is_on_foot : 1;
-            int map_area : 22;
-        } map;
+            BingoDifficultyKind difficulty : 8;
+        } common[DFCLT_NUM];                        // this is insanely dog-shit lol
         struct
         {
-            BingoComparisonKind comparison : 2;
-            int amt : 21;
-        } speed;
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+            unsigned int items;
+        } stat_get[DFCLT_NUM];
         struct
         {
-            BingoComparisonKind comparison : 2;
-            int frame : 21;
-        } air;
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } food_get[DFCLT_NUM];
         struct
         {
-            MachineKind kind : 23;      // VCKIND_NUM can be a stand-in for "any" machine
-        } machine;
-    };
-} BingoConditionData;
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } item_fall_get[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int positions;
+        } position[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } box_any[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } box_kind[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+            unsigned int attacks;
+        } box_attack[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } hit_ply[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+            unsigned int attacks;
+        } hit_ply_attack[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } ko_ply[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } ko_machine[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+            unsigned int machines;
+        } ride_machine_kind[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int dist : 24;
+        } rail_dist[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } rail_land[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } glide_time[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } boost_ring[DFCLT_NUM];
+    } param;
+    
+} BingoGoalDesc;
 
 typedef struct BingoGoal
 {
-    u8 condition_num;     // up to 3
-    BingoConditionData condition_data[3];
+    int ply_completed : 8;
+    BingoGoalKind kind : 8;
+    BingoDifficultyKind difficulty : 8;
+    unsigned int num : 8;
+    union
+    {
+        struct
+        {
+            int var;
+        } common;
+        struct
+        {
+            ItemKind kind : 16;
+        } stat_get;
+        struct
+        {
+            ItemKind kind : 16;
+        } food_get;
+        struct
+        {
+            AreaKind kind : 8;
+        } position;
+        struct
+        {
+            BoxKind kind : 8;
+        } box_kind;
+        struct
+        {
+            AttackKind attack : 8;
+        } box_attack;
+        struct
+        {
+            AttackKind attack : 8;
+        } hit_ply_attack;
+        struct
+        {
+            MachineKind kind;
+        } ride_machine_kind;
+        struct
+        {
+            unsigned int dist : 24;
+        } rail_dist;
+    } param;
 } BingoGoal;
 
 typedef struct BingoCard
@@ -135,16 +247,10 @@ typedef struct BingoCard
     BingoGoal goal[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
 } BingoCard;
 
-typedef struct BingoGoalProgress
-{
-    u8 is_goal_complete;
-    u8 condition_progress[3];
-} BingoGoalProgress;
-
 typedef struct BingoTrackerData
 {
     int ply;
-    BingoGoalProgress goal[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
+    u8 progress[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
 } BingoTrackerData;
 
 typedef struct BingoUIData
@@ -176,6 +282,7 @@ typedef struct DamageLogObject
     HurtKind hurt_kind : 3;
     int ply : 4;
     unsigned int is_airborne : 1;
+    AttackData attack_data;      
     int kind : 16;               // yakumono kind, item kind, weapon kind, etc
     int state : 8;
     int state2 : 8;
@@ -201,7 +308,10 @@ typedef struct RailLog
 {
     s8 ply;
     u8 idx;
+    u8 is_airborne;
     float progress;
+    u16 status;
+    u16 status2;
 } RailLog;
 
 typedef struct AreaBound
@@ -223,6 +333,11 @@ typedef struct AreaBound
             (z_max) - (z_min)                                        \
         }                                                            \
     }
+
+void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty);
+void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int difficulty_idx);
+int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that);
+int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress);
 
 void Bingo_Init();
 void Bingo_OnPlayerSelectLoad();

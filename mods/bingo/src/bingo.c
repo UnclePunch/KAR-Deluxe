@@ -21,7 +21,276 @@
 JOBJSet *card_set;
 JOBJSet *icon_set;
 
-static BingoCard g_bingo_card;
+BingoCard g_bingo_card;
+
+static AreaBound g_area_bounds[] = {
+    // forest
+    MAKE_AREA_BOUND(-537, -295, 
+                    20, 200,
+                    -190, 212),
+    // volcano
+    MAKE_AREA_BOUND(-680, -350, 
+                    52, 200,
+                    -690, -160),
+    MAKE_AREA_BOUND(-500, -219, 
+                    52, 200,
+                    -714, -404),
+    // city
+    MAKE_AREA_BOUND(-295, 240, 
+                    25, 200,
+                    -612, 100),
+    // wharf
+    MAKE_AREA_BOUND(260, 650, 
+                    -10, 200,
+                    -366, 360),
+    // electric lounge
+    MAKE_AREA_BOUND(-140, 500, 
+                    -10, 200,
+                    384, 750),
+    // golf course
+    MAKE_AREA_BOUND(-530, -250, 
+                    -20, 200,
+                    212, 900),
+
+    // sky island top
+    MAKE_AREA_BOUND(-183, 42, 
+                    465, 520,
+                    -82, 112),
+    // rock flower
+    MAKE_AREA_BOUND(-144, -100, 
+                    200, 215,
+                    -857, -815),
+    // castle flower
+    MAKE_AREA_BOUND(407, 412, 
+                    368, 380,
+                    -567, -563),
+};
+
+BingoGoalDesc g_difficulty_param[] = {
+    // stat get
+    {
+        .kind = GOAL_STATGET,
+        .num = 3,
+        .param.stat_get = {
+            {.difficulty = DFCLT_EASY, .num_min = 3, .num_max = 5, 
+                .items = (1 << ITKIND_ACCEL) |
+                        (1 << ITKIND_TOPSPEED) |
+                        (1 << ITKIND_OFFENSE) |
+                        (1 << ITKIND_DEFENSE) |
+                        (1 << ITKIND_TURN) |
+                        (1 << ITKIND_CHARGE) |
+                        (1 << ITKIND_GLIDE) |
+                        (1 << ITKIND_WEIGHT) |
+                        (1 << ITKIND_HP)},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 6, .num_max = 10, 
+                .items = (1 << ITKIND_ACCEL) |
+                        (1 << ITKIND_TOPSPEED) |
+                        (1 << ITKIND_OFFENSE) |
+                        (1 << ITKIND_DEFENSE) |
+                        (1 << ITKIND_TURN) |
+                        (1 << ITKIND_CHARGE) |
+                        (1 << ITKIND_GLIDE) |
+                        (1 << ITKIND_WEIGHT) |
+                        (1 << ITKIND_HP)},
+            {.difficulty = DFCLT_HARD, .num_min = 18, .num_max = 18, 
+                .items = (1 << ITKIND_ACCEL) |
+                        (1 << ITKIND_TOPSPEED) |
+                        (1 << ITKIND_OFFENSE) |
+                        (1 << ITKIND_DEFENSE) |
+                        (1 << ITKIND_TURN) |
+                        (1 << ITKIND_CHARGE) |
+                        (1 << ITKIND_GLIDE) |
+                        (1 << ITKIND_WEIGHT) |
+                        (1 << ITKIND_HP)},
+        },
+    },
+    // food get
+    {
+        .kind = GOAL_FOODGET,
+        .num = 3,
+        .param.food_get = {
+            {.difficulty = DFCLT_EASY, .num_min = 1, .num_max = 1},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 2, .num_max = 2},
+            {.difficulty = DFCLT_HARD, .num_min = 3, .num_max = 4},
+        },
+    },
+    // item fall get
+    {
+        .kind = GOAL_ITEMFALLGET,
+        .num = 1,
+        .param.item_fall_get = {
+            {.difficulty = DFCLT_HARD, .num_min = 1, .num_max = 1},
+        },
+    },
+    // position
+    {
+        .kind = GOAL_POSITION,
+        .num = 3,
+        .param.position = {
+            {.difficulty = DFCLT_EASY, .positions = (1 << AREAKIND_ISLAND)},
+            {.difficulty = DFCLT_MEDIUM, .positions = (1 << AREAKIND_ROCKFLOWER)},
+            {.difficulty = DFCLT_HARD, .positions = (1 << AREAKIND_CITYHALLFLOWER)},
+        },
+    },
+    // break box any
+    {
+        .kind = GOAL_BREAKBOXANY,
+        .num = 3,
+        .param.box_any = {
+            {.difficulty = DFCLT_EASY, .num_min = 10, .num_max = 10},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 20, .num_max = 20},
+            {.difficulty = DFCLT_HARD, .num_min = 30, .num_max = 30},
+        },
+    },
+    // break box kind
+    {
+        .kind = GOAL_BREAKBOXKIND,
+        .num = 3,
+        .param.box_kind = {
+            {.difficulty = DFCLT_EASY, .num_min = 3, .num_max = 3},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 10, .num_max = 10},
+            {.difficulty = DFCLT_HARD, .num_min = 15, .num_max = 15},
+        },
+    },
+    // break box attack
+    {
+        .kind = GOAL_BREAKBOXWITHATTACK,
+        .num = 3,
+        .param.box_attack = {
+            {.difficulty = DFCLT_EASY, .num_min = 1, .num_max = 1, 
+                .attacks = (1 << ATK_SPIN) |
+                           (1 << ATK_FIRESHOOT) | 
+                           (1 << ATK_SWORD1) | 
+                           (1 << ATK_BOMB) | 
+                           (1 << ATK_PLASMA) | 
+                           (1 << ATK_BOMB) | 
+                           (1 << ATK_NEEDLEHOLD) | 
+                           (1 << ATK_TORNADO) |
+                           (1 << ATK_TIMEBOMB) | 
+                           (1 << ATK_GORDO) | 
+                           (1 << ATK_MININADO)},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1, 
+                .attacks = (1 << ATK_MIKE)},
+            {.difficulty = DFCLT_HARD, .num_min = 3, .num_max = 3, 
+                .attacks = (1 << ATK_SPIN) |
+                           (1 << ATK_FIRESHOOT) | 
+                           (1 << ATK_SWORD1) | 
+                           (1 << ATK_BOMB) | 
+                           (1 << ATK_PLASMA) | 
+                           (1 << ATK_BOMB) | 
+                           (1 << ATK_NEEDLEHOLD) | 
+                           (1 << ATK_TORNADO) |
+                           (1 << ATK_TIMEBOMB) | 
+                           (1 << ATK_GORDO) | 
+                           (1 << ATK_MININADO)},
+        },
+    },
+    // hit player
+    {
+        .kind = GOAL_HITPLAYER,
+        .num = 1,
+        .param.hit_ply = {
+            {.difficulty = DFCLT_EASY, .num_min = 1, .num_max = 1},
+        },
+    },
+    // hit player with attack
+    {
+        .kind = GOAL_KOPLAYER,
+        .num = 1,
+        .param.ko_ply = {
+            {.difficulty = DFCLT_HARD, .num_min = 1, .num_max = 1},
+        },
+    },
+    // hit player with attack
+    {
+        .kind = GOAL_HITPLAYERWITHATTACK,
+        .num = 1,
+        .param.hit_ply_attack = {
+            {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1, 
+                .attacks = (1 << ATK_SPIN) |
+                           (1 << ATK_SWORD1) | 
+                           (1 << ATK_PLASMA) | 
+                           (1 << ATK_NEEDLEHOLD) | 
+                           (1 << ATK_TORNADO) |
+                           (1 << ATK_TIMEBOMB) | 
+                           (1 << ATK_GORDO) | 
+                           (1 << ATK_MININADO)},
+        },
+    },
+    // KO player
+    {
+        .kind = GOAL_KOPLAYER,
+        .num = 1,
+        .param.ko_ply = {
+            {.difficulty = DFCLT_HARD, .num_min = 1, .num_max = 1},
+        },
+    },
+    // KO machine
+    {
+        .kind = GOAL_DESTROYMACHINE,
+        .num = 3,
+        .param.ko_machine = {
+            {.difficulty = DFCLT_EASY, .num_min = 1, .num_max = 1},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 2, .num_max = 2},
+            {.difficulty = DFCLT_HARD, .num_min = 3, .num_max = 5},
+        },
+    },
+    // ride machine
+    {
+        .kind = GOAL_RIDEMACHINEKIND,
+        .num = 1,
+        .param.ride_machine_kind = {
+            {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1,
+                .machines = (1 << VCKIND_WARP) |
+                            (1 << VCKIND_WINGED) | 
+                            (1 << VCKIND_SHADOW) | 
+                            (1 << VCKIND_BULK) | 
+                            (1 << VCKIND_SLICK) | 
+                            (1 << VCKIND_FORMULA) | 
+                            (1 << VCKIND_WAGON) | 
+                            (1 << VCKIND_ROCKET) | 
+                            (1 << VCKIND_SWERVE) | 
+                            (1 << VCKIND_TURBO) | 
+                            (1 << VCKIND_JET)},
+        },
+    },
+    // rail distance
+    {
+        .kind = GOAL_RAILDISTANCE,
+        .num = 1,
+        .param.rail_dist = {
+            {.difficulty = DFCLT_EASY, .dist = 100},
+        },
+    },
+    // rail land
+    {
+        .kind = GOAL_RAILLAND,
+        .num = 1,
+        .param.rail_land = {
+            {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1},
+        },
+    },
+    // glide
+    {
+        .kind = GOAL_GLIDETIME,
+        .num = 3,
+        .param.glide_time = {
+            {.difficulty = DFCLT_EASY, .num_min = 3, .num_max = 4},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 5, .num_max = 6},
+            {.difficulty = DFCLT_HARD, .num_min = 7, .num_max = 8},
+        },
+    },
+    // glide
+    {
+        .kind = GOAL_BOOSTRING,
+        .num = 3,
+        .param.boost_ring = {
+            {.difficulty = DFCLT_EASY, .num_min = 2, .num_max = 3},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 5, .num_max = 6},
+            {.difficulty = DFCLT_HARD, .num_min = 7, .num_max = 9},
+        },
+    },
+};
 
 // Bingo Game Mode
 void BingoMode_Start()
@@ -29,241 +298,304 @@ void BingoMode_Start()
     // generate bingo card here
     for (int i = 0; i < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; i++)
     {
-        g_bingo_card.goal[i].condition_num = HSD_Randi(GetElementsIn(g_bingo_card.goal[i].condition_data)) + 1;
+        BingoGoal *gd = &g_bingo_card.goal[i];
 
-        for (int cond_idx = 0; cond_idx < g_bingo_card.goal[i].condition_num; cond_idx++)
+        // get random condition
+        int is_duplicate_goal;
+        do
         {
-            BingoConditionData *cd = &g_bingo_card.goal[i].condition_data[cond_idx];
+            is_duplicate_goal = 0;
 
-            // get random condition
-            int is_duplicate_condition;
-            do
+            int difficulty = HSD_Randi(DFCLT_NUM);
+
+            BingoMode_GenerateGoal(gd, difficulty);
+
+            for (int j = 0; j < i; j++)
             {
-                is_duplicate_condition = 0;
-
-                cd->condition_kind = HSD_Randi(CONDITION_NUM);
-                for (int k = 0; k < j; k++)
+                BingoGoal *that_gd = &g_bingo_card.goal[j];
+                if (BingoMode_CheckDuplicateGoal(gd, that_gd))
                 {
-                    BingoConditionData *that_cd = &g_bingo_card.goal[i].condition_data[k];
-                    if (that_cd->condition_kind == cd->condition_kind)
-                    {
-                        is_duplicate_condition = 1;
-                        break;
-                    }
-                }
-            } while (is_duplicate_condition);
-            
-            // init condition variables
-            switch(cd->condition_kind)
-            {
-                case (CONDITION_HIT):
-                {
-                    cd->is_expires = 0;
-                    cd->num = HSD_Randi(3) + 1;
-
-                    cd->hit.attack_kind = HSD_Randi(ATTACK_NUM);
-                    
-                    // target
-                    cd->hit.target = HSD_Randi(TARGET_NUM);
-                    switch(cd->hit.target)
-                    {
-                        case(TARGET_MACHINE):
-                            cd->hit.target_kind.machine = HSD_Randi(VCKIND_NUM);
-                            break;
-                        case(TARGET_ENEMY):
-                            cd->hit.target_kind.enemy = HSD_Randi(3);
-                            break;
-                        case(TARGET_ITEM):
-                            cd->hit.target_kind.item = ITKIND_BOXBLUE + HSD_Randi(ITKIND_BOXRED + 1);
-                            break;
-                        case(TARGET_YAKUMONO):
-                            cd->hit.target_kind.yakumono = HSD_Randi(5);
-                            break;
-                    }
-                    
-                    // damage source
-                    cd->hit.dmg_source = HSD_Randi(DMGSOURCE_NUM);
-                    switch(cd->hit.dmg_source)
-                    {
-                        case(AUDIOEMITTER_MACHINE):
-                            cd->hit.dmg_source_kind.player_attack = HSD_Randi(5);
-                            break;
-                        case(AUDIOEMITTER_WEAPON):
-                            cd->hit.dmg_source_kind.weapon_kind = HSD_Randi(5);
-                            break;
-                        case(AUDIOEMITTER_MAP):
-                            cd->hit.dmg_source_kind.weapon_kind = HSD_Randi(5);
-                            break;
-                    }
-
-                    break;
-                }
-                case (CONDITION_AIR):
-                {
-                    cd->is_expires = 1;
-                    cd->num = 1;
-                    cd->air.comparison = COMPARE_GREATER;
-                    cd->air.frame = (3 * 60) + HSD_Randi(5 * 60);
-                    break;
-                }
-                case (CONDITION_ITEM):
-                {
-                    cd->is_expires = 1;
-                    cd->num = 1;
-                    cd->item_kind = HSD_Randi(ITKIND_NUM);
-                    break;
-                }
-                case (CONDITION_SPEED):
-                {
-                    cd->is_expires = 1;
-                    cd->num = 1;
-                    cd->speed.amt = 30 + HSD_Randi(80);
-                    break;
-                }
-                case (CONDITION_POSITION):
-                {
-                    cd->is_expires = 1;
-                    cd->num = 1;
-                    cd->map.is_on_foot = 0;
-                    cd->map.map_area = HSD_Randi(10);
+                    is_duplicate_goal = 1;
                     break;
                 }
             }
-        }
+        } while (is_duplicate_goal);
     }
 
     for (int i = 0; i < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; i++)
     {
-        OSReport("Bingo Icon %d with %d conditions:\n", i + 1, g_bingo_card.goal[i].condition_num);
+        BingoGoal *gd = &g_bingo_card.goal[i];
+
+        static char *goal_names[] = {
+            "STATGET",
+            "FOODGET",
+            "ITEMFALLGET",
+            "POSITION",
+            "BREAKBOXANY",
+            "BREAKBOXKIND",
+            "BREAKBOXWITHATTACK",
+            "HITPLAYER",
+            "HITPLAYERWITHATTACK",
+            "KOPLAYER",
+            "DESTROYMACHINE",
+            "RIDEMACHINEKIND",
+            "RAILDISTANCE",
+            "RAILLAND",
+            "GLIDETIME",
+            "BOOSTRING",
+        };
         
-        for (int j = 0; j < g_bingo_card.goal[i].condition_num; j++)
+        char s[256];
+
+        switch(gd->kind)
         {
-            BingoConditionData *cd = &g_bingo_card.goal[i].condition_data[j];
-
-            char s[256];
-
-            switch(cd->condition_kind)
+            case (GOAL_STATGET):
             {
-                case (CONDITION_HIT):
-                {
-                    char *attack_string = (cd->hit.attack_kind == ATTACK_HIT) ? "hit" : "ko";
-                    char target_string[32];
-                    switch (cd->hit.target)
-                    {
-                        case (TARGET_PLAYER):
-                            strcpy(target_string, "player");
-                            break;
-                        case (TARGET_MACHINE):
-                        case (TARGET_ITEM):
-                        case (TARGET_ENEMY):
-                        case (TARGET_YAKUMONO):
-                            char *target_name;
-                            int index;
-                            if (cd->hit.target == TARGET_MACHINE){
-                                target_name = "MACHINE";
-                                index = cd->hit.target_kind.machine;
-                            }
-                            else if (cd->hit.target == TARGET_ITEM){
-                                target_name = "ITEM";
-                                index = cd->hit.target_kind.item;
-                            }
-                            else if (cd->hit.target == TARGET_ENEMY){
-                                target_name = "ENEMY";
-                                index = cd->hit.target_kind.enemy;
-                            }
-                            else if (cd->hit.target == TARGET_YAKUMONO){
-                                target_name = "YAKUMONO";
-                                index = cd->hit.target_kind.yakumono;
-                            }
-                            sprintf(target_string, "%s index %d", target_name, index);
-                            break;
-                    }
-                    char dmg_source_string[32];
-                    switch (cd->hit.dmg_source)
-                    {
-                        case (DMGSOURCE_PLAYER):
-                        case (DMGSOURCE_WEAPON):
-                        case (DMGSOURCE_MAP):
-                            char *source_name;
-                            int index;
-                            if (cd->hit.dmg_source == DMGSOURCE_PLAYER){
-                                source_name = "player attack";
-                                index = cd->hit.dmg_source_kind.player_attack;
-                            }
-                            else if (cd->hit.dmg_source == DMGSOURCE_WEAPON){
-                                source_name = "weapon";
-                                index = cd->hit.dmg_source_kind.weapon_kind;
-                            }
-                            else if (cd->hit.dmg_source == DMGSOURCE_MAP){
-                                source_name = "map";
-                                index = cd->hit.dmg_source_kind.map_kind;
-                            }
-                            
-                            sprintf(dmg_source_string, "%s index %d", source_name, index);
-                            break;
-
-                        case (DMGSOURCE_ANY):
-                            strcpy(dmg_source_string, "anything");
-                            break;
-                    }
-                    
-                    sprintf(s, "%s %s with %s", attack_string, target_string, dmg_source_string);
-
-                    break;
-                }
-                case (CONDITION_AIR):
-                {
-                    char *compare_string;
-                    switch (cd->air.comparison)
-                    {
-                        case (COMPARE_GREATER):
-                            compare_string = "greater than";
-                            break;
-                        case (COMPARE_LESS):
-                            compare_string = "less than";
-                            break;
-                    }
-                    sprintf(s, "being airborne for %s %d frames", compare_string, cd->air.frame);
-                    break;
-                }
-                case (CONDITION_ITEM):
-                {
-                    sprintf(s, "have item %d", cd->item_kind);
-                    break;
-                }
-                case (CONDITION_SPEED):
-                {
-                    char *compare_string;
-                    switch (cd->air.comparison)
-                    {
-                        case (COMPARE_GREATER):
-                            compare_string = "greater than";
-                            break;
-                        case (COMPARE_LESS):
-                            compare_string = "less than";
-                            break;
-                    }
-                    sprintf(s, "have item %d", cd->item_kind);
-                    break;
-                }
-                case (CONDITION_POSITION):
-                {
-                    char *on_foot_string;
-                    if (cd->map.is_on_foot)
-                        on_foot_string = " on foot";
-                    else
-                        on_foot_string = "";
-
-                    sprintf(s, "at position %d%s", cd->map.map_area, on_foot_string);
-                    break;
-                }
+                sprintf(s, "collect stat %d %d times", gd->param.stat_get.kind, gd->num);
+                break;
             }
+            case (GOAL_FOODGET):
+            {
+                sprintf(s, "collect food %d %d times", gd->param.food_get.kind, gd->num);
+                break;
+            }
+            case (GOAL_ITEMFALLGET):
+            {
+                sprintf(s, "collect any item falling from the sky %d times", gd->num);
+                break;
+            }
+            case (GOAL_POSITION):
+            {
+                sprintf(s, "reach area %d", gd->param.position.kind);
+                break;
+            }
+            case (GOAL_BREAKBOXANY):
+            {
+                sprintf(s, "break a box %d times", gd->num);
+                break;
+            }
+            case (GOAL_BREAKBOXKIND):
+            {
+                sprintf(s, "break a box of kind %d %d times", gd->param.box_kind.kind, gd->num);
+                break;
+            }
+            case (GOAL_BREAKBOXWITHATTACK):
+            {
+                sprintf(s, "break a box with attack %d %d times", gd->param.box_attack.attack, gd->num);
+                break;
+            }
+            case (GOAL_HITPLAYER):
+            {
+                sprintf(s, "attack a player %d times", gd->num);
+                break;
+            }
+            case (GOAL_HITPLAYERWITHATTACK):
+            {
+                sprintf(s, "attack a player with attack %d %d times", gd->param.hit_ply_attack.attack, gd->num);
+                break;
+            }
+            case (GOAL_KOPLAYER):
+            {
+                sprintf(s, "KO a player %d times", gd->num);
+                break;
+            }
+            case (GOAL_DESTROYMACHINE):
+            {
+                sprintf(s, "destroy a machine %d times", gd->num);
+                break;
+            }
+            case (GOAL_RIDEMACHINEKIND):
+            {
+                sprintf(s, "ride machine %d %d times", gd->param.ride_machine_kind.kind, gd->num);
+                break;
+            }
+            case (GOAL_RAILDISTANCE):
+            {
+                sprintf(s, "ride rails for %d distance", gd->param.rail_dist.dist);
+                break;
+            }
+            case (GOAL_RAILLAND):
+            {
+                sprintf(s, "land on a rail %d times", gd->num);
+                break;
+            }
+            case (GOAL_GLIDETIME):
+            {
+                sprintf(s, "glide for %d seconds", gd->num);
+                break;
+            }
+            case (GOAL_BOOSTRING):
+            {
+                sprintf(s, "fly through %d boost rings", gd->num);
+                break;
+            }
+        }
 
-            char *intro_phrase = (cd->is_expires) ? "while " : "\0";
-
-            OSReport(" %d: %s%s %d time(s)\n", j + 1, intro_phrase, s, cd->num);
+        OSReport("Bingo Icon #%02d: %s -- %s\n", i + 1, goal_names[gd->kind], s);
+    }
+}
+void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty)
+{
+    // find candidates for this difficulty
+    int valid_goal_num = 0;
+    for (BingoGoalKind goal_kind = 0; goal_kind < GetElementsIn(g_difficulty_param); goal_kind++)
+    {
+        BingoGoalDesc *this_goal_desc = &g_difficulty_param[goal_kind];
+        for (int diff_idx = 0; diff_idx < this_goal_desc->num; diff_idx++)
+        {
+            if (this_goal_desc->param.common[diff_idx].difficulty == difficulty)
+                valid_goal_num++;
         }
     }
+
+    if (valid_goal_num == 0)
+    {
+        OSReport("no valid goals!\n");
+        assert("bingo_gen");
+    }
+
+    // get random one
+    int rand_goal = HSD_Randi(valid_goal_num);
+
+    // find it
+    int candidate_idx = 0;
+    for (BingoGoalKind goal_kind = 0; goal_kind < GetElementsIn(g_difficulty_param); goal_kind++)
+    {
+        BingoGoalDesc *this_goal_desc = &g_difficulty_param[goal_kind];
+
+        // check all difficulties
+        for (int diff_idx = 0; diff_idx < this_goal_desc->num; diff_idx++)
+        {
+            if (this_goal_desc->param.common[diff_idx].difficulty == difficulty)
+            {
+                if (candidate_idx == rand_goal)
+                {
+                    BingoMode_InitGoal(gd, this_goal_desc, diff_idx);
+                    return;
+                }
+
+                candidate_idx++;
+            }
+        }
+    }
+}
+void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int param_idx)
+{
+    memset(gd, 0, sizeof(*gd));
+
+    // copy over the kind
+    gd->ply_completed = -1;
+    gd->difficulty = desc->param.common[param_idx].difficulty;
+    gd->kind = desc->kind;
+
+    // handle each goal
+    switch (desc->kind)
+    {
+        case (GOAL_STATGET):
+        {
+            gd->num = RandomInRange(desc->param.stat_get[param_idx].num_min, desc->param.stat_get[param_idx].num_max);
+            gd->param.stat_get.kind = RandomBitInField(desc->param.stat_get[param_idx].items);
+            
+            // hp max is 16
+            if (gd->param.stat_get.kind == ITKIND_HP && gd->num > 16)
+                gd->num = 16;
+            
+            break;
+        }
+        case (GOAL_FOODGET):
+        {
+            gd->num = RandomInRange(desc->param.food_get[param_idx].num_min, desc->param.food_get[param_idx].num_max);
+            gd->param.food_get.kind = RandomInRange(ITKIND_FOODMAXIMTOMATO, ITKIND_FOODAPPLE);
+            break;
+        }
+        case (GOAL_ITEMFALLGET):
+        {
+            gd->num = RandomInRange(desc->param.item_fall_get[param_idx].num_min, desc->param.item_fall_get[param_idx].num_max);
+            break;
+        }
+        case (GOAL_POSITION):
+        {
+            gd->num = 1;
+            gd->param.position.kind = RandomBitInField(desc->param.position[param_idx].positions);
+            break;
+        }
+        case (GOAL_BREAKBOXANY):
+        {
+            gd->num = RandomInRange(desc->param.box_any[param_idx].num_min, desc->param.box_any[param_idx].num_max);
+            break;
+        }
+        case (GOAL_BREAKBOXKIND):
+        {
+            gd->num = RandomInRange(desc->param.box_kind[param_idx].num_min, desc->param.box_kind[param_idx].num_max);
+            gd->param.box_kind.kind = RandomInRange(BOXKIND_BLUE, BOXKIND_RED);
+            break;
+        }
+        case (GOAL_BREAKBOXWITHATTACK):
+        {
+            gd->num = RandomInRange(desc->param.box_attack[param_idx].num_min, desc->param.box_attack[param_idx].num_max);
+            gd->param.box_attack.attack = RandomBitInField(desc->param.box_attack[param_idx].attacks);
+            break;
+        }
+        case (GOAL_HITPLAYER):
+        {
+            gd->num = RandomInRange(desc->param.hit_ply[param_idx].num_min, desc->param.hit_ply[param_idx].num_max);
+            break;
+        }
+        case (GOAL_HITPLAYERWITHATTACK):
+        {
+            gd->num = RandomInRange(desc->param.hit_ply_attack[param_idx].num_min, desc->param.hit_ply_attack[param_idx].num_max);
+            gd->param.hit_ply_attack.attack = RandomBitInField(desc->param.hit_ply_attack[param_idx].attacks);
+            break;
+        }
+        case (GOAL_KOPLAYER):
+        {
+            gd->num = RandomInRange(desc->param.ko_ply[param_idx].num_min, desc->param.ko_ply[param_idx].num_max);
+            break;
+        }
+        case (GOAL_DESTROYMACHINE):
+        {
+            gd->num = RandomInRange(desc->param.ko_machine[param_idx].num_min, desc->param.ko_machine[param_idx].num_max);
+            break;
+        }
+        case (GOAL_RIDEMACHINEKIND):
+        {
+            gd->num = RandomInRange(desc->param.ride_machine_kind[param_idx].num_min, desc->param.ride_machine_kind[param_idx].num_max);
+            gd->param.ride_machine_kind.kind = RandomBitInField(desc->param.ride_machine_kind[param_idx].machines);
+            break;
+        }
+        case (GOAL_RAILDISTANCE):
+        {
+            gd->num = 1;
+            gd->param.rail_dist.dist = desc->param.rail_dist[param_idx].dist;
+            break;
+        }
+        case (GOAL_RAILLAND):
+        {
+            gd->num = RandomInRange(desc->param.rail_land[param_idx].num_min, desc->param.rail_land[param_idx].num_max);
+            break;
+        }
+        case (GOAL_GLIDETIME):
+        {
+            gd->num = RandomInRange(desc->param.glide_time[param_idx].num_min, desc->param.glide_time[param_idx].num_max);
+            break;
+        }
+        case (GOAL_BOOSTRING):
+        {
+            gd->num = RandomInRange(desc->param.boost_ring[param_idx].num_min, desc->param.boost_ring[param_idx].num_max);
+            break;
+        }
+    }
+}
+int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that)
+{
+    int is_dupe = 0;
+
+    if (this->kind == that->kind && 
+        this->difficulty == that->difficulty && 
+        !memcmp(&this->param.common, &that->param.common, sizeof(this->param.common)))
+        is_dupe = 1;
+    
+    return is_dupe;
 }
 
 // Bingo UI
@@ -404,22 +736,26 @@ GOBJ *BingoUI_Create(int ply)
             JObj_AddSetAnim(icon_j, 0, icon_set, 6, 0);
             JObj_AddNext(card_j, icon_j);
 
+            // hide other objective icon for now
+            JObj_SetFlagsAll(JObj_GetIndex(icon_j, BINGO_UI_JOINT_DOUBLE_ICON), JOBJ_HIDDEN);
+
             // display objective icon
             int icon_frame_idx = HSD_Randi(51);
-            JOBJ *objective_icon_j = JObj_GetIndex(icon_j, 2);
+            JOBJ *objective_icon_j = JObj_GetIndex(icon_j, BINGO_UI_JOINT_SINGLE_ICON);
             JObj_SetFrameAndRate(objective_icon_j, icon_frame_idx, 0);
+
 
             // display objective number
             {
                 int objective_num = HSD_Randi(18) + 1;
                 int disabled_num_joint_idx, enabled_num_joint_idx;
                 if (objective_num > 9) {
-                    enabled_num_joint_idx = 5;
-                    disabled_num_joint_idx = 3;
+                    enabled_num_joint_idx = BINGO_UI_JOINT_DOUBLE_DIGIT;
+                    disabled_num_joint_idx = BINGO_UI_JOINT_SINGLE_DIGIT;
                 }
                 else {
-                    enabled_num_joint_idx = 3;
-                    disabled_num_joint_idx = 5;
+                    enabled_num_joint_idx = BINGO_UI_JOINT_SINGLE_DIGIT;
+                    disabled_num_joint_idx = BINGO_UI_JOINT_DOUBLE_DIGIT;
                 }
 
                 // hide unused digits first
@@ -600,6 +936,7 @@ void DamageLog_CopyFromHurtData(DamageLogObject *log, HurtData *hurt_data)
             log->kind = rp->kind;
             log->ply = rp->ply;
             log->state = rp->status;
+            log->attack_data = rp->dmg_log.attack_data;
 
             if (rp->machine_gobj)
                 log->is_airborne = Rider_IsMachineAirborne(rp);
@@ -615,6 +952,7 @@ void DamageLog_CopyFromHurtData(DamageLogObject *log, HurtData *hurt_data)
             log->kind = mp->kind;
             log->state = mp->status;
             log->state2 = mp->status2;
+            log->attack_data = mp->dmg_log.attack_data;
             
             log->ply = Machine_GetRiderPly(mp);
             log->is_airborne = mp->is_airborne;
@@ -627,6 +965,7 @@ void DamageLog_CopyFromHurtData(DamageLogObject *log, HurtData *hurt_data)
             log->kind = wp->kind;
             log->state = wp->state;
             log->is_airborne = 1;
+            log->attack_data = wp->dmg_log.attack_data;
 
             if (wp->owner_gobj && wp->owner_gobj->p_link == GAMEPLINK_RIDER)
             {
@@ -646,6 +985,7 @@ void DamageLog_CopyFromHurtData(DamageLogObject *log, HurtData *hurt_data)
             log->state = ip->state;
             log->is_airborne = ip->is_airborne;
             log->ply = -1;
+            log->attack_data = (AttackData){0};
 
             
             break;
@@ -657,6 +997,7 @@ void DamageLog_CopyFromHurtData(DamageLogObject *log, HurtData *hurt_data)
             log->state = yp->state;
             log->ply = -1;
             log->is_airborne = 0;
+            log->attack_data = (AttackData){0};
             
             break;
         }
@@ -702,6 +1043,12 @@ void DamageLog_Machine(MachineData *mp, HitCollLog *log)
     DamageLog_Add(mp->hurt_data, log->attacker, Machine_GetRiderPly(mp), mp->kind);
 }
 CODEPATCH_HOOKCREATE(0x801d7358, "mr 3, 31\n\t" "mr 4, 30\n\t", DamageLog_Machine, "lwz	0, 0 (29)\n\t", 0)
+void DamageLog_Rider(RiderData *rp, HitCollLog *log)
+{
+    DamageLog_Add(rp->hurt_data, log->attacker, rp->ply, rp->kind);
+}
+CODEPATCH_HOOKCREATE(0x801965a4, "mr 3, 31\n\t" "mr 4, 30\n\t", DamageLog_Rider, "lwz	0, 0 (29)\n\t", 0)
+
 HitCollLog *DamageLog_Box(HitCollLog *log, ItemData *ip)
 {
     DamageLog_Add(ip->hurt_data, log->attacker, -1, ip->kind);
@@ -784,19 +1131,22 @@ void RailLog_Clear()
     g_rail_log_num = 0;
     memset(g_rail_log, -1, sizeof(g_rail_log));
 }
-void RailLog_Add(int ply, int rail_idx, float rail_progress)
+void RailLog_Add(MachineData *mp, int rail_idx, float rail_progress)
 {
     RailLog *this_log = &g_rail_log[g_rail_log_num++];
 
-    this_log->ply = ply;
+    this_log->ply = Machine_GetRiderPly(mp);
     this_log->idx = rail_idx;
     this_log->progress = rail_progress;
+    this_log->status = mp->status;
+    this_log->status2 = mp->status2;
+    this_log->is_airborne = mp->is_airborne;
 }
 void RailLog_Enter(MachineData *mp, int rail_idx, float rail_progress)
 {
-    RailLog_Add(Machine_GetRiderPly(mp), rail_idx, rail_progress);
+    RailLog_Add(mp, rail_idx, rail_progress);
 }
-CODEPATCH_HOOKCREATE(0x801e46a8, "mr 3, 30\n\t" "mr 4, 31\n\t" "lfs 1, 12 (1)\n\t", RailLog_Enter, "", 0)
+CODEPATCH_HOOKCREATE(0x801e468c, "mr 3, 30\n\t" "mr 4, 31\n\t" "lfs 1, 12 (1)\n\t", RailLog_Enter, "", 0)
 
 void Log_Clear()
 {
@@ -804,49 +1154,6 @@ void Log_Clear()
     ZoneLog_Clear();
     RailLog_Clear();
 }
-
-static AreaBound g_area_bounds[] = {
-    // forest
-    MAKE_AREA_BOUND(-537, -295, 
-                    20, 200,
-                    -190, 212),
-    // volcano
-    MAKE_AREA_BOUND(-680, -350, 
-                    52, 200,
-                    -690, -160),
-    MAKE_AREA_BOUND(-500, -219, 
-                    52, 200,
-                    -714, -404),
-    // city
-    MAKE_AREA_BOUND(-295, 240, 
-                    25, 200,
-                    -612, 100),
-    // wharf
-    MAKE_AREA_BOUND(260, 650, 
-                    -10, 200,
-                    -366, 360),
-    // electric lounge
-    MAKE_AREA_BOUND(-140, 500, 
-                    -10, 200,
-                    384, 750),
-    // golf course
-    MAKE_AREA_BOUND(-530, -250, 
-                    -20, 200,
-                    212, 900),
-
-    // sky island top
-    MAKE_AREA_BOUND(-183, 42, 
-                    465, 520,
-                    -82, 112),
-    // rock flower
-    MAKE_AREA_BOUND(-144, -100, 
-                    200, 215,
-                    -857, -815),
-    // castle flower
-    MAKE_AREA_BOUND(407, 412, 
-                    368, 380,
-                    -567, -563),
-};
 
 Text *debug_text;
 void BingoTracker_Create()
@@ -872,11 +1179,7 @@ void BingoTracker_Create()
 
         // init data
         for (int j = 0; j < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; j++)
-        {
-            tp->goal[j].is_goal_complete = 0;
-            for (int k = 0; k < 3; k++)
-                tp->goal[j].condition_progress[k] = 0;
-        }
+            tp->progress[j] = 0;
 
     }
 
@@ -887,102 +1190,48 @@ void BingoTracker_Create()
                             Log_Clear, 0, 
                             0, 0, 0);
 
-    debug_text = Hoshi_CreateScreenText();
-    for (int i = 0; i < 2; i++)
-        Text_AddSubtext(debug_text, 0, i * 30, "");
+    // debug_text = Hoshi_CreateScreenText();
+    // for (int i = 0; i < 2; i++)
+    //     Text_AddSubtext(debug_text, 0, i * 30, "");
 
 }
 void BingoTracker_Think(GOBJ *t)
 {
     BingoTrackerData *tp = t->userdata;
-    RiderData *rp = Ply_GetRiderGObj(tp->ply)->userdata;
-    GOBJ *m = rp->machine_gobj;
-
-    // Game3dData *g3d = Gm_Get3dData();
 
     // update progress
     for (int goal_idx = 0; goal_idx < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; goal_idx++)
     {
         BingoGoal *goal = &g_bingo_card.goal[goal_idx];
-        BingoGoalProgress *goal_progress = &tp->goal[goal_idx];
 
         // skip if goal is already completed
-        if (goal_progress->is_goal_complete)
+        if (goal->ply_completed != -1)
             continue;
 
-        // update condition progress
-        for (int condition_idx = 0; condition_idx < goal->condition_num; condition_idx++)
-        {
-            int is_condition_complete;
+        int progress = Bingo_UpdateProgress(tp->ply, goal, tp->progress[goal_idx]);
 
-            BingoConditionData *condition = &goal->condition_data[condition_idx];
-            is_condition_complete = goal_progress->condition_progress[condition_idx] >= condition->num;
-
-            // if its completed and doesnt expire, skip it
-            if (is_condition_complete && !condition->is_expires)
-                continue;
-
-            int result = 0;
-
-            // check for condition success
-            switch (condition->condition_kind)
+        if (progress != tp->progress[goal_idx])
+        {   
+            // check if completed
+            if (progress >= goal->num)
             {
-                case (CONDITION_HIT):
-                {
-                    // check all other players for damage this frame
-                    for (int ply = 0; ply < 4; ply++)
-                    {
-                        // not me and exists
-                        if (ply == rp->ply || Ply_GetPKind(ply) == PKIND_NONE)
-                            continue;
-                        
-                        RiderData *this_rp = Ply_GetRiderGObj(ply)->userdata;
-
-                        if (this_rp->machine_gobj)
-                        {
-                            MachineData *mp = this_rp->machine_gobj->userdata;
-                            
-                            if (mp->hurt_data->kb_mag > 0)
-                            {
-                                ;
-                            }
-
-                        }
-                    }
-                    break;
-                }
-                case (CONDITION_ITEM):
-                {
-
-                    break;
-                }
-                case (CONDITION_AIR):
-                {
-                    if (m)
-                    {
-                        MachineData *mp = m->userdata;
-                        int frames = mp->frames_airborne;
-
-                        if (condition->air.comparison == COMPARE_GREATER)
-                            result = (frames >= condition->air.frame);
-                        else
-                            result = (frames < condition->air.frame);
-
-                        break;
-                    }
-
-                    break;
-                }
+                OSReport("player %d completed goal #%d\n", tp->ply + 1, goal_idx + 1);
+                goal->ply_completed = tp->ply;
+                SFX_Play(FGMMENU_CS_KETTEI);
             }
-
-            // debug log
-            is_condition_complete = goal_progress->condition_progress[condition_idx] >= condition->num;
-            if (result && is_condition_complete == 0)
-                OSReport("completed goal #%d-%d\n", goal_idx + 1, condition_idx + 1);
-            
-            // update result
-            goal_progress->condition_progress[condition_idx]++;
+            else
+            {
+                OSReport("detected change in progress for player %d for goal #%d (%d -> %d) / %d\n", tp->ply + 1, goal_idx + 1, tp->progress[goal_idx], progress, goal->num);
+                
+                // play sound if progress went up
+                if (progress > tp->progress[goal_idx])
+                    SFX_Play(FGMMENU_CS_KETTEI_PRE);
+                
+            }
         }
+
+        // update result
+        tp->progress[goal_idx] = progress;
     }
 
     for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
@@ -1005,12 +1254,13 @@ void BingoTracker_Think(GOBJ *t)
             };
 
 
-            OSReport("%s (ply %d, kind %d, state: %d/%d, is_airborne: %d) %s %s (ply %d, kind %d, state: %d/%d, is_airborne: %d) with %.2f damage\n", 
+            OSReport("%s (ply %d, kind %d, state: %d/%d, attack_kind: %d, is_airborne: %d) %s %s (ply %d, kind %d, state: %d/%d, is_airborne: %d) with %.2f damage\n", 
                                                         hurt_kind_names[this_log->attacker.hurt_kind],
                                                         this_log->attacker.ply,
                                                         this_log->attacker.kind,
                                                         this_log->attacker.state,
                                                         this_log->attacker.state2,
+                                                        this_log->attacker.attack_data.kind,
                                                         this_log->attacker.is_airborne,
                                                         action_names[this_log->is_ko],
                                                         hurt_kind_names[this_log->victim.hurt_kind],
@@ -1027,7 +1277,7 @@ void BingoTracker_Think(GOBJ *t)
     {
         RailLog *this_log = &g_rail_log[i];
         if (this_log->ply != -1)
-            OSReport("ply %d entered rail %d with progress %.2f\n", this_log->ply, this_log->idx, this_log->progress);
+            OSReport("ply %d entered rail %d with progress %.2f in status %d with ground state %d\n", this_log->ply, this_log->idx, this_log->progress, this_log->status, this_log->is_airborne);
     }
     for (int i = 0; i < GetElementsIn(g_zone_log); i++)
     {
@@ -1036,31 +1286,31 @@ void BingoTracker_Think(GOBJ *t)
             OSReport("ply %d entered zone index %d with kind %d\n", this_log->ply, this_log->idx, this_log->kind);
     }
 
-    Text_SetText(debug_text, 0, "%.2f, %.2f, %.2f", rp->pos.X, rp->pos.Y, rp->pos.Z);
-    Text_SetText(debug_text, 1, "", rp->pos.X, rp->pos.Y, rp->pos.Z);
+    // RiderData *rp = Ply_GetRiderGObj(tp->ply)->userdata;
+    // Text_SetText(debug_text, 0, "%.2f, %.2f, %.2f", rp->pos.X, rp->pos.Y, rp->pos.Z);
+    // Text_SetText(debug_text, 1, "", rp->pos.X, rp->pos.Y, rp->pos.Z);
 
-    for (int i = 0; i < GetElementsIn(g_area_bounds); i++)
-    {
-        float hx = g_area_bounds[i].size.X * 0.5f;
-        float hy = g_area_bounds[i].size.Y * 0.5f;
-        float hz = g_area_bounds[i].size.Z * 0.5f;
+    // for (int i = 0; i < GetElementsIn(g_area_bounds); i++)
+    // {
+    //     float hx = g_area_bounds[i].size.X * 0.5f;
+    //     float hy = g_area_bounds[i].size.Y * 0.5f;
+    //     float hz = g_area_bounds[i].size.Z * 0.5f;
 
-        float x_min = g_area_bounds[i].pos.X - hx;
-        float x_max = g_area_bounds[i].pos.X + hx;
-        float y_min = g_area_bounds[i].pos.Y - hy;
-        float y_max = g_area_bounds[i].pos.Y + hy;
-        float z_min = g_area_bounds[i].pos.Z - hz;
-        float z_max = g_area_bounds[i].pos.Z + hz;
+    //     float x_min = g_area_bounds[i].pos.X - hx;
+    //     float x_max = g_area_bounds[i].pos.X + hx;
+    //     float y_min = g_area_bounds[i].pos.Y - hy;
+    //     float y_max = g_area_bounds[i].pos.Y + hy;
+    //     float z_min = g_area_bounds[i].pos.Z - hz;
+    //     float z_max = g_area_bounds[i].pos.Z + hz;
 
-        if (rp->pos.X >= x_min && rp->pos.X <= x_max && 
-            rp->pos.Y >= y_min && rp->pos.Y <= y_max && 
-            rp->pos.Z >= z_min && rp->pos.Z <= z_max)
-            {
-                Text_SetText(debug_text, 1, "area: %d", i);
-                break;
-            }
-    }
-
+    //     if (rp->pos.X >= x_min && rp->pos.X <= x_max && 
+    //         rp->pos.Y >= y_min && rp->pos.Y <= y_max && 
+    //         rp->pos.Z >= z_min && rp->pos.Z <= z_max)
+    //         {
+    //             Text_SetText(debug_text, 1, "area: %d", i);
+    //             break;
+    //         }
+    // }
 
 }
 void BingoTracker_GX(GOBJ *t, int pass)
@@ -1073,6 +1323,204 @@ void BingoTracker_GX(GOBJ *t, int pass)
     // draw areas
     for (int i = 0; i < GetElementsIn(g_area_bounds); i++)
         GX_DrawBox(&g_area_bounds[i].pos, &g_area_bounds[i].size, &(GXColor){255,0,0,128});
+}
+
+int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress)
+{
+    RiderData *rp = Ply_GetRiderGObj(ply)->userdata;
+    u8 *stats = (u8 *)Ply_GetStats(ply);
+    GOBJ *m = rp->machine_gobj;
+    MachineData *mp = (m) ? (m->userdata) : 0;
+
+    switch(gd->kind)
+    {
+        case (GOAL_STATGET):
+        {
+            int *item_collect_arr = (int *)&stats[0x4c8];
+            progress = item_collect_arr[gd->param.stat_get.kind];
+            break;
+        }
+        case (GOAL_FOODGET):
+        {
+            int *item_collect_arr = (int *)&stats[0x4c8];
+            progress = item_collect_arr[gd->param.food_get.kind];
+            break;
+        }
+        case (GOAL_ITEMFALLGET):
+        {
+            break;
+        }
+        case (GOAL_POSITION):
+        {
+            AreaBound *bound = &g_area_bounds[gd->param.position.kind];
+
+            float hx = bound->size.X * 0.5f;
+            float hy = bound->size.Y * 0.5f;
+            float hz = bound->size.Z * 0.5f;
+
+            float x_min = bound->pos.X - hx;
+            float x_max = bound->pos.X + hx;
+            float y_min = bound->pos.Y - hy;
+            float y_max = bound->pos.Y + hy;
+            float z_min = bound->pos.Z - hz;
+            float z_max = bound->pos.Z + hz;
+
+            if (rp->pos.X >= x_min && rp->pos.X <= x_max && 
+                rp->pos.Y >= y_min && rp->pos.Y <= y_max && 
+                rp->pos.Z >= z_min && rp->pos.Z <= z_max)
+                {
+                    progress++;
+                }
+
+            break;
+        }
+        case (GOAL_BREAKBOXANY):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && 
+                    this_log->is_ko &&
+                    this_log->victim.hurt_kind == HURTKIND_ITEM && 
+                    this_log->victim.kind >= ITKIND_BOXBLUE && this_log->victim.kind <= ITKIND_BOXRED)
+                {
+                    progress++;
+                }
+            }
+
+            break;
+        }
+        case (GOAL_BREAKBOXKIND):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && 
+                    this_log->is_ko &&
+                    this_log->victim.hurt_kind == HURTKIND_ITEM && 
+                    this_log->victim.kind == gd->param.box_kind.kind)
+                {
+                    progress++;
+                }
+            }
+            break;
+        }
+        case (GOAL_BREAKBOXWITHATTACK):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && 
+                    this_log->is_ko &&
+                    this_log->victim.hurt_kind == HURTKIND_ITEM && 
+                    this_log->victim.kind >= ITKIND_BOXBLUE && this_log->victim.kind <= ITKIND_BOXRED && 
+                    this_log->attacker.attack_data.kind == gd->param.box_attack.attack)
+                {
+                    progress++;
+                }
+            }
+            break;
+        }
+        case (GOAL_HITPLAYER):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && this_log->victim.ply != ply &&
+                    (this_log->victim.hurt_kind == HURTKIND_RIDER || this_log->victim.hurt_kind == HURTKIND_MACHINE))
+                {
+                    progress++;
+                }
+            }
+            break;
+        }
+        case (GOAL_HITPLAYERWITHATTACK):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && 
+                    (this_log->victim.hurt_kind == HURTKIND_RIDER || this_log->victim.hurt_kind == HURTKIND_MACHINE) && 
+                    this_log->attacker.attack_data.kind == gd->param.hit_ply_attack.attack)
+                {
+                    progress++;
+                }
+            }
+            break;
+        }
+        case (GOAL_DESTROYMACHINE):
+        {
+            for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
+            {
+                DamageLog *this_log = &g_dmg_log[i];
+                if (this_log->dmg > 0 && this_log->attacker.ply == ply && 
+                    (this_log->victim.hurt_kind == HURTKIND_MACHINE || this_log->victim.hurt_kind == HURTKIND_MACHINE_EMPTY) && 
+                    this_log->is_ko)
+                {
+                    progress++;
+                }
+            }
+            break;
+        }
+        case (GOAL_RIDEMACHINEKIND):
+        {
+            ;
+            break;
+        }
+        case (GOAL_RAILDISTANCE):
+        {   
+            float rail_dist = *(float *)&stats[0x614];
+
+            if ((int)rail_dist > gd->param.rail_dist.dist)
+                progress++;
+
+            break;
+        }
+        case (GOAL_RAILLAND):
+        {
+            for (int i = 0; i < GetElementsIn(g_rail_log); i++)
+            {
+                RailLog *this_log = &g_rail_log[i];
+                if (this_log->ply == ply && this_log->is_airborne && this_log->progress > 0.2)
+                    progress++;
+            }
+            break;
+        }
+        case (GOAL_GLIDETIME):
+        {
+            if (mp && mp->is_airborne)
+            {
+                int current_time_spent_airborne = *(int *)&stats[0x5f8];
+                progress = current_time_spent_airborne / 60;
+            }
+
+            break;
+        }
+        case (GOAL_BOOSTRING):
+        {
+            static u8 boost_zone_ids[] = {26, 27, 28, 29, 58, 60, 61, 63, 64, 65, 66, 69};
+
+            u8 *zone_bits = &stats[0x661];
+            int ring_num = 0;
+
+            for (int i = 0; i < GetElementsIn(boost_zone_ids); i++)
+            {
+                int this_boost_idx = boost_zone_ids[i];
+
+                int byte_offset = this_boost_idx / 8;
+                int bit_idx = 1 << (this_boost_idx % 8);
+
+                if (zone_bits[byte_offset] & bit_idx)
+                    ring_num++;
+            }
+
+            progress = ring_num;
+
+            break;
+        }
+    }
+
+    return progress;
 }
 
 int Bingo_OnDPadToStick(RiderData *rd)
@@ -1110,8 +1558,9 @@ void Bingo_Init()
 
     // damage logging
     CODEPATCH_HOOKAPPLY(0x801d7358);
+    CODEPATCH_HOOKAPPLY(0x801965a4);
     CODEPATCH_HOOKAPPLY(0x80252434);
-
+    
     // zone logging
     CODEPATCH_HOOKAPPLY(0x801cf6b0);
     CODEPATCH_HOOKAPPLY(0x801cf71c);
@@ -1119,7 +1568,7 @@ void Bingo_Init()
     CODEPATCH_HOOKAPPLY(0x801e4014);
     
     // rail logging
-    CODEPATCH_HOOKAPPLY(0x801e46a8);
+    CODEPATCH_HOOKAPPLY(0x801e468c);
 
     // yakumono logging
     // CODEPATCH_HOOKAPPLY(0x80105d90);     // events give all yakubreak hits to the lowest port player @ 80108334. disabling for now i guess
@@ -1149,15 +1598,15 @@ void Bingo_On3DLoadEnd()
     BingoInput_Create();
     BingoTracker_Create();
 
-    u8 proc_num = 26; // *stc_gobj_proc_num;
-    for (int i = 0; i < proc_num; i++)
-    {
-        OSReport("Checking proc %d\n", i);
+    // u8 proc_num = 26; // *stc_gobj_proc_num;
+    // for (int i = 0; i < proc_num; i++)
+    // {
+    //     OSReport("Checking proc %d\n", i);
 
-        GOBJProc *proc = (*stc_gobjproc_lookup)[i];
-        GOBJProc_Log(proc, 0);
-        OSReport("\n");
-    }
+    //     GOBJProc *proc = (*stc_gobjproc_lookup)[i];
+    //     GOBJProc_Log(proc, 0);
+    //     OSReport("\n");
+    // }
     
 }
 void Bingo_On3DPause(int pause_ply)

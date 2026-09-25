@@ -12,10 +12,26 @@
 
 #define BINGO_UI_GRID_SIZE (5)
 
+#define BINGO_UI_JOINT_BACKGROUND_ICON (1)
 #define BINGO_UI_JOINT_SINGLE_ICON (2)
-#define BINGO_UI_JOINT_DOUBLE_ICON (3)
-#define BINGO_UI_JOINT_SINGLE_DIGIT (6)
-#define BINGO_UI_JOINT_DOUBLE_DIGIT (8)
+#define BINGO_UI_JOINT_MULTI_ICON (3)
+#define BINGO_UI_JOINT_SINGLE_DIGIT (7)
+#define BINGO_UI_JOINT_DOUBLE_DIGIT (9)
+
+
+typedef enum BingoUIIconFrame
+{
+    BINGOICONFRAME_ALLBOXES,
+    BINGOICONFRAME_ITEMSTART,
+    BINGOICONFRAME_MACHINESTART = 56,
+    BINGOICONFRAME_AREASTART = 73,
+    BINGOICONFRAME_GRIND = 76,
+    BINGOICONFRAME_GLIDE,
+    BINGOICONFRAME_BOOSTRING,
+    BINGOICONFRAME_HIT,
+    BINGOICONFRAME_KO,
+    BINGOICONFRAME_PLAYER,
+} BingoUIIconFrame;
 
 typedef enum BingoAttackKind
 {
@@ -338,6 +354,8 @@ void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty);
 void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int difficulty_idx);
 int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that);
 int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress);
+
+void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out);
 
 void Bingo_Init();
 void Bingo_OnPlayerSelectLoad();

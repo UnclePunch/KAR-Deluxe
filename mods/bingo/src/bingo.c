@@ -325,7 +325,7 @@ void BingoMode_Start()
     for (int i = 0; i < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; i++)
     {
         BingoGoal *gd = &g_bingo_card.goal[i];
-
+        
         static char *goal_names[] = {
             "STATGET",
             "FOODGET",
@@ -344,94 +344,11 @@ void BingoMode_Start()
             "GLIDETIME",
             "BOOSTRING",
         };
-        
+    
         char s[256];
-
-        switch(gd->kind)
-        {
-            case (GOAL_STATGET):
-            {
-                sprintf(s, "collect stat %d %d times", gd->param.stat_get.kind, gd->num);
-                break;
-            }
-            case (GOAL_FOODGET):
-            {
-                sprintf(s, "collect food %d %d times", gd->param.food_get.kind, gd->num);
-                break;
-            }
-            case (GOAL_ITEMFALLGET):
-            {
-                sprintf(s, "collect any item falling from the sky %d times", gd->num);
-                break;
-            }
-            case (GOAL_POSITION):
-            {
-                sprintf(s, "reach area %d", gd->param.position.kind);
-                break;
-            }
-            case (GOAL_BREAKBOXANY):
-            {
-                sprintf(s, "break a box %d times", gd->num);
-                break;
-            }
-            case (GOAL_BREAKBOXKIND):
-            {
-                sprintf(s, "break a box of kind %d %d times", gd->param.box_kind.kind, gd->num);
-                break;
-            }
-            case (GOAL_BREAKBOXWITHATTACK):
-            {
-                sprintf(s, "break a box with attack %d %d times", gd->param.box_attack.attack, gd->num);
-                break;
-            }
-            case (GOAL_HITPLAYER):
-            {
-                sprintf(s, "attack a player %d times", gd->num);
-                break;
-            }
-            case (GOAL_HITPLAYERWITHATTACK):
-            {
-                sprintf(s, "attack a player with attack %d %d times", gd->param.hit_ply_attack.attack, gd->num);
-                break;
-            }
-            case (GOAL_KOPLAYER):
-            {
-                sprintf(s, "KO a player %d times", gd->num);
-                break;
-            }
-            case (GOAL_DESTROYMACHINE):
-            {
-                sprintf(s, "destroy a machine %d times", gd->num);
-                break;
-            }
-            case (GOAL_RIDEMACHINEKIND):
-            {
-                sprintf(s, "ride machine %d %d times", gd->param.ride_machine_kind.kind, gd->num);
-                break;
-            }
-            case (GOAL_RAILDISTANCE):
-            {
-                sprintf(s, "ride rails for %d distance", gd->param.rail_dist.dist);
-                break;
-            }
-            case (GOAL_RAILLAND):
-            {
-                sprintf(s, "land on a rail %d times", gd->num);
-                break;
-            }
-            case (GOAL_GLIDETIME):
-            {
-                sprintf(s, "glide for %d seconds", gd->num);
-                break;
-            }
-            case (GOAL_BOOSTRING):
-            {
-                sprintf(s, "fly through %d boost rings", gd->num);
-                break;
-            }
-        }
-
+        Bingo_GetDescriptionForGoal(gd, s);
         OSReport("Bingo Icon #%02d: %s -- %s\n", i + 1, goal_names[gd->kind], s);
+
     }
 }
 void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty)
@@ -598,6 +515,95 @@ int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that)
     return is_dupe;
 }
 
+void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out)
+{
+    switch(gd->kind)
+    {
+        case (GOAL_STATGET):
+        {
+            sprintf(out, "Collect stat %d %d times.", gd->param.stat_get.kind, gd->num);
+            break;
+        }
+        case (GOAL_FOODGET):
+        {
+            sprintf(out, "Collect food %d %d times.", gd->param.food_get.kind, gd->num);
+            break;
+        }
+        case (GOAL_ITEMFALLGET):
+        {
+            sprintf(out, "Collect any item falling from the sky %d times.", gd->num);
+            break;
+        }
+        case (GOAL_POSITION):
+        {
+            sprintf(out, "Reach area %d.", gd->param.position.kind);
+            break;
+        }
+        case (GOAL_BREAKBOXANY):
+        {
+            sprintf(out, "Break a box %d times.", gd->num);
+            break;
+        }
+        case (GOAL_BREAKBOXKIND):
+        {
+            sprintf(out, "Break a box of kind %d %d times.", gd->param.box_kind.kind, gd->num);
+            break;
+        }
+        case (GOAL_BREAKBOXWITHATTACK):
+        {
+            sprintf(out, "Break a box with attack %d %d times.", gd->param.box_attack.attack, gd->num);
+            break;
+        }
+        case (GOAL_HITPLAYER):
+        {
+            sprintf(out, "Attack a player %d times.", gd->num);
+            break;
+        }
+        case (GOAL_HITPLAYERWITHATTACK):
+        {
+            sprintf(out, "Attack a player with attack %d %d times.", gd->param.hit_ply_attack.attack, gd->num);
+            break;
+        }
+        case (GOAL_KOPLAYER):
+        {
+            sprintf(out, "KO a player %d times.", gd->num);
+            break;
+        }
+        case (GOAL_DESTROYMACHINE):
+        {
+            sprintf(out, "Destroy a machine %d times.", gd->num);
+            break;
+        }
+        case (GOAL_RIDEMACHINEKIND):
+        {
+            sprintf(out, "Ride machine %d %d times.", gd->param.ride_machine_kind.kind, gd->num);
+            break;
+        }
+        case (GOAL_RAILDISTANCE):
+        {
+            sprintf(out, "Ride rails for %d distance.", gd->param.rail_dist.dist);
+            break;
+        }
+        case (GOAL_RAILLAND):
+        {
+            sprintf(out, "Land on a rail %d times.", gd->num);
+            break;
+        }
+        case (GOAL_GLIDETIME):
+        {
+            sprintf(out, "Glide for %d seconds.", gd->num);
+            break;
+        }
+        case (GOAL_BOOSTRING):
+        {
+            sprintf(out, "Fly through %d boost rings.", gd->num);
+            break;
+        }
+    }
+
+    return;
+}
+
 // Bingo UI
 int is_bingo_mode = 1;
 GOBJ *bingo_card_gobj[5];
@@ -615,8 +621,8 @@ GOBJ *BingoUI_Create(int ply)
                             BingoUI_Think, 0, 
                             JObj_GX, GAMEGX_HUD, 3);
 
-    BingoUIData *bp = b->userdata;
-    bp->ply = ply;
+    BingoUIData *bd = b->userdata;
+    bd->ply = ply;
 
     // create text
     {
@@ -636,7 +642,7 @@ GOBJ *BingoUI_Create(int ply)
         x_pos = 0;
         Text_AddSubtext(t, x_pos, 0, "Lorem ipsum dolor sit amet");
         Text_AddSubtext(t, x_pos, 30, "sed do eiusmod tempor incididunt.");
-        bp->text.details = t;
+        bd->text.details = t;
 
         // create scoreboard
         JObj_GetChildPosition(b->hsd_object, BINGO_UI_SCOREBOARD_TEXT_JOINT, &text_pos);
@@ -653,7 +659,7 @@ GOBJ *BingoUI_Create(int ply)
         t->trans.Y = -text_pos.Y;
         Text_AddSubtext(t, 0, 0, "Game Info");
         Text_AddSubtext(t, 330, 0, "Leaderboard");
-        bp->text.scoreboard.label = t;
+        bd->text.scoreboard.label = t;
 
         // game info
         t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
@@ -670,7 +676,7 @@ GOBJ *BingoUI_Create(int ply)
         Text_AddSubtext(t, x_pos, 80, "Goal: " "\x0C\xFF\xFF\x50" "%d items", 10);
         Text_AddSubtext(t, x_pos, 110, "Time Limit: Off");
         Text_AddSubtext(t, x_pos, 140, "Team: " "\x0C\x26\x26\xD9" "Blue");
-        bp->text.scoreboard.game_info = t;
+        bd->text.scoreboard.game_info = t;
 
         // leaderboard numbers
         t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
@@ -687,7 +693,7 @@ GOBJ *BingoUI_Create(int ply)
         Text_AddSubtext(t, x_pos, 80, "2.");
         Text_AddSubtext(t, x_pos, 110, "3.");
         Text_AddSubtext(t, x_pos, 140, "4.");
-        bp->text.scoreboard.leaderboard_nums = t;
+        bd->text.scoreboard.leaderboard_nums = t;
         
         // teams
         t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
@@ -704,7 +710,7 @@ GOBJ *BingoUI_Create(int ply)
         Text_AddSubtext(t, x_pos, 80, "\x0C\xFF\xB2\xCC" "Pink:");
         Text_AddSubtext(t, x_pos, 110, "\x0C\x40\xFF\x40" "Green:");
         Text_AddSubtext(t, x_pos, 140, "\x0C\xFF\x40\x40" "Red:");
-        bp->text.scoreboard.leaderboard_teams = t;
+        bd->text.scoreboard.leaderboard_teams = t;
 
         // team scores
         t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
@@ -721,7 +727,7 @@ GOBJ *BingoUI_Create(int ply)
         Text_AddSubtext(t, x_pos, 80, "0 items");
         Text_AddSubtext(t, x_pos, 110, "0 items");
         Text_AddSubtext(t, x_pos, 140, "0 items");
-        bp->text.scoreboard.leaderboard_scores = t;
+        bd->text.scoreboard.leaderboard_scores = t;
 
     }
 
@@ -732,24 +738,98 @@ GOBJ *BingoUI_Create(int ply)
     {
         for (int y = 0; y < BINGO_UI_GRID_SIZE; y++)
         {
+            int goal_idx = (x * BINGO_UI_GRID_SIZE) + y;
+            BingoGoal *goal = &g_bingo_card.goal[goal_idx];
+
             JOBJ *icon_j = JObj_LoadJoint(icon_set->jobj);
             JObj_AddSetAnim(icon_j, 0, icon_set, 6, 0);
             JObj_AddNext(card_j, icon_j);
 
-            // hide other objective icon for now
-            JObj_SetFlagsAll(JObj_GetIndex(icon_j, BINGO_UI_JOINT_DOUBLE_ICON), JOBJ_HIDDEN);
+            JObj_SetFlagsAll(icon_j, JOBJ_HIDDEN); // first hide all
+            JObj_ClearFlagsAll(JObj_GetIndex(icon_j, BINGO_UI_JOINT_BACKGROUND_ICON), JOBJ_HIDDEN); // show background
 
-            // display objective icon
-            int icon_frame_idx = HSD_Randi(51);
-            JOBJ *objective_icon_j = JObj_GetIndex(icon_j, BINGO_UI_JOINT_SINGLE_ICON);
-            JObj_SetFrameAndRate(objective_icon_j, icon_frame_idx, 0);
-
-
-            // display objective number
+            // display icon
             {
-                int objective_num = HSD_Randi(18) + 1;
+                int single_frame;
+                int multi_frame[3];
+                switch (goal->kind)
+                {
+                    // single icon
+                    case (GOAL_STATGET):
+                        single_frame = BINGOICONFRAME_ITEMSTART + goal->param.stat_get.kind;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_FOODGET):
+                        single_frame = BINGOICONFRAME_ITEMSTART + goal->param.food_get.kind;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_POSITION):
+                        single_frame = BINGOICONFRAME_AREASTART + (goal->param.position.kind - AREAKIND_ISLAND);
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_BREAKBOXANY):
+                        single_frame = BINGOICONFRAME_ALLBOXES;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_BREAKBOXKIND):
+                        single_frame = BINGOICONFRAME_ITEMSTART + goal->param.box_kind.kind;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_RIDEMACHINEKIND):
+                        single_frame = BINGOICONFRAME_MACHINESTART + goal->param.ride_machine_kind.kind;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_RAILDISTANCE):
+                        single_frame = BINGOICONFRAME_GRIND;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_GLIDETIME):
+                        single_frame = BINGOICONFRAME_GLIDE;
+                        goto DISPLAY_SINGLE_ICON;
+                    case (GOAL_BOOSTRING):
+                        single_frame = BINGOICONFRAME_BOOSTRING;
+                        goto DISPLAY_SINGLE_ICON;
+                    DISPLAY_SINGLE_ICON:
+                        JOBJ *single_icon = JObj_GetIndex(icon_j, BINGO_UI_JOINT_SINGLE_ICON);
+                        JObj_ClearFlagsAll(single_icon, JOBJ_HIDDEN);   // show icon
+                        JObj_SetFrameAndRate(single_icon, single_frame, 0);
+                        break;
+
+                    // multi icon
+                    case (GOAL_BREAKBOXWITHATTACK):
+                        multi_frame[2] = BINGOICONFRAME_ITEMSTART + ITKIND_COPYICE;
+                        multi_frame[1] = BINGOICONFRAME_KO;
+                        multi_frame[0] = BINGOICONFRAME_ALLBOXES;
+                        goto DISPLAY_MULTI_ICON;
+                    case (GOAL_HITPLAYER):
+                        multi_frame[2] = BINGOICONFRAME_PLAYER;
+                        multi_frame[1] = BINGOICONFRAME_HIT;
+                        multi_frame[0] = BINGOICONFRAME_PLAYER;
+                        goto DISPLAY_MULTI_ICON;
+                    case (GOAL_HITPLAYERWITHATTACK):
+                        multi_frame[2] = BINGOICONFRAME_ITEMSTART + ITKIND_COPYICE;
+                        multi_frame[1] = BINGOICONFRAME_HIT;
+                        multi_frame[0] = BINGOICONFRAME_ALLBOXES;
+                    case (GOAL_KOPLAYER):
+                        multi_frame[2] = BINGOICONFRAME_PLAYER;
+                        multi_frame[1] = BINGOICONFRAME_KO;
+                        multi_frame[0] = BINGOICONFRAME_PLAYER;
+                        goto DISPLAY_MULTI_ICON;
+                    case (GOAL_DESTROYMACHINE):
+                        multi_frame[2] = BINGOICONFRAME_PLAYER;
+                        multi_frame[1] = BINGOICONFRAME_KO;
+                        multi_frame[0] = BINGOICONFRAME_MACHINESTART + VCKIND_WARP;
+                        goto DISPLAY_MULTI_ICON;
+
+                    DISPLAY_MULTI_ICON:
+                        for (int i = 0; i < 3; i++)
+                        {
+                            JOBJ *multi_icon = JObj_GetIndex(icon_j, BINGO_UI_JOINT_MULTI_ICON + 1 + i);
+                            JObj_ClearFlagsAll(multi_icon, JOBJ_HIDDEN);   // show icon
+                            JObj_SetFrameAndRate(multi_icon, multi_frame[i], 0);
+                        }
+                        break;
+                }
+            }
+
+            // display number
+            {
+                int goal_num = goal->num;
                 int disabled_num_joint_idx, enabled_num_joint_idx;
-                if (objective_num > 9) {
+                if (goal_num > 9) {
                     enabled_num_joint_idx = BINGO_UI_JOINT_DOUBLE_DIGIT;
                     disabled_num_joint_idx = BINGO_UI_JOINT_SINGLE_DIGIT;
                 }
@@ -758,12 +838,12 @@ GOBJ *BingoUI_Create(int ply)
                     disabled_num_joint_idx = BINGO_UI_JOINT_DOUBLE_DIGIT;
                 }
 
-                // hide unused digits first
-                JObj_SetFlagsAll(JObj_GetIndex(icon_j, disabled_num_joint_idx), JOBJ_HIDDEN);
+                // show digits first
+                JObj_ClearFlagsAll(JObj_GetIndex(icon_j, enabled_num_joint_idx), JOBJ_HIDDEN);
 
                 // display digits
                 JOBJ *digit_j = JObj_GetIndex(icon_j, enabled_num_joint_idx);
-                int num = objective_num;
+                int num = goal_num;
                 int loop_num = 0;
                 while (num > 0)
                 {
@@ -775,7 +855,6 @@ GOBJ *BingoUI_Create(int ply)
                     num = num / 10;
                     loop_num++;
                 }
-
             }
 
             // position on grid
@@ -784,7 +863,7 @@ GOBJ *BingoUI_Create(int ply)
             JObj_SetMtxDirtySub(icon_j);
 
             int index = (x * BINGO_UI_GRID_SIZE) + y;
-            bp->icon_arr[index] = icon_j;
+            bd->icon_arr[index] = icon_j;
         }
     }
     JObj_SetMtxDirtySub(card_j);
@@ -811,6 +890,9 @@ void BingoUI_Think(GOBJ *g)
     if (pad->down & PAD_BUTTON_DPAD_DOWN)
         if (--bingo_cursor[gp->ply].y < 0) bingo_cursor[gp->ply].y = BINGO_UI_GRID_SIZE - 1;
 
+    int sel_icon_idx = (bingo_cursor[gp->ply].x * BINGO_UI_GRID_SIZE) + bingo_cursor[gp->ply].y;
+    BingoGoal *sel_goal = &g_bingo_card.goal[sel_icon_idx];
+
     // update icon highlight
     for (int x = 0; x < BINGO_UI_GRID_SIZE; x++)
     {
@@ -827,21 +909,24 @@ void BingoUI_Think(GOBJ *g)
     // update description
     int cursor_index = (bingo_cursor[gp->ply].x * BINGO_UI_GRID_SIZE) + bingo_cursor[gp->ply].y;
     Text_SetText(gp->text.details, 0, "This is icon index %d.", cursor_index);
-    Text_SetText(gp->text.details, 1, "Please complete this task.");
+
+    char s[128];
+    Bingo_GetDescriptionForGoal(sel_goal, s);
+    Text_SetText(gp->text.details, 1, s);
 
 }
-void BingoUI_Destroy(BingoUIData *bp)
+void BingoUI_Destroy(BingoUIData *bd)
 {
-    Text_Destroy(bp->text.details);
-    Text_Destroy(bp->text.scoreboard.game_info);
-    Text_Destroy(bp->text.scoreboard.label);
-    Text_Destroy(bp->text.scoreboard.leaderboard_nums);
-    Text_Destroy(bp->text.scoreboard.leaderboard_teams);
-    Text_Destroy(bp->text.scoreboard.leaderboard_scores);
+    Text_Destroy(bd->text.details);
+    Text_Destroy(bd->text.scoreboard.game_info);
+    Text_Destroy(bd->text.scoreboard.label);
+    Text_Destroy(bd->text.scoreboard.leaderboard_nums);
+    Text_Destroy(bd->text.scoreboard.leaderboard_teams);
+    Text_Destroy(bd->text.scoreboard.leaderboard_scores);
 
-    bingo_card_gobj[bp->ply] = 0;
+    bingo_card_gobj[bd->ply] = 0;
 
-    HSD_Free(bp);
+    HSD_Free(bd);
 }
 void Bingo_DestroyOnPause()
 {

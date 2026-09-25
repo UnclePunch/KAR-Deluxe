@@ -21,5 +21,5 @@ find the hidden volcano entrance
 break the starpole
 
 
-to-do:
-    - need a way to detect item pickups, do i monitor the playerblock array or hook a function
+ideas from team:
+ - (kim-lan) an idea for having stalemates without having to detect the various conditions is to have an "agree to stalemate" button and it stalemates if everyone selects it, and like a notification if someone offers a stalemate 

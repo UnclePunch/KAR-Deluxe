@@ -154,11 +154,7 @@ void Game_LoadAdditionalAssets()
     stc_plicon_texanim = 0;
 
     // load our file
-    Gm_LoadGameFile(&stc_ifall_morecolors, "RdKirbyMore");
-
-    // get plicon data
-    if (stc_ifall_morecolors)
-        stc_plicon_texanim = Archive_GetPublicAddress(stc_ifall_morecolors, "ScInfPlicon_texanim");
+    lbLoadArchive(&stc_ifall_morecolors, COLORTEX_FILENAME, &stc_plicon_texanim, "ScInfPlicon_texanim", 0);
 
     return;
 }

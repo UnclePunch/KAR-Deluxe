@@ -66,7 +66,7 @@ void Camera_InitDefaultZoom()
         // init camera height for all players
         for (int i = 0; i < 4; i++)
         {
-            stc_plycam_lookup->ply_distance[i].normal = stc_plycam_lookup->param->zoom_dist_max;
+            stc_plycam_lookup->ply_distance[i].normal = 8.4;
             stc_plycam_lookup->ply_distance[i].rail = 6;
         }
     }

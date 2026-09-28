@@ -72,7 +72,7 @@ u32 Hash_GameState(u32 kind)
             RiderData *rd = g->userdata;
             ObjectState *this_state = &state->objects[object_num++];
             this_state->kind = rd->kind;
-            this_state->state = rd->state_idx;
+            this_state->state = rd->status;
             this_state->frame = rd->state_frame;
             this_state->pos = rd->pos;
             this_state->forward = rd->forward;

@@ -167,7 +167,7 @@ void Replay_Debug(GOBJ *g)
         Text_AddSubtext(t, 0, y_pos, "player %d:", ply + 1);
         y_pos += 30;
         Text_AddSubtext(t, 30, y_pos, "state:");
-        Text_AddSubtext(t, 170, y_pos, "idx %d - frame %d", rd->state_idx, rd->state_frame);
+        Text_AddSubtext(t, 170, y_pos, "idx %d - frame %d", rd->status, rd->state_frame);
         y_pos += 30;
         Text_AddSubtext(t, 30, y_pos, "pos:");
         Text_AddSubtext(t, 170, y_pos, "%.2f, %.2f, %.2f", rd->pos.X, rd->pos.Y, rd->pos.Z);

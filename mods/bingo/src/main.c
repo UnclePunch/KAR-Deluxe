@@ -45,7 +45,7 @@ void OnPlayerSelectLoad()
 
 ModDesc mod_desc = {
     .name = "Bingo",
-    .author = "UnclePunch, Kim-Lan",
+    .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 0,
     .affects_gameplay = false,

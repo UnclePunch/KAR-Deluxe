@@ -43,6 +43,8 @@ CFLAGS = -O1 -mcpu=750 -meabi -msdata=none -mhard-float -ffreestanding \
            -fno-merge-constants -ffunction-sections -fdata-sections \
            -MMD # needed for automatic dependency generation
 
+CFLAGS += -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\"
+
 LDFLAGS  ?= -r -T$(PACKTOOL_DIR)/link.ld
 
 # Define MODS_ROOT_DIR

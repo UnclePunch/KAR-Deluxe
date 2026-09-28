@@ -110,6 +110,14 @@ typedef enum BingoDifficultyKind
     DFCLT_NUM,
 } BingoDifficultyKind;
 
+typedef enum BingoGoalSFXKind
+{
+    GOALSFX_DOWN,
+    GOALSFX_UP,
+    GOALSFX_COMPLETE,
+    GOALSFX_NONE,
+} BingoGoalSFXKind;
+
 typedef struct BingoGoalDesc
 {
     BingoGoalKind kind : 8;
@@ -274,9 +282,15 @@ typedef struct BingoCard
     BingoGoal goal[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
 } BingoCard;
 
+typedef struct StatLog
+{
+    int glide_frames;
+} StatLog;
+
 typedef struct BingoTrackerData
 {
     int ply;
+    StatLog stats;
     u8 progress[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
 } BingoTrackerData;
 
@@ -372,7 +386,7 @@ typedef struct AreaBound
 void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty);
 void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int difficulty_idx);
 int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that);
-int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress);
+int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx);
 
 void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out);
 

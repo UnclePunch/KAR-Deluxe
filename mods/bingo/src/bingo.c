@@ -5,6 +5,7 @@
 #include "preload.h"
 #include "game.h"
 #include "hud.h"
+#include "text.h"
 #include "weapon.h"
 #include "scene.h"
 #include "inline.h"
@@ -309,6 +310,23 @@ BingoGoalDesc g_difficulty_param[] = {
 // Bingo Game Mode
 void BingoMode_Start()
 {
+    // distribute difficulty
+    u8 difficulty_arr[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
+    for (int i = 0; i < 10; i++)
+        difficulty_arr[i] = DFCLT_EASY;
+    for (int i = 10; i < 22; i++)
+        difficulty_arr[i] = DFCLT_MEDIUM;
+    for (int i = 22; i < 25; i++)
+        difficulty_arr[i] = DFCLT_HARD;
+    for (int i = BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE - 1; i > 0; i--)
+    {
+        int swap_idx = HSD_Randi(i + 1);
+
+        u8 temp = difficulty_arr[swap_idx];
+        difficulty_arr[swap_idx] = difficulty_arr[i];
+        difficulty_arr[i] = temp;
+    }
+
     // generate bingo card here
     for (int i = 0; i < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; i++)
     {
@@ -320,7 +338,7 @@ void BingoMode_Start()
         {
             is_duplicate_goal = 0;
 
-            int difficulty = HSD_Randi(DFCLT_NUM);
+            int difficulty = difficulty_arr[i];
 
             BingoMode_GenerateGoal(gd, difficulty);
 
@@ -890,7 +908,7 @@ GOBJ *BingoUI_Create(int ply)
     GOBJ *b = GOBJ_EZCreator(0, GAMEPLINK_CAMHUD, 0,
                             sizeof(BingoUIData), BingoUI_Destroy,
                             HSD_OBJKIND_JOBJ, card_set->jobj, 
-                            BingoUI_Think, 0, 
+                            BingoUI_Think, 22, 
                             JObj_GX, GAMEGX_HUD, 3);
 
     BingoUIData *bd = b->userdata;
@@ -1186,7 +1204,7 @@ void BingoTracker_Create()
         GOBJ *t = GOBJ_EZCreator(0, GAMEPLINK_11, 0,
                                 sizeof(BingoTrackerData), HSD_Free,
                                 HSD_OBJKIND_NONE, 0, 
-                                BingoTracker_Think, RDPRI_DMGAPPLY + 1, 
+                                BingoTracker_Think, 21, 
                                 BingoTracker_GX, GAMEGX_MAP, 1);
 
         bingo_tracker_gobj[i] = t;
@@ -1219,6 +1237,17 @@ void BingoTracker_Create()
 void BingoTracker_Think(GOBJ *t)
 {
     BingoTrackerData *tp = t->userdata;
+    RiderData *rd = Ply_GetRiderGObj(tp->ply)->userdata;
+    MachineData *md = (rd->machine_gobj) ? rd->machine_gobj->userdata : 0;
+    int is_view_on = Ply_IsViewOn(tp->ply);
+
+    // update misc stats
+    if (md && (md->is_airborne && (md->status == VCSTATE_FLY || md->status == VCSTATE_FLYPUSH)))
+        tp->stats.glide_frames++;
+    else
+        tp->stats.glide_frames = 0;
+
+    BingoGoalSFXKind sfx = GOALSFX_NONE;
 
     // update progress
     for (int goal_idx = 0; goal_idx < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; goal_idx++)
@@ -1229,31 +1258,48 @@ void BingoTracker_Think(GOBJ *t)
         if (goal->ply_completed != -1)
             continue;
 
-        int progress = Bingo_UpdateProgress(tp->ply, goal, tp->progress[goal_idx]);
+        int progress = Bingo_UpdateProgress(tp, goal_idx);
 
         if (progress != tp->progress[goal_idx])
         {   
-            BingoNotif_Create(goal, progress, tp->ply);
+            if (is_view_on)
+            {
+                BingoNotif_Create(goal, progress, tp->ply);
 
-            // check if completed
-            if (progress >= goal->num)
-            {
-                goal->ply_completed = tp->ply;
-                SFX_Play(FGMMENU_CS_KETTEI);
-            }
-            else
-            {
-                // play sound if progress went up
-                if (progress > tp->progress[goal_idx])
-                    SFX_Play(FGMMENU_CS_KETTEI_PRE);
+                // check if completed
+                if (progress >= goal->num)
+                {
+                    goal->ply_completed = tp->ply;
+                    sfx = GOALSFX_COMPLETE;
+                }
                 else
-                    SFX_Play(FGMMENU_CS_BEEP1);
+                {
+                    // play sound if progress went up
+                    if (progress > tp->progress[goal_idx])
+                        sfx = GOALSFX_UP;
+                    else
+                        sfx = GOALSFX_DOWN;
+                }
             }
+
+            // update result
+            tp->progress[goal_idx] = progress;
         }
 
-        // update result
-        tp->progress[goal_idx] = progress;
     }
+
+    if (sfx != GOALSFX_NONE)
+    {
+        static int goal_sfx_lookup[] = {
+            FGMMENU_CS_BEEP1,
+            FGMMENU_CS_KETTEI_PRE,
+            FGMMENU_CS_KETTEI,
+        };
+        
+        SFX_Play(goal_sfx_lookup[sfx]);
+    }
+
+
 
     for (int i = 0; i < GetElementsIn(g_dmg_log); i++)
     {
@@ -1275,6 +1321,7 @@ void BingoTracker_Think(GOBJ *t)
             };
 
 
+            // to-do: this crashes when taking damage from picking up a fake item
             OSReport("%s (ply %d, kind %d, state: %d/%d, attack_kind: %d, is_airborne: %d) %s %s (ply %d, kind %d, state: %d/%d, is_airborne: %d) with %.2f damage\n", 
                                                         hurt_kind_names[this_log->attacker.hurt_kind],
                                                         this_log->attacker.ply,
@@ -1395,7 +1442,7 @@ GOBJ *BingoNotif_Create(BingoGoal *goal, int progress, int ply)
         notif_g = GOBJ_EZCreator(100, GAMEPLINK_HUD, 0,
                             sizeof(BingoNotifData), BingoNotif_Destroy,
                             HSD_OBJKIND_JOBJ, notif_set->jobj, 
-                            BingoNotif_Think, 21, 
+                            BingoNotif_Think, 22, 
                             BingoNotif_GX, GAMEGX_HUD, 1);
 
         BingoNotifData *notif_data = notif_g->userdata;
@@ -1485,12 +1532,15 @@ void BingoNotif_GX(GOBJ *g, int pass)
     Text_GX(gp->t->gobj, pass);
 }
 
-int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress)
+int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx)
 {
+    int ply = tp->ply;
+    int progress = tp->progress[goal_idx];
+    BingoGoal *gd = &g_bingo_card.goal[goal_idx];
+
     RiderData *rp = Ply_GetRiderGObj(ply)->userdata;
     u8 *stats = (u8 *)Ply_GetStats(ply);
-    GOBJ *m = rp->machine_gobj;
-    MachineData *mp = (m) ? (m->userdata) : 0;
+    MachineData *mp = (rp->machine_gobj) ? (rp->machine_gobj->userdata) : 0;
 
     switch(gd->kind)
     {
@@ -1648,19 +1698,13 @@ int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress)
         }
         case (GOAL_GLIDETIME):
         {
-            if (mp && mp->is_airborne)
-            {
-                int current_time_spent_airborne = *(int *)&stats[0x5f8];
-                progress = current_time_spent_airborne / 60;
-            }
-            else
-                progress = 0;
+            progress = tp->stats.glide_frames / 60;
 
             break;
         }
         case (GOAL_BOOSTRING):
         {
-            static u8 boost_zone_ids[] = {26, 27, 28, 29, 58, 59, 60, 61, 63, 64, 65, 66, 69};
+            static u8 boost_zone_ids[] = {26, 27, 28, 29, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 69};
 
             u8 *zone_bits = &stats[0x661];
             int ring_num = 0;
@@ -1981,8 +2025,6 @@ void Bingo_On3DLoadStart()
         bingo_cursor[i].y = (BINGO_UI_GRID_SIZE - 1) / 2;;
     }
 
-    OSReport("Load bingo card assets\n");
-
     // get our file
     HSD_Archive *archive;
     Gm_LoadGameFile(&archive, BINGO_ASSET_FILENAME);
@@ -2016,4 +2058,14 @@ void Bingo_On3DUnpause(int pause_ply)
 void Bingo_OnPlayerSelectLoad()
 {
     BingoMode_Start();
+
+    Text *t = Hoshi_CreateScreenText();
+    t->kerning = 1;
+    t->use_aspect = 1;
+    t->trans = (Vec3){640, 0, 0};
+    t->align = TEXTALIGN_RIGHT;
+    t->viewport_scale = (Vec2){0.5, 0.5};
+    t->aspect = (Vec2){550, 32};
+    t->viewport_color = (GXColor){0, 0, 0, 128};
+    Text_AddSubtext(t, 0, 0, "Bingo " __DATE__ " " __TIME__);
 }

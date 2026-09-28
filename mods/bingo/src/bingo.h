@@ -12,12 +12,23 @@
 
 #define BINGO_UI_GRID_SIZE (5)
 
-#define BINGO_UI_JOINT_BACKGROUND_ICON (1)
-#define BINGO_UI_JOINT_SINGLE_ICON (2)
-#define BINGO_UI_JOINT_MULTI_ICON (3)
-#define BINGO_UI_JOINT_SINGLE_DIGIT (7)
-#define BINGO_UI_JOINT_DOUBLE_DIGIT (9)
+#define BINGO_UI_JOINT_BACKGROUND (1)
+#define BINGO_UI_JOINT_BACKGROUND_OUTLINE (2)
+#define BINGO_UI_JOINT_BACKGROUND_FILL (3)
+#define BINGO_UI_JOINT_SINGLE_ICON (4)
+#define BINGO_UI_JOINT_MULTI_ICON (5)
+#define BINGO_UI_JOINT_SINGLE_DIGIT (9)
+#define BINGO_UI_JOINT_DOUBLE_DIGIT (11)
 
+#define BINGO_NOTIF_JOINT_MOVE (1)
+#define BINGO_NOTIF_JOINT_BACKGROUND_FILL (4)
+#define BINGO_NOTIF_JOINT_SINGLE_ICON (6)
+#define BINGO_NOTIF_JOINT_MULTI_ICON (7)
+#define BINGO_NOTIF_JOINT_SINGLE_DIGIT (11)
+#define BINGO_NOTIF_JOINT_DOUBLE_DIGIT (13)
+#define BINGO_NOTIF_JOINT_TEXT (16)
+
+#define BINGO_NOTIF_PARAM_TIMER (120)
 
 typedef enum BingoUIIconFrame
 {
@@ -293,6 +304,13 @@ typedef struct BingoCursor
     s8 y;
 } BingoCursor;
 
+typedef struct BingoNotifData
+{
+    BingoGoal *goal;
+    int timer;
+    Text *t;
+} BingoNotifData;
+
 typedef struct DamageLogObject
 {
     HurtKind hurt_kind : 3;
@@ -369,4 +387,13 @@ void BingoTracker_GX(GOBJ *t, int pass);
 
 void BingoUI_Think(GOBJ *g);
 void BingoUI_Destroy(BingoUIData *bp);
+
+void Bingo_SetIconForGoal(BingoGoal *goal, JOBJ *icon_j, int single_icon_idx, int multi_icon_idx, int single_digit_idx, int double_digit_idx);
+
+GOBJ *BingoNotif_Create(BingoGoal *goal, int progress);
+void BingoNotif_Destroy(BingoNotifData *gp);
+void BingoNotif_Think(GOBJ *g);
+
+void Log_Clear();
+
 #endif

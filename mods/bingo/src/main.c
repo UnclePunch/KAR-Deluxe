@@ -7,9 +7,19 @@
 
 #include "bingo.h"
 
+#include "../../wide/src/wide_export.h"
+
+WideExport *g_wide_export = 0;
+
 void OnBoot()
 {
     Bingo_Init();
+    return;
+}
+
+void OnSaveLoaded()
+{
+    g_wide_export = Hoshi_ImportMod("Widescreen", 1, 0);
     return;
 }
 
@@ -51,6 +61,7 @@ ModDesc mod_desc = {
     .affects_gameplay = false,
     .option_desc = 0,
     .OnBoot = OnBoot,
+    .OnSaveLoaded = OnSaveLoaded,
     .On3DLoadStart = On3DLoadStart,
     .On3DLoadEnd = On3DLoadEnd,
     .On3DPause = On3DPause,

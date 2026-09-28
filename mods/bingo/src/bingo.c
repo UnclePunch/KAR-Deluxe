@@ -16,6 +16,8 @@
 
 #include "code_patch/code_patch.h"
 
+#include "../../wide/src/wide_export.h"
+
 #include <string.h>
 
 #include "bingo.h"
@@ -306,6 +308,8 @@ BingoGoalDesc g_difficulty_param[] = {
         },
     },
 };
+
+extern WideExport *g_wide_export;
 
 // Bingo Game Mode
 void BingoMode_Start()
@@ -914,6 +918,14 @@ GOBJ *BingoUI_Create(int ply)
     BingoUIData *bd = b->userdata;
     bd->ply = ply;
 
+    // wide adjust
+    if (g_wide_export)
+    {
+        g_wide_export->HUDAdjust_Element(b, BINGO_UI_ICONGRID_JOINT, false, WIDEALIGN_RIGHT, HEIGHTALIGN_CENTER);
+        g_wide_export->HUDAdjust_Element(b, BINGO_UI_SCOREBOARD_JOINT, false, WIDEALIGN_LEFT, HEIGHTALIGN_CENTER);
+        g_wide_export->HUDAdjust_Element(b, BINGO_UI_DESCRIPTION_JOINT, false, WIDEALIGN_RIGHT, HEIGHTALIGN_CENTER);
+    }
+
     // create text
     {
         int x_pos;
@@ -1022,7 +1034,7 @@ GOBJ *BingoUI_Create(int ply)
     }
 
     // create bingo icons
-    JOBJ *card_j = JObj_GetIndex(b->hsd_object, 1);
+    JOBJ *card_j = JObj_GetIndex(b->hsd_object, BINGO_UI_ICONGRID_JOINT);
     float width = 18.5;
     for (int x = 0; x < BINGO_UI_GRID_SIZE; x++)
     {
@@ -1051,6 +1063,8 @@ GOBJ *BingoUI_Create(int ply)
         }
     }
     JObj_SetMtxDirtySub(card_j);
+
+
 
     bingo_card_gobj[ply] = b;
 
@@ -1444,6 +1458,11 @@ GOBJ *BingoNotif_Create(BingoGoal *goal, int progress, int ply)
                             HSD_OBJKIND_JOBJ, notif_set->jobj, 
                             BingoNotif_Think, 22, 
                             BingoNotif_GX, GAMEGX_HUD, 1);
+
+
+        // wide adjust
+        if (g_wide_export)
+            g_wide_export->HUDAdjust_Element(notif_g, 0, 0, WIDEALIGN_LEFT, HEIGHTALIGN_CENTER);
 
         BingoNotifData *notif_data = notif_g->userdata;
         notif_data->goal = goal;

@@ -4,6 +4,7 @@
 #include "hsd.h"
 #include "preload.h"
 #include "game.h"
+#include "hud.h"
 #include "weapon.h"
 #include "scene.h"
 #include "inline.h"
@@ -275,14 +276,14 @@ BingoGoalDesc g_difficulty_param[] = {
             {.difficulty = DFCLT_EASY, .dist = 100},
         },
     },
-    // rail land
-    {
-        .kind = GOAL_RAILLAND,
-        .num = 1,
-        .param.rail_land = {
-            {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1},
-        },
-    },
+    // // rail land
+    // {
+    //     .kind = GOAL_RAILLAND,
+    //     .num = 1,
+    //     .param.rail_land = {
+    //         {.difficulty = DFCLT_MEDIUM, .num_min = 1, .num_max = 1},
+    //     },
+    // },
     // glide
     {
         .kind = GOAL_GLIDETIME,
@@ -630,6 +631,11 @@ void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out)
         "Gordo",
         "Panic Spin",
     };
+    static char *area_names[] = {
+        "Sky Island",
+        "Rock Flower",
+        "City Hall Flower",
+    };
 
     switch(gd->kind)
     {
@@ -650,7 +656,7 @@ void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out)
         }
         case (GOAL_POSITION):
         {
-            sprintf(out, "Reach area %d.", gd->param.position.kind);
+            sprintf(out, "Reach the %s.", area_names[gd->param.position.kind - AREAKIND_ISLAND]);
             break;
         }
         case (GOAL_BREAKBOXANY):
@@ -690,7 +696,7 @@ void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out)
         }
         case (GOAL_RIDEMACHINEKIND):
         {
-            sprintf(out, "Mount %s %d time\x81\x69s\x81\x6a.", machine_names[gd->param.ride_machine_kind.kind], gd->num);
+            sprintf(out, "Ride %s %d time\x81\x69s\x81\x6a.", machine_names[gd->param.ride_machine_kind.kind], gd->num);
             break;
         }
         case (GOAL_RAILDISTANCE):
@@ -874,6 +880,9 @@ void Bingo_UpdateIconProgress(BingoGoal *goal, int progress, JOBJ *icon_j, int p
 int text_canvas_idx = 0;
 GOBJ *BingoUI_Create(int ply)
 {
+    int tick_start = OSGetTick();
+    int tick;
+
     Vec3 text_pos;
     Text *t;
 
@@ -1004,6 +1013,7 @@ GOBJ *BingoUI_Create(int ply)
             int goal_idx = (x * BINGO_UI_GRID_SIZE) + y;
             BingoGoal *goal = &g_bingo_card.goal[goal_idx];
 
+
             JOBJ *icon_j = JObj_LoadJoint(icon_set->jobj);
             JObj_AddSetAnim(icon_j, 0, icon_set, 0, 0);
             JObj_AddNext(card_j, icon_j);
@@ -1028,6 +1038,8 @@ GOBJ *BingoUI_Create(int ply)
 
     // update UI
     BingoUI_Think(b);
+
+    OSReport("Created Bingo UI in %.2fms\n", MillisecondsSinceTick(tick_start));
 
     return b;
 }
@@ -1221,7 +1233,7 @@ void BingoTracker_Think(GOBJ *t)
 
         if (progress != tp->progress[goal_idx])
         {   
-            BingoNotif_Create(goal, progress);
+            BingoNotif_Create(goal, progress, tp->ply);
 
             // check if completed
             if (progress >= goal->num)
@@ -1334,7 +1346,7 @@ void BingoTracker_GX(GOBJ *t, int pass)
         GX_DrawBox(&g_area_bounds[i].pos, &g_area_bounds[i].size, &(GXColor){255,0,0,128});
 }
 
-GOBJ *BingoNotif_Create(BingoGoal *goal, int progress)
+GOBJ *BingoNotif_Create(BingoGoal *goal, int progress, int ply)
 {
     // find an existing notif for this goal
     GOBJ *notif_g = 0;
@@ -1348,18 +1360,30 @@ GOBJ *BingoNotif_Create(BingoGoal *goal, int progress)
 
             // if a notif for this exact goal is already onscreen, use it
             if (gp->goal == goal)
-                notif_g = g;
-
-            // when there are similar goals, prioritize the one with a lower number requirement
-            else if (gp->goal->kind == goal->kind)
             {
-                if (goal->num < gp->goal->num)
-                    GObj_Destroy(g);    // destroy the old one
+                notif_g = g;
+                break;
+            }
+
+            // if this notif was just created
+            else if (gp->timer == 0)
+            {
+                if (gp->goal->kind == goal->kind)
+                {
+                    // when there are similar goals, prioritize the one with a lower number requirement
+                    if (goal->num < gp->goal->num)
+                        GObj_Destroy(g);    // keep only the lower number goal notif
+                    else
+                        return 0;           // dont make a new notif if a lower num one exists
+                }
+                // refer to the priority
+                else if (gp->goal->kind > goal->kind)
+                    GObj_Destroy(g);        // destroy this notif and create a new one
                 else
-                    return 0;           // dont make a new notif if a lower num one exists
+                    return 0;               // dont make a new notif if its a lower priority
             }
             else
-                GObj_Destroy(g);        // destroy the old notif
+                GObj_Destroy(g);    // out with the old, in with the new
         }
 
         g = next;
@@ -1372,10 +1396,11 @@ GOBJ *BingoNotif_Create(BingoGoal *goal, int progress)
                             sizeof(BingoNotifData), BingoNotif_Destroy,
                             HSD_OBJKIND_JOBJ, notif_set->jobj, 
                             BingoNotif_Think, 21, 
-                            JObj_GX, GAMEGX_HUD, 1);
+                            BingoNotif_GX, GAMEGX_HUD, 1);
 
         BingoNotifData *notif_data = notif_g->userdata;
         notif_data->goal = goal;
+        notif_data->ply = ply;
         notif_data->timer = 0;
 
         JOBJ *notif_j = notif_g->hsd_object;
@@ -1397,6 +1422,7 @@ GOBJ *BingoNotif_Create(BingoGoal *goal, int progress)
         
         // add text
         Text *t = Text_CreateText(BINGO_SIS_INDEX, text_canvas_idx);
+        t->gobj->gx_cb = 0; // remove gx callback and render from notif gx
         // t->viewport_color = (GXColor){255, 0, 0, 128};
         t->color = (GXColor){255, 255, 255, 255};
         t->kerning = 1;
@@ -1446,6 +1472,17 @@ void BingoNotif_Think(GOBJ *g)
     gp->t->trans.X = text_pos.X;
     gp->t->trans.Y = -text_pos.Y;
 
+}
+void BingoNotif_GX(GOBJ *g, int pass)
+{
+    BingoNotifData *gp = g->userdata;
+
+    // dont render when bingo card is up or game is paused
+    if (*g_hud_is_hidden)
+        return;
+
+    JObj_GX(g, pass);
+    Text_GX(gp->t->gobj, pass);
 }
 
 int Bingo_UpdateProgress(int ply, BingoGoal *gd, u8 progress)

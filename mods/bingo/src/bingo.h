@@ -57,9 +57,9 @@ typedef enum BingoGoalKind
     GOAL_FOODGET,
     GOAL_ITEMFALLGET,
     GOAL_POSITION,
-    GOAL_BREAKBOXANY,
     GOAL_BREAKBOXKIND,
     GOAL_BREAKBOXWITHATTACK,
+    GOAL_BREAKBOXANY,
     GOAL_HITPLAYER,
     GOAL_HITPLAYERWITHATTACK,
     GOAL_KOPLAYER,
@@ -306,6 +306,7 @@ typedef struct BingoCursor
 
 typedef struct BingoNotifData
 {
+    int ply;
     BingoGoal *goal;
     int timer;
     Text *t;
@@ -390,9 +391,10 @@ void BingoUI_Destroy(BingoUIData *bp);
 
 void Bingo_SetIconForGoal(BingoGoal *goal, JOBJ *icon_j, int single_icon_idx, int multi_icon_idx, int single_digit_idx, int double_digit_idx);
 
-GOBJ *BingoNotif_Create(BingoGoal *goal, int progress);
+GOBJ *BingoNotif_Create(BingoGoal *goal, int progress, int ply);
 void BingoNotif_Destroy(BingoNotifData *gp);
 void BingoNotif_Think(GOBJ *g);
+void BingoNotif_GX(GOBJ *g, int pass);
 
 void Log_Clear();
 

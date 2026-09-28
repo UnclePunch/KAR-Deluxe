@@ -2022,7 +2022,7 @@ void Bingo_On3DLoadStart()
     {
         bingo_card_gobj[i] = 0;
         bingo_cursor[i].x = (BINGO_UI_GRID_SIZE - 1) / 2;
-        bingo_cursor[i].y = (BINGO_UI_GRID_SIZE - 1) / 2;;
+        bingo_cursor[i].y = (BINGO_UI_GRID_SIZE - 1) / 2;
     }
 
     // get our file

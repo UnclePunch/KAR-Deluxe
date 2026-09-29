@@ -51,6 +51,14 @@ void BingoTracker_Create()
         for (int j = 0; j < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; j++)
             tp->progress[j] = 0;
 
+        for (int j = 0; j < GetElementsIn(tp->stats.ride_log); j++)
+        {
+            tp->stats.ride_log[j].head = 0;
+            memset(&tp->stats.ride_log[j].arr, -1, sizeof(tp->stats.ride_log[j].arr));
+        }
+
+        tp->stats.glide_frames = 0;
+
         if (Ply_IsViewOn(i))
         {
             ;
@@ -72,15 +80,9 @@ void BingoTracker_Create()
 void BingoTracker_Think(GOBJ *t)
 {
     BingoTrackerData *tp = t->userdata;
-    RiderData *rd = Ply_GetRiderGObj(tp->ply)->userdata;
-    MachineData *md = (rd->machine_gobj) ? rd->machine_gobj->userdata : 0;
     int is_view_on = Ply_IsViewOn(tp->ply);
 
-    // update misc stats
-    if (md && (md->is_airborne && (md->status == VCSTATE_FLY || md->status == VCSTATE_FLYPUSH)))
-        tp->stats.glide_frames++;
-    else
-        tp->stats.glide_frames = 0;
+    Bingo_UpdateStats(tp);
 
     BingoGoalSFXKind sfx = GOALSFX_NONE;
 
@@ -218,6 +220,37 @@ void BingoTracker_GX(GOBJ *t, int pass)
 {
     if (pass != 2)
         return;
+}
+
+void Bingo_UpdateStats(BingoTrackerData *tp)
+{
+    RiderData *rd = Ply_GetRiderGObj(tp->ply)->userdata;
+    MachineData *md = (rd->machine_gobj) ? rd->machine_gobj->userdata : 0;
+    
+    // glide time
+    if (md && (md->is_airborne && (md->status == VCSTATE_FLY || md->status == VCSTATE_FLYPUSH)))
+        tp->stats.glide_frames++;
+    else
+        tp->stats.glide_frames = 0;
+
+    // machine ride
+    if (md)
+    {
+        // check if this machine is already in the array
+        int is_present = 0;
+        for (int i = 0; i < GetElementsIn(tp->stats.ride_log[md->kind].arr); i++)
+        {
+            if (md->exist_num == tp->stats.ride_log[md->kind].arr[i])
+            {
+                is_present = 1;
+                break;
+            }
+        }
+
+        // add it if its not already in there
+        if (!is_present)
+            tp->stats.ride_log[md->kind].arr[tp->stats.ride_log[md->kind].head++] = md->exist_num;
+    }
 }
 
 int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx)
@@ -360,9 +393,39 @@ int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx)
             }
             break;
         }
+        case (GOAL_RIDEMACHINEANY):
+        {
+            // count machines ridden of this kind
+            int num = 0;
+            for (int i = 0; i < VCKIND_NUM; i++)
+            {
+                // ignore compact
+                if (i == VCKIND_COMPACT)
+                    continue;
+
+                for (int j = 0; j < GetElementsIn(tp->stats.ride_log[i].arr); j++)
+                {
+                    if (tp->stats.ride_log[i].arr[j] != (u8)-1)
+                        num++;
+                }
+            }
+            
+            progress = num;
+
+            break;
+        }
         case (GOAL_RIDEMACHINEKIND):
         {
-            ;
+            // count machines ridden of this kind
+            int num = 0;
+            for (int i = 0; i < GetElementsIn(tp->stats.ride_log[gd->param.ride_machine_kind.kind].arr); i++)
+            {
+                if (tp->stats.ride_log[gd->param.ride_machine_kind.kind].arr[i] != (u8)-1)
+                    num++;
+            }
+
+            progress = num;
+
             break;
         }
         case (GOAL_RAILDISTANCE):

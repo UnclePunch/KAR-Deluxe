@@ -34,18 +34,19 @@ typedef enum BingoGoalKind
     GOAL_FOODGET,
     GOAL_ITEMFALLGET,
     GOAL_POSITION,
-    GOAL_BREAKBOXKIND,
     GOAL_BREAKBOXWITHATTACK,
+    GOAL_BREAKBOXKIND,
     GOAL_BREAKBOXANY,
     GOAL_HITPLAYER,
     GOAL_HITPLAYERWITHATTACK,
     GOAL_KOPLAYER,
     GOAL_DESTROYMACHINE,
     GOAL_RIDEMACHINEKIND,
+    GOAL_RIDEMACHINEANY,
     GOAL_RAILDISTANCE,
     GOAL_RAILLAND,
-    GOAL_GLIDETIME,
     GOAL_BOOSTRING,
+    GOAL_GLIDETIME,
     GOAL_NUM,
 } BingoGoalKind;
 
@@ -166,6 +167,12 @@ typedef struct BingoGoalDesc
             unsigned int num_min : 8;
             unsigned int num_max : 8;
         } ko_machine[DFCLT_NUM];
+        struct
+        {
+            BingoDifficultyKind difficulty : 8;
+            unsigned int num_min : 8;
+            unsigned int num_max : 8;
+        } ride_machine_any[DFCLT_NUM];
         struct
         {
             BingoDifficultyKind difficulty : 8;

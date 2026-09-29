@@ -237,6 +237,16 @@ BingoGoalDesc g_difficulty_param[] = {
             {.difficulty = DFCLT_HARD, .num_min = 3, .num_max = 5},
         },
     },
+    // ride machine any
+    {
+        .kind = GOAL_RIDEMACHINEANY,
+        .num = 3,
+        .param.ride_machine_any = {
+            {.difficulty = DFCLT_EASY, .num_min = 1, .num_max = 1,},
+            {.difficulty = DFCLT_MEDIUM, .num_min = 2, .num_max = 3,},
+            {.difficulty = DFCLT_HARD, .num_min = 4, .num_max = 5,},
+        },
+    },    
     // ride machine
     {
         .kind = GOAL_RIDEMACHINEKIND,
@@ -292,6 +302,35 @@ BingoGoalDesc g_difficulty_param[] = {
             {.difficulty = DFCLT_HARD, .num_min = 7, .num_max = 9},
         },
     },
+};
+
+static u8 vckind_to_character[] = {
+    CKIND_WARP,
+    CKIND_COMPACT,
+    CKIND_WINGED,
+    CKIND_SHADOW,
+    CKIND_HYDRA,
+    CKIND_BULK,
+    CKIND_SLICK,
+    CKIND_FORMULA,
+    CKIND_DRAGOON,
+    CKIND_WAGON,
+    CKIND_ROCKET,
+    CKIND_SWERVE,
+    CKIND_TURBO,
+    CKIND_JET,
+    CKIND_FLIGHT,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    CKIND_WHEELIEBIKE,
+    CKIND_REXWHEELIE,
+    CKIND_WHEELIESCOOTER,
+    -1,
+    -1,
 };
 
 // Bingo Game Mode
@@ -350,18 +389,19 @@ void BingoMode_Start()
             "FOODGET",
             "ITEMFALLGET",
             "POSITION",
-            "BREAKBOXANY",
-            "BREAKBOXKIND",
             "BREAKBOXWITHATTACK",
+            "BREAKBOXKIND",
+            "BREAKBOXANY",
             "HITPLAYER",
             "HITPLAYERWITHATTACK",
             "KOPLAYER",
             "DESTROYMACHINE",
             "RIDEMACHINEKIND",
+            "RIDEMACHINEANY",
             "RAILDISTANCE",
             "RAILLAND",
-            "GLIDETIME",
             "BOOSTRING",
+            "GLIDETIME",
         };
     
         char s[256];
@@ -491,6 +531,12 @@ void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int param_idx)
         case (GOAL_DESTROYMACHINE):
         {
             gd->num = RandomInRange(desc->param.ko_machine[param_idx].num_min, desc->param.ko_machine[param_idx].num_max);
+            break;
+        }
+        case (GOAL_RIDEMACHINEANY):
+        {
+            bp();
+            gd->num = RandomInRange(desc->param.ride_machine_any[param_idx].num_min, desc->param.ride_machine_any[param_idx].num_max);
             break;
         }
         case (GOAL_RIDEMACHINEKIND):
@@ -699,9 +745,14 @@ void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out)
             sprintf(out, "Destroy a machine %d time\x81\x69s\x81\x6a.", gd->num);
             break;
         }
+        case (GOAL_RIDEMACHINEANY):
+        {
+            sprintf(out, "Ride %d different machine\x81\x69s\x81\x6a.", gd->num);
+            break;
+        }
         case (GOAL_RIDEMACHINEKIND):
         {
-            sprintf(out, "Ride %s %d time\x81\x69s\x81\x6a.", machine_names[gd->param.ride_machine_kind.kind], gd->num);
+            sprintf(out, "Ride %s.", machine_names[vckind_to_character[gd->param.ride_machine_kind.kind]]);
             break;
         }
         case (GOAL_RAILDISTANCE):
@@ -782,8 +833,11 @@ void Bingo_SetIconForGoal(BingoGoal *goal, JOBJ *icon_j, int single_icon_idx, in
             case (GOAL_BREAKBOXKIND):
                 single_frame = BINGOICONFRAME_ITEMSTART + goal->param.box_kind.kind;
                 goto DISPLAY_SINGLE_ICON;
+            case (GOAL_RIDEMACHINEANY):
+                single_frame = BINGOICONFRAME_MACHINESTART + CKIND_COMPACT;
+                goto DISPLAY_SINGLE_ICON;            
             case (GOAL_RIDEMACHINEKIND):
-                single_frame = BINGOICONFRAME_MACHINESTART + goal->param.ride_machine_kind.kind;
+                single_frame = BINGOICONFRAME_MACHINESTART + vckind_to_character[goal->param.ride_machine_kind.kind];
                 goto DISPLAY_SINGLE_ICON;
             case (GOAL_RAILDISTANCE):
                 single_frame = BINGOICONFRAME_GRIND;
@@ -836,7 +890,7 @@ void Bingo_SetIconForGoal(BingoGoal *goal, JOBJ *icon_j, int single_icon_idx, in
     }
 
     // display number
-    if (!(goal->kind == GOAL_RAILDISTANCE || goal->kind == GOAL_RAILDISTANCE || goal->kind == GOAL_POSITION))
+    if (!(goal->kind == GOAL_RAILDISTANCE || goal->kind == GOAL_RAILDISTANCE || goal->kind == GOAL_POSITION || goal->kind == GOAL_RIDEMACHINEKIND))
     {
         int goal_num = goal->num;
         JOBJ *disabled_num_j, *enabled_num_j;

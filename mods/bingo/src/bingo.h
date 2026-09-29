@@ -5,33 +5,7 @@
 #include "rider.h"
 #include "machine.h"
 
-#define BINGO_ASSET_FILENAME "IfBingo"
-#define BINGO_SIS_INDEX 0
-#define BINGO_UI_SCOREBOARD_JOINT (1)
-#define BINGO_UI_SCOREBOARD_TEXT_JOINT (2)
-#define BINGO_UI_DESCRIPTION_JOINT (3)
-#define BINGO_UI_DESCRIPTION_TEXT_JOINT (4)
-#define BINGO_UI_ICONGRID_JOINT (5)
-
 #define BINGO_UI_GRID_SIZE (5)
-
-#define BINGO_UI_JOINT_BACKGROUND (1)
-#define BINGO_UI_JOINT_BACKGROUND_OUTLINE (2)
-#define BINGO_UI_JOINT_BACKGROUND_FILL (3)
-#define BINGO_UI_JOINT_SINGLE_ICON (4)
-#define BINGO_UI_JOINT_MULTI_ICON (5)
-#define BINGO_UI_JOINT_SINGLE_DIGIT (9)
-#define BINGO_UI_JOINT_DOUBLE_DIGIT (11)
-
-#define BINGO_NOTIF_JOINT_MOVE (1)
-#define BINGO_NOTIF_JOINT_BACKGROUND_FILL (4)
-#define BINGO_NOTIF_JOINT_SINGLE_ICON (6)
-#define BINGO_NOTIF_JOINT_MULTI_ICON (7)
-#define BINGO_NOTIF_JOINT_SINGLE_DIGIT (11)
-#define BINGO_NOTIF_JOINT_DOUBLE_DIGIT (13)
-#define BINGO_NOTIF_JOINT_TEXT (16)
-
-#define BINGO_NOTIF_PARAM_TIMER (120)
 
 typedef enum BingoUIIconFrame
 {
@@ -74,13 +48,6 @@ typedef enum BingoGoalKind
     GOAL_BOOSTRING,
     GOAL_NUM,
 } BingoGoalKind;
-
-typedef enum ZoneKind
-{
-    ZONEKIND_BOOST,
-    ZONEKIND_LIFT,
-    ZONEKIND_NUM,
-} ZoneKind;
 
 typedef enum AreaKind
 {
@@ -285,87 +252,6 @@ typedef struct BingoCard
     BingoGoal goal[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
 } BingoCard;
 
-typedef struct StatLog
-{
-    int glide_frames;
-} StatLog;
-
-typedef struct BingoTrackerData
-{
-    int ply;
-    StatLog stats;
-    u8 progress[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
-} BingoTrackerData;
-
-typedef struct BingoUIData
-{
-    int ply;
-    struct
-    {
-        struct
-        {
-            Text *label;
-            Text *game_info;
-            Text *leaderboard_nums;
-            Text *leaderboard_teams;
-            Text *leaderboard_scores;
-        } scoreboard;
-        Text *details;
-    } text;
-    JOBJ *icon_arr[BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE];
-} BingoUIData;
-
-typedef struct BingoCursor
-{
-    s8 x;
-    s8 y;
-} BingoCursor;
-
-typedef struct BingoNotifData
-{
-    int ply;
-    BingoGoal *goal;
-    int timer;
-    Text *t;
-} BingoNotifData;
-
-typedef struct DamageLogObject
-{
-    HurtKind hurt_kind : 3;
-    int ply : 4;
-    unsigned int is_airborne : 1;
-    AttackData attack_data;      
-    int kind : 16;               // yakumono kind, item kind, weapon kind, etc
-    int state : 8;
-    int state2 : 8;
-} DamageLogObject;
-
-typedef struct DamageLog
-{
-    DamageLogObject victim;
-    DamageLogObject attacker;
-    float kb_mag;
-    float dmg;
-    int is_ko;
-} DamageLog;
-
-typedef struct ZoneLog
-{
-    int ply : 8;
-    int idx : 16;
-    ZoneKind kind : 8;
-} ZoneLog;
-
-typedef struct RailLog
-{
-    s8 ply;
-    u8 idx;
-    u8 is_airborne;
-    float progress;
-    u16 status;
-    u16 status2;
-} RailLog;
-
 typedef struct AreaBound
 {
     Vec3 pos;
@@ -389,9 +275,9 @@ typedef struct AreaBound
 void BingoMode_GenerateGoal(BingoGoal *gd, BingoDifficultyKind difficulty);
 void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int difficulty_idx);
 int BingoMode_CheckDuplicateGoal(BingoGoal *this, BingoGoal *that);
-int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx);
 
 void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out);
+void Bingo_UpdateIconProgress(BingoGoal *goal, int progress, JOBJ *icon_j, int progres_joint_idx);
 
 void Bingo_Init();
 void Bingo_OnPlayerSelectLoad();
@@ -403,16 +289,6 @@ void BingoInput_Think(GOBJ *r);
 void BingoTracker_Think(GOBJ *t);
 void BingoTracker_GX(GOBJ *t, int pass);
 
-void BingoUI_Think(GOBJ *g);
-void BingoUI_Destroy(BingoUIData *bp);
 
-void Bingo_SetIconForGoal(BingoGoal *goal, JOBJ *icon_j, int single_icon_idx, int multi_icon_idx, int single_digit_idx, int double_digit_idx);
-
-GOBJ *BingoNotif_Create(BingoGoal *goal, int progress, int ply);
-void BingoNotif_Destroy(BingoNotifData *gp);
-void BingoNotif_Think(GOBJ *g);
-void BingoNotif_GX(GOBJ *g, int pass);
-
-void Log_Clear();
 
 #endif

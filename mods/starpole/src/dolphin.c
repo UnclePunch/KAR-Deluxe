@@ -438,7 +438,7 @@ void Netplay_CreateInputDisplay()
             continue;
 
         // create a gobj to manage the tag for this viewport
-        GOBJ *g = HUD_CreateElement(i, set[0]->jobj);
+        GOBJ *g = HUD_CreatePlyElement(i, set[0]->jobj);
         HUD_AddElementData(g, 0, i, i);
         GObj_AddProc(g, Netplay_UpdateInputDisplay, 20);
         g->gx_cb = Netplay_RenderInputDisplay;

@@ -47,7 +47,7 @@ void Motion_FOVSpeed_Hook(CamData *cam_data, int r4, void *r5, float *out_fov, f
 }
 
 int fov_level = 1;
-int rotate_level = 1;
+int rotate_level = 2;
 void Motion_ParamAdjust_Hook(float fov)
 {
     cmMainParamCommon *param = stc_plycam_lookup->param;

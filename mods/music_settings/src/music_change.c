@@ -45,11 +45,16 @@ void MusicChange_OnTextDraw(GOBJ *g)
 }
 GOBJ *MusicChange_Create()
 {
+    Game3dData *g3d = Gm_Get3dData();
+
+    if (g3d->plyview_num == 0)
+        return 0;
+
     JOBJSet *set = MusicChange_GetJOBJSet();
 
     // air ride 1p needs to render in front of the hud
     int is_airride_1p = Gm_Get3dData()->plyview_num == 1 && !Gm_IsInCity();
-    int gx_pri = (is_airride_1p) ? 2 : 1;
+    int gx_pri = (is_airride_1p) ? 2 : 0;
 
     // create hud element gobj
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,
@@ -62,8 +67,14 @@ GOBJ *MusicChange_Create()
     JOBJ *j = g->hsd_object;
     JObj_AddSetAnim(j, 0, set, 0, 1);
 
+    // move to pause model
+    JOBJ *pause_j = g3d->cityui_pause_gobj->hsd_object;
+    static u8 attach_to_joint[] = {0, 1, 1, 1};
+    JObj_GetChildPosition(pause_j, attach_to_joint[g3d->plyview_num - 1], &j->trans)
+    JObj_SetMtxDirtySub(j);
+
     // adjust for widescreen
-    if (Gm_Get3dData()->plyview_num == 1 && wide_export)
+    if (g3d->plyview_num == 1 && wide_export)
         wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
 
     // init data

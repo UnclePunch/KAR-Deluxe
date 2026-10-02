@@ -1,3 +1,5 @@
 widescreen menu? 
     aspect ratio:
     splitscreen: auto -> horizontal -> vertical
+
+make unpause countdown support widescreen

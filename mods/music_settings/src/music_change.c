@@ -33,22 +33,13 @@ void MusicChange_On3DLoad()
     Gm_LoadGameFile(&archive, "IfAllNowPlaying");
     music_assets = Archive_GetPublicAddress(archive, "NowPlaying_scene_models");
 
-    GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_CAMHUD, 0,
-                             0, 0,
-                             HSD_OBJKIND_COBJ, *Gm_Get3dData()->hud_sobj->cobjdesc,
-                             0, 0,
-                             MusicChange_TextCObj, 0, 6);
-
-    g->cobj_links = (1ULL << SONGNAME_GXLINK);
-
-    MusicChangeTextParams *param = MusicChange_GetTextParam();
-
-    COBJ *c = g->hsd_object;
-    CObj_SetScissor(c, param->scissor_left, param->scissor_right, 0, 480);
-
-    music_text_canvas_idx = Text_CreateCanvas(0, -1, 28, GAMEPLINK_CAMHUD, 0, SONGNAME_GXLINK, 0, 0);
+    music_text_canvas_idx = Text_CreateCanvas(0, -1, 28, GAMEPLINK_CAMHUD, 0, GAMEGX_HUD, 3, 0);
 }
 
+void MusicChange_OnTextDraw(GOBJ *g)
+{
+    GXSetZMode(GX_ENABLE, GX_GEQUAL, GX_DISABLE);
+}
 GOBJ *MusicChange_Create()
 {
     JOBJSet *set = MusicChange_GetJOBJSet();
@@ -65,26 +56,40 @@ GOBJ *MusicChange_Create()
                              JObj_GX, 21, gx_pri);
 
     // add animations
-    JObj_AddSetAnim(g->hsd_object, 0, set, 0, 1);
+    JOBJ *j = g->hsd_object;
+    JObj_AddSetAnim(j, 0, set, 0, 1);
+
+    // // widescreen shift
+    // if (Gm_Get3dData()->plyview_num == 1 && wide_export)
+    //     wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
+
+    // Vec3 wide_offset = {0, 0, 0};
+    // JObj_GetChildPosition(j, 0, &wide_offset);
 
     // init data
     MusicChangeData *gp = g->userdata;
     gp->state = MUSICCHANGE_SCROLLSTATE_NONE;
     gp->timer = 0;
-    gp->offset = (Vec2){0, 0};
+    gp->scroll_offset = (Vec2){0, 0};
     gp->param = MusicChange_GetTextParam();
+
+    Vec3 text_pos = {0, 0, 0};
+    JObj_GetChildPosition(j, gp->param->joint_text_pos_idx, &text_pos);
+    gp->pos = (Vec2){text_pos.X, -text_pos.Y};
 
     stc_music_change_gobj = g;
 
     // create song text
     Text *t = Text_CreateText(0, music_text_canvas_idx);
     // t->viewport_color = (GXColor){0, 0, 0, 128};
+    t->render_callback = MusicChange_OnTextDraw;
     t->kerning = 1;
     t->viewport_scale = gp->param->scale;
     t->use_aspect = 1;
     t->aspect = gp->param->aspect;
-    t->trans.X = gp->param->pos.X;
-    t->trans.Y = gp->param->pos.Y;
+    t->trans.X = gp->pos.X;
+    t->trans.Y = gp->pos.Y;
+    t->trans.Z = -0.1;
     Text_AddSubtext(t, 0, 0, "");
 
     gp->text = t;
@@ -136,13 +141,13 @@ void MusicChange_Think(GOBJ *g)
     }
     case MUSICCHANGE_SCROLLSTATE_MOVE:
     {
-        gp->offset.X -= MUSICCHANGE_SCROLLSPEED;
+        gp->scroll_offset.X -= MUSICCHANGE_SCROLLSPEED;
         float scroll_amt = MusicChange_GetScrollAmount(text, gp->param->textbox_width);
 
         // check to stop
-        if (gp->offset.X < -scroll_amt)
+        if (gp->scroll_offset.X < -scroll_amt)
         {
-            gp->offset.X = -scroll_amt;
+            gp->scroll_offset.X = -scroll_amt;
             gp->state = MUSICCHANGE_SCROLLSTATE_STOPWAIT;
             gp->timer = 60 * 1.5;
         }
@@ -156,7 +161,7 @@ void MusicChange_Think(GOBJ *g)
         if (gp->timer <= 0)
         {
             // back to start
-            gp->offset.X = 0;
+            gp->scroll_offset.X = 0;
             gp->state = MUSICCHANGE_SCROLLSTATE_STARTWAIT;
             gp->timer = 30;
         }
@@ -165,7 +170,7 @@ void MusicChange_Think(GOBJ *g)
     }
 
     // update text pos
-    text->trans.X = gp->param->pos.X + gp->offset.X; // original pos + offset
+    text->trans.X = gp->pos.X + gp->scroll_offset.X; // original pos + offset
 }
 void MusicChange_Destroy()
 {
@@ -230,56 +235,44 @@ MusicChangeTextParams *MusicChange_GetTextParam()
     static MusicChangeTextParams music_change_param[] = {
         // 1p (air ride)
         {
-            .pos = {1.1, 15.9},
             .scale = {0.045, 0.055},
             .aspect = {800, 32},
-            .scissor_left = 330,
-            .scissor_right = 555,
+            .joint_text_pos_idx = 6,
             .textbox_width = 20.0,
         },
         // 1p (city)
         {
-            .pos = {1.1, 15.9},
             .scale = {0.045, 0.055},
             .aspect = {800, 32},
-            .scissor_left = 330,
-            .scissor_right = 555,
+            .joint_text_pos_idx = 6,
             .textbox_width = 20.0,
         },
         // 2p (air ride)
         {
-            .pos = {-9, -4.2},
             .scale = {0.045, 0.055},
             .aspect = {950, 32},
-            .scissor_left = 215,
-            .scissor_right = 550,
+            .joint_text_pos_idx = 6,
             .textbox_width = 30.0,
         },
         // 2p (city)
         {
-            .pos = {-20, -3.7},
             .scale = {0.045, 0.055},
             .aspect = {950, 32},
-            .scissor_left = 100,
-            .scissor_right = 420,
+            .joint_text_pos_idx = 6,
             .textbox_width = 29.0,
         },
         // 4p (air ride)
         {
-            .pos = {-23.5, -3.25},
             .scale = {0.75 * 0.045, 0.75 * 0.055},
             .aspect = {1200, 32},
-            .scissor_left = 70,
-            .scissor_right = 465,
+            .joint_text_pos_idx = 5,
             .textbox_width = 37.0,
         },
         // 4p (city)
         {
-            .pos = {-23.5, -3.25},
             .scale = {0.75 * 0.045, 0.75 * 0.055},
             .aspect = {1200, 32},
-            .scissor_left = 70,
-            .scissor_right = 465,
+            .joint_text_pos_idx = 5,
             .textbox_width = 37.0,
         },
     };
@@ -334,7 +327,7 @@ void MusicChange_UpdateSongName(MusicChangeData *gp)
         gp->state = MUSICCHANGE_SCROLLSTATE_NONE;
 
     gp->timer = 30;
-    gp->offset.X = 0;
+    gp->scroll_offset.X = 0;
 
     // OSReport("text width %f\n", width);
 }

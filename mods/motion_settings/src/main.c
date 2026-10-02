@@ -115,7 +115,7 @@ void OnSaveLoaded()
 void On3DLoad()
 {
 }
-void On3DPause(int pause_ply)
+void On3DPauseEnd(int pause_ply)
 {
 }
 
@@ -130,5 +130,5 @@ ModDesc mod_desc = {
     .OnSceneChange = OnSceneChange,
     .OnSaveLoaded = OnSaveLoaded,
     .On3DLoadEnd = On3DLoad,
-    .On3DPause = On3DPause,
+    .On3DPauseEnd = On3DPauseEnd,
 };

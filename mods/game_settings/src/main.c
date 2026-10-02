@@ -261,7 +261,7 @@ void On3DLoad()
     Rearview_InitFlags();
     AfterKO_On3DLoad();
 }
-void On3DPause(int pause_ply)
+void On3DPauseStart(int pause_ply)
 {
     QuickStat_OnPause();
 }
@@ -277,5 +277,5 @@ ModDesc mod_desc = {
     .OnSceneChange = OnSceneChange,
     .OnSaveLoaded = OnSaveLoaded,
     .On3DLoadEnd = On3DLoad,
-    .On3DPause = On3DPause,
+    .On3DPauseStart = On3DPauseStart,
 };

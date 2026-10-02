@@ -6,7 +6,7 @@
 
 typedef struct WideExport
 {
-    void (*HUDAdjust_Element)(GOBJ *g, int joint_index, int is_ply_element, WideAlign align);
+    void (*HUDAdjust_Element)(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align);
     void (*HUDAdjust_Camera)(COBJ *c);
 } WideExport;
 

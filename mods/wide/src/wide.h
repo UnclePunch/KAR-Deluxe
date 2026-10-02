@@ -17,25 +17,19 @@ typedef enum WideKind
     WIDEKIND_329,
 } WideKind;
 
-// TEMP UNTIL I MERGE STARPOLE AND WIDESCREEN
-typedef struct StarpoleDolphinData
+typedef struct
 {
-    float aspect_mult;
-    struct
-    {
-        s32 ply;
-        char usernames[4][31];
-    } netplay;
-} StarpoleDolphinData;
-typedef struct StarpoleExport
-{
-    StarpoleDolphinData *dolphin_data;
-} StarpoleExport;
+    float top;
+    float bot;
+    float left;
+    float right;
+} CamBounds;
 
 void Wide_Init();
 float Wide_GetAspectMult();
 void Wide_OnOptionChange(int val);
-void Wide_CreateTestGObj();
+void Wide_CreatePillarbox();
 void CObj_AdjustWideOrtho(COBJ *c);
-
+float Wide_GetInverseScale();
+void COBJ_GetBounds(COBJ *cam, f32 depth, CamBounds *out);
 #endif

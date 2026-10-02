@@ -11,12 +11,14 @@
 #include "menu.h"
 #include "wide_export.h"
 
+#include "starpole/starpole.h"
+
+StarpoleExport *starpole_export = 0;
+
 WideExport wide_export = {
     .HUDAdjust_Element = HUDAdjust_Element,
     .HUDAdjust_Camera = HUDAdjust_Camera,
 };
-
-StarpoleExport *starpole_export = 0;
 
 void OnBoot()
 {
@@ -32,13 +34,15 @@ void OnBoot()
 void OnSaveLoaded()
 {
     starpole_export = (StarpoleExport *)Hoshi_ImportMod("Starpole Communication", 1, 0);
-    if (starpole_export) // set aspect ratio
+    
+    // set aspect ratio
+    if (starpole_export && starpole_export->dolphin_data) 
         *stc_cobj_aspect = ORIG_ASPECT * starpole_export->dolphin_data->aspect_mult;
 }
 
 void OnSceneChange()
 {
-    Wide_CreateTestGObj();
+    // Wide_CreatePillarbox();
 }
 void On3DLoadStart()
 {

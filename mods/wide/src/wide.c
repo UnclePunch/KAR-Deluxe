@@ -7,7 +7,9 @@
 
 #include "code_patch/code_patch.h"
 
-extern StarpoleDolphinData *starpole_export;
+#include "starpole/starpole.h"
+
+extern StarpoleExport *starpole_export;
 
 WideKind wide_kind = WIDEKIND_43;
 static float wide_kind_fractions[] = {
@@ -17,22 +19,14 @@ static float wide_kind_fractions[] = {
     1.255 * 2.66666,    // 32:9
 };
 
-typedef struct
+void COBJ_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
 {
-    float top;
-    float bot;
-    float left;
-    float right;
-} CamBounds;
-void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out) 
-{
-    depth -= (cam->eye->pos.Z - cam->interest->pos.Z);
+    // depth -= (cam->eye->pos.Z - cam->interest->pos.Z);
+    depth = (cam->eye->pos.Z - cam->interest->pos.Z);
 
     switch (cam->projection_type)
     {
-        /* -------------------- */
-        /* Perspective camera   */
-        /* -------------------- */
+        // perspective cam
         case 1:
         {
             float fov = cam->projection_param.perspective.fov;
@@ -40,7 +34,7 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
 
             float aspect = cam->projection_param.perspective.aspect;
 
-            // Horizontal FOV derived from engine FOV
+            // hotizontal fov derived from engine fov
             float fov_x = 2.0f * atan(tan(fov_radians * 0.5f) * aspect);
 
             float width  = 2.0f * depth * tan(fov_x * 0.5f);
@@ -53,12 +47,9 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
             break;
         }
 
-        /* -------------------- */
-        /* Custom frustum       */
-        /* -------------------- */
+        // frustum
         case 2:
         {
-            // Frustum params are usually specified at near plane
             float near = cam->near;
             float scale = depth / near;
 
@@ -69,14 +60,12 @@ void Wide_GetBounds(COBJ *cam, f32 depth, CamBounds *out)
             break;
         }
 
-        /* -------------------- */
-        /* Orthographic camera  */
-        /* -------------------- */
+        // ortho
         case 3:
         {
             out->left   = cam->projection_param.ortho.left;
             out->right  = cam->projection_param.ortho.right;
-            out->bot = cam->projection_param.ortho.bottom;
+            out->bot    = cam->projection_param.ortho.bottom;
             out->top    = cam->projection_param.ortho.top;
             break;
         }
@@ -122,7 +111,7 @@ float Wide_GetAspectMult()
 }
 void Wide_OnOptionChange(int val)
 {
-    if (starpole_export)
+    if (starpole_export && starpole_export->dolphin_data)
         return;
 
     WideKind kind = (WideKind)val;
@@ -198,7 +187,7 @@ void MovieCObj_AdjustWide(GOBJ *g)
     CObj_AdjustWideOrtho((COBJ*)g->hsd_object);
 }
 CODEPATCH_HOOKCREATE(0x8000d454, "lwz 3, 0x470 (13)\n\t", MovieCObj_AdjustWide, "", 0)
-CODEPATCH_HOOKCREATE(0x8000d87c, "lwz 3, 0x480 (13)\n\t", MovieCObj_AdjustWide, "", 0)
+CODEPATCH_HOOKCREATE(0x8000d87c, "lwz 3, 0x484 (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x80049608, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x8004950c, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
 CODEPATCH_HOOKCREATE(0x80049704, "lwz 3, 0x49c (13)\n\t", MovieCObj_AdjustWide, "", 0)
@@ -271,10 +260,10 @@ COBJDesc desc = {
     .projection_param.ortho.top = 0,
     .projection_param.ortho.bottom = 480,
 };
-void Wide_CreateTestGObj()
+void Wide_CreatePillarbox()
 {
     MinorKind minor_kind = Scene_GetCurrentMinor();
-    if (minor_kind == MNRKIND_3D)
+    if (minor_kind == MNRKIND_3D || minor_kind == MNRKIND_MAINMENU)
         return;
 
     int gx_link = HOSHI_SCREENCAM_GXLINK - 1;

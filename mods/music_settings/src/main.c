@@ -9,7 +9,7 @@
 #include "musicsettings.h"
 #include "music_change.h"
 
-#include "../../wide/src/wide_export.h"
+#include "wide/wide.h"
 
 WideExport *wide_export;
 MusicExport export = {

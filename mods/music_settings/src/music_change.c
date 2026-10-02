@@ -14,7 +14,7 @@
 #include "fst/fst.h"
 #include "text_joint/text_joint.h"
 
-#include "../../wide/src/wide_export.h"
+#include "wide/wide.h"
 
 static GOBJ *stc_music_change_gobj;
 static NowPlayingAssets *music_assets;
@@ -62,12 +62,9 @@ GOBJ *MusicChange_Create()
     JOBJ *j = g->hsd_object;
     JObj_AddSetAnim(j, 0, set, 0, 1);
 
-    // // widescreen shift
-    // if (Gm_Get3dData()->plyview_num == 1 && wide_export)
-    //     wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
-
-    // Vec3 wide_offset = {0, 0, 0};
-    // JObj_GetChildPosition(j, 0, &wide_offset);
+    // adjust for widescreen
+    if (Gm_Get3dData()->plyview_num == 1 && wide_export)
+        wide_export->HUDAdjust_Element(g, 0, false, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
 
     // init data
     MusicChangeData *gp = g->userdata;

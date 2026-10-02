@@ -1,0 +1,3 @@
+widescreen menu? 
+    aspect ratio:
+    splitscreen: auto -> horizontal -> vertical

@@ -9,7 +9,7 @@
 
 #include "code_patch/code_patch.h"
 
-CamScissor ply_viewport_1[] = {
+static CamScissor ply_viewport_1[] = {
     {
         .left = 0,
         .right = 640,
@@ -17,7 +17,7 @@ CamScissor ply_viewport_1[] = {
         .bottom = 480,
     },
 };
-CamScissor ply_viewport_2[] = {
+static CamScissor ply_viewport_2[] = {
     {
         .left = 4,
         .right = 636,
@@ -31,7 +31,7 @@ CamScissor ply_viewport_2[] = {
         .bottom = 460,
     },
 };
-CamScissor ply_viewport_4[] = {
+static CamScissor ply_viewport_4[] = {
     {
         .left = 10,
         .right = 318,

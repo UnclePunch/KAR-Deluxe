@@ -13,7 +13,11 @@
 
 #include "code_patch/code_patch.h"
 
+#include "wide/wide.h"
+
 #include "unpause.h"
+
+extern WideExport *wide_export;
 
 // SignalGo
 JOBJSet **signalgo_set = 0;
@@ -21,35 +25,35 @@ GOBJ *SignalGo_Create(int ply)
 {
     Game3dData *g3d = Gm_Get3dData();
 
+    if (g3d->plyview_num == 0)
+        return 0;
+
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,
                              0, 0,
                              HSD_OBJKIND_JOBJ, signalgo_set[0]->jobj,
                              SignalGo_Anim, 20,
-                             HUD_GXLink, 21, 1);
-    HUD_AddElementData(g, sizeof(SignalGoData), ply, ply);
+                             HUD_GXLink, GAMEGX_HUD, 1);
+    HUD_AddElementData(g, 0xFF, ply, ply);
 
     SignalGoData *gp = g->userdata;
+
+    gp->common.ply = ply;
     gp->timer = 0;
     gp->state = 0;
 
     // adjust position for multiple viewports
     JOBJ *j = g->hsd_object;
-    PlyViewPosData *plyview_data = g3d->plyview_pos_gobj->userdata;
-    int anim_id;
-    if (g3d->plyview_num == 1)
-        anim_id = 0;
-    if (g3d->plyview_num > 1)
-    {
-        j->trans = plyview_data->plyview_center_pos[Ply_GetViewIndex(ply)];
-        JObj_SetMtxDirtySub(j);
-
-        if (g3d->plyview_num == 2)
-            anim_id = 1;
-        else
-            anim_id = 2;
-    }
+    HUDElementData *plyview_data = g3d->plyview_pos_gobj->userdata;
+    int anim_id = g3d->plyview_num - 1;
+    
+    j->trans = plyview_data->ply_hud.pos[Ply_GetViewIndex(ply)];
+    JObj_SetMtxDirtySub(j);
 
     JObj_AddSetAnim(g->hsd_object, anim_id, signalgo_set[0], 0, 0);
+
+    // adjust for widescreen
+    if (wide_export)
+        wide_export->HUDAdjust_Element(g, 0, true, WIDEALIGN_CENTER, HEIGHTALIGN_CENTER);
 
     return g;
 }

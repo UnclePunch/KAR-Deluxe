@@ -10,7 +10,7 @@
 
 typedef struct SignalGoData
 {
-    HUDElementData hud_data;
+    HUDElementCommonData common;
     int timer;
     int state;
 } SignalGoData;

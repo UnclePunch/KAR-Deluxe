@@ -13,6 +13,8 @@
 #include "competitive/sd_as_ko.h"
 #include "competitive/after_ko.h"
 
+#include "wide/wide.h"
+
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 
@@ -29,6 +31,8 @@ extern int ability_drop_enabled;
 extern int sd_as_ko_enabled;
 extern int intang_after_ko_enabled;
 extern int hp_after_ko_enabled;
+
+WideExport *wide_export = 0;
 
 OptionDesc mod_settings = {
     // Controls Menu
@@ -231,6 +235,7 @@ void OnBoot()
 }
 void OnSceneChange()
 {
+    wide_export = Hoshi_ImportMod("Widescreen", WIDE_VERSION_MAJOR, WIDE_VERSION_MINOR);
 
     return;
 }

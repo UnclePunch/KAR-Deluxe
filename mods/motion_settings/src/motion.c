@@ -46,6 +46,10 @@ void Motion_FOVSpeed_Hook(CamData *cam_data, int r4, void *r5, float *out_fov, f
         
 }
 
+
+static float g_fov_cache[3];
+static int g_is_fov_cached = 0;
+
 int fov_level = 1;
 int rotate_level = 2;
 void Motion_ParamAdjust_Hook(float fov)
@@ -57,9 +61,20 @@ void Motion_ParamAdjust_Hook(float fov)
         1.0,
         1.1,
     };
-    param->fov_1p = 78 * fov_mult[fov_level];
-    param->fov_2p = 68 * fov_mult[fov_level];
-    param->fov_4p = 80 * fov_mult[fov_level];
+
+    float *fov_arr = (float *)&param->fov_1p;
+
+    // init fov values
+    if (!g_is_fov_cached)
+    {
+        for (int i = 0; i < 3; i++)
+            g_fov_cache[i] = fov_arr[i];
+        
+        g_is_fov_cached = 1;
+    }
+
+    for (int i = 0; i < 3; i++)
+        fov_arr[i] = g_fov_cache[i] * fov_mult[fov_level];
 
     static float rotate_mult[] = {
         0.25,

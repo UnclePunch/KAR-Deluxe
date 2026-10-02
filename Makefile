@@ -16,7 +16,8 @@ LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
 BUILD_DIR 		= build
 SCRIPT_DIR 		?= scripts
 HOSHI_DIR		= externals/hoshi
-LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
+HOSHI_LIB_DIR 	= $(HOSHI_DIR)/Lib
+MOD_INC_DIR 	?= include
 INC_DIR 		?= $(HOSHI_DIR)/include
 PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
 HOSHI_BIN_DIR	= $(HOSHI_DIR)/out/release
@@ -49,12 +50,12 @@ MODS_ROOT_DIR = mods
 
 # --- Derived Variables ---
 # INCLUDES: Transforms include paths into compiler -I flags
-INCLUDES = -I$(INC_DIR) -I$(LIB_ROOT_DIR)
+INCLUDES = -I$(INC_DIR) -I$(MOD_INC_DIR) -I$(HOSHI_LIB_DIR)
 
 # --- Source File Discovery ---
 
-# 1. Libraries: Find all C source files recursively under the LIB_ROOT_DIR.
-LIB_SOURCES := $(shell find $(LIB_ROOT_DIR) -name "*.c")
+# 1. Libraries: Find all C source files recursively under the HOSHI_LIB_DIR.
+LIB_SOURCES := $(shell find $(HOSHI_LIB_DIR) -name "*.c")
 
 # 2. Mods: Find all mods in the mod folder
 MOD_NAMES ?= $(notdir $(wildcard $(MODS_ROOT_DIR)/*))
@@ -69,7 +70,7 @@ MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
 # --- Object and Dependency File Mapping ---
 
 # Map individual library source files to their corresponding object files in BUILD_DIR.
-LIB_OBJECTS := $(patsubst $(LIB_ROOT_DIR)/%.c,$(BUILD_DIR)/$(LIB_ROOT_DIR)/%.o,$(LIB_SOURCES))
+LIB_OBJECTS := $(patsubst $(HOSHI_LIB_DIR)/%.c,$(BUILD_DIR)/$(HOSHI_LIB_DIR)/%.o,$(LIB_SOURCES))
 
 # Map individual mod source files to their corresponding object files in BUILD_DIR.
 MOD_C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(MOD_C_SOURCES))

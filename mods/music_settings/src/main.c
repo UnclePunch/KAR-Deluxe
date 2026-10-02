@@ -45,7 +45,7 @@ void On3DLoad()
 {
     MusicChange_On3DLoad();
 }
-void On3DPause(int pauser_ply)
+void On3DPauseEnd(int pauser_ply)
 {
     MusicChange_Create();
 }
@@ -67,6 +67,6 @@ ModDesc mod_desc = {
     .OnSaveLoaded = OnSaveLoaded,
     .OnMainMenuLoad = OnMainMenuLoad,
     .On3DLoadEnd = On3DLoad,
-    .On3DPause = On3DPause,
+    .On3DPauseEnd = On3DPauseEnd,
     .On3DUnpause = On3DUnpause,
 };

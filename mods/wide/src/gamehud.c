@@ -584,7 +584,7 @@ void HUDAdjust_PauseStats(GOBJ *g)
     else
     {
         wide_align = WIDEALIGN_LEFT;
-        height_align = HEIGHTALIGN_TOP;
+        height_align = HEIGHTALIGN_CENTER;
     }
     
     HUDAdjust_Element(g, 0, false, wide_align, height_align);
@@ -592,7 +592,9 @@ void HUDAdjust_PauseStats(GOBJ *g)
 CODEPATCH_HOOKCREATE(0x80128d4c, "mr 3,29\n\t", HUDAdjust_PauseStats, "", 0)
 void HUDAdjust_CityPauseOptions(GOBJ *g)
 {
-    if (Gm_GetPlyViewNum() == 1)
+    int view_num = Gm_GetPlyViewNum();
+
+    if (view_num == 1)
     {
         // line
         HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
@@ -600,6 +602,18 @@ void HUDAdjust_CityPauseOptions(GOBJ *g)
         HUDAdjust_Element(g, 2, false, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
         // player indicator
         HUDAdjust_Element(g, 6, false, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
+    }
+    else if (view_num == 2 && g_is_ply_viewport_2_vertical)
+    {
+        // move pause UI to the top of the screen
+        static u8 jobj_idx_to_adjust[] = {1, 2, 6};
+
+        JOBJ *j = g->hsd_object;
+
+        for (int i = 0; i < GetElementsIn(jobj_idx_to_adjust); i++)
+            JObj_GetIndex(j, jobj_idx_to_adjust[i])->trans.Y += ply_viewport_2_inf_y - 4;
+            
+        JObj_SetMtxDirtySub(j);
     }
 }
 CODEPATCH_HOOKCREATE(0x80128a50, "mr 3,29\n\t", HUDAdjust_CityPauseOptions, "", 0)

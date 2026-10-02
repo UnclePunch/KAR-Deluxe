@@ -16,6 +16,7 @@ typedef enum WideKind
     WIDEKIND_43,
     WIDEKIND_169,
     WIDEKIND_1610,
+    WIDEKIND_219,
     WIDEKIND_329,
 } WideKind;
 

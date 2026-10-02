@@ -357,7 +357,12 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
             orig_x_pixel = orig_view_arr->right;
             cur_x_pixel = view_arr.right;
         }
-
+        else if (x_align == WIDEALIGN_CENTER)
+        {
+            orig_x_pixel = (orig_view_arr->right + orig_view_arr->left) / 2;
+            cur_x_pixel = (view_arr.right + view_arr.left) / 2;
+        }
+        
         u16 orig_y_pixel, cur_y_pixel;
         if (y_align == HEIGHTALIGN_TOP)
         {
@@ -369,7 +374,12 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
             orig_y_pixel = orig_view_arr->bottom;
             cur_y_pixel = view_arr.bottom;
         }
-
+        else if (y_align == HEIGHTALIGN_CENTER)
+        {
+            orig_y_pixel = (orig_view_arr->bottom + orig_view_arr->top) / 2;
+            cur_y_pixel = (view_arr.bottom + view_arr.top) / 2;
+        }
+        
         // get offset from bottom of original viewport to hud position model root
         Vec2 orig_corner_pos;
         HUD_PixelToPos(orig_x_pixel, 
@@ -386,6 +396,7 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
         OSReport("orig_corner_pos.Y: %.2f\n", orig_corner_pos.Y);
         OSReport("cur_corner_pos.X: %.2f\n", cur_corner_pos.X);
         OSReport("cur_corner_pos.Y: %.2f\n", cur_corner_pos.Y);
+        OSReport("plyview_pos_offset->Y: %.2f\n", plyview_pos_offset->X);
         OSReport("plyview_pos_offset->Y: %.2f\n", plyview_pos_offset->Y);
 
         JOBJ *j = (joint_index == 0) ? g->hsd_object : JObj_GetIndex(g->hsd_object, joint_index);

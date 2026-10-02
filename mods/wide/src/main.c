@@ -9,7 +9,6 @@
 #include "wide.h"
 #include "gamehud.h"
 #include "menu.h"
-#include "wide_export.h"
 
 #include "starpole/starpole.h"
 

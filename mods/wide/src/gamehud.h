@@ -15,7 +15,6 @@ typedef enum WideAlign
     WIDEALIGN_CENTER,
 } WideAlign;
 
-
 typedef enum HeightAlign
 {
     HEIGHTALIGN_BOTTOM,

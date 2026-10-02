@@ -1,6 +1,8 @@
 #ifndef MOD_H_WIDE
 #define MOD_H_WIDE
 
+#include "gamehud.h"
+
 #define WIDE_VERSION_MAJOR 1
 #define WIDE_VERSION_MINOR 0
 
@@ -24,6 +26,12 @@ typedef struct
     float left;
     float right;
 } CamBounds;
+
+typedef struct WideExport
+{
+    void (*HUDAdjust_Element)(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align);
+    void (*HUDAdjust_Camera)(COBJ *c);
+} WideExport;
 
 void Wide_Init();
 float Wide_GetAspectMult();

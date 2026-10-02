@@ -571,7 +571,7 @@ void HUDAdjust_PauseStats(GOBJ *g)
 CODEPATCH_HOOKCREATE(0x80128d4c, "mr 3,29\n\t", HUDAdjust_PauseStats, "", 0)
 void HUDAdjust_CityPauseOptions(GOBJ *g)
 {
-    if (Gm_GetPlyViewNum() == 0)
+    if (Gm_GetPlyViewNum() == 1)
     {
         // line
         HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);

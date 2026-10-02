@@ -45,7 +45,7 @@ void OnSceneChange()
 }
 void On3DLoadStart()
 {
-    Wide_AdjustConstants();
+    Wide_On3DLoadStart();
     return;
 }
 void On3DLoadEnd()
@@ -61,7 +61,7 @@ OptionDesc mod_settings = {
     .pri = MENUPRI_LOW,
     .kind = OPTKIND_VALUE,
     .val = (int *)&wide_kind,
-    .value_num = 4,
+    .value_num = 5,
     .value_names = (char *[]){"4:3", "16:9", "16:10", "21:9", "32:9",},
     .on_change = Wide_OnOptionChange,
 };

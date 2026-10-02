@@ -57,19 +57,27 @@ CamScissor ply_viewport_4[] = {
         .bottom = 460,
     },
 };
-CamScissor *ply_orig_viewport_lookup[] = {
+static CamScissor *ply_orig_viewport_lookup[] = {
     ply_viewport_1,
     ply_viewport_2,
     ply_viewport_4,
     ply_viewport_4,
 };
 
-void (*ply_viewport_get[])(int view_index, CamScissor *out) = {
+static void (*ply_viewport_get[])(int view_index, CamScissor *out) = {
     PlyCam_Get2PScissor,
     PlyCam_Get4PScissor,
     PlyCam_Get4PScissor,
 };
 
+static CamScissor map_viewport_2 = {
+    .left = 55,
+    .right = 215,
+    .top = 105,
+    .bottom = 225,
+};
+
+static int g_is_ply_viewport_2_vertical = 0;
 static float ply_viewport_2_inf_y = (21.3f);
 static float ply_viewport_2_event_text_y = (18);
 static float ply_viewport_2_hud_scale = (0.9);
@@ -95,6 +103,8 @@ static CamScissor map_viewport_2_custom = {
     .left = 240,
     .right = 400,
 };
+
+extern float wide_kind_fractions[];
 
 void DebugHUD_GX(GOBJ *g, int pass)
 {
@@ -664,7 +674,7 @@ CODEPATCH_HOOKCREATE(0x80125d8c, "mr 3,28\n\t", HUDAdjust_PositionModel, "", 0)
 // splitscreen info frame
 void HUDAdjust_InfoBar(GOBJ *g)
 {
-    if (Gm_GetPlyViewNum() != 2)
+    if (!g_is_ply_viewport_2_vertical || Gm_GetPlyViewNum() != 2)
         return;
     
     JOBJ *j = g->hsd_object;
@@ -872,22 +882,91 @@ float PlyCam_GetAspect(CamData *cam_data)
 
     PlayerCamData *ply_cam = cam_data->player_cam_data;
 
+    // get current viewport
     CamScissor viewport;
     if (ply_cam->lod == 0)  // not active?
         return stc_plycam_lookup->param->aspect_mult_1p;
     else if (ply_cam->lod == 1)
-        PlyCam_GetFullscreenScissor(&viewport);
+        return stc_plycam_lookup->param->aspect_mult_1p;
     else
         ply_viewport_get[ply_cam->lod - 2](ply_cam->ply, &viewport);
 
+    // get ratio of current viewport
     int width = viewport.right - viewport.left;
     int height = viewport.bottom - viewport.top;
     float ratio = (float)width / (float)height;
 
-    float aspect = (4.f/3.f) / ratio;
-    return aspect;
-    
+    // compare to the default 4:3 ratio
+    float ratio_vs_orig = (4.f / 3.f) / ratio;
+
+    // lets not aim for an exact 4:3 match, it can be too severe of a squash
+    ratio_vs_orig *= 0.85;
+
+    // if the current aspect ratio is narrower than 4:3, compress the aspect
+    // so you can still see as much as you would in 4:3
+    if (ratio_vs_orig > 1)
+        return (ratio_vs_orig) / Wide_GetAspectMult();
+
+    // if the current aspect ratio is wider or equal to 4:3, use original aspect
+    else
+        return stc_plycam_lookup->param->aspect_mult_1p;
 }
+
+static float g_fov_cache[3];
+static int g_is_fov_cached = 0;
+void PlyCam_SetFOV_Hook()
+{
+    cmMainParamCommon *param = stc_plycam_lookup->param;
+
+    static float fov_divisor[] = {
+        (640.f - 0.f) / (480.f - 0.f),  // 1p
+        (636.f - 4.f) / (228.f - 20.f),  // 2p
+        (318.f - 10.f) / (228.f - 20.f),  // 3-4p
+    };
+
+    float *fov_arr = (float *)&param->fov_1p;
+
+    // init fov values
+    if (!g_is_fov_cached)
+    {
+        for (int i = 0; i < 3; i++)
+            g_fov_cache[i] = fov_arr[i];
+        
+        g_is_fov_cached = 1;
+    }
+
+    // always 78
+    for (int i = 0; i < 3; i++)
+        fov_arr[i] = 78;
+
+    // for (int i = 0; i < 3; i++)
+    // {
+    //     CamScissor viewport;
+    //     switch(i)
+    //     {
+    //         case (0):
+    //             PlyCam_GetFullscreenScissor(&viewport);
+    //             break;
+    //         case (1):
+    //         case (2):
+    //             ply_viewport_get[i - 1](0, &viewport);
+    //             break;
+    //     }
+
+    //     int width = viewport.right - viewport.left;
+    //     int height = viewport.bottom - viewport.top;
+    //     float ratio = (float)width / (float)height;
+    //     float new_fov = g_fov_cache[i] * (fov_divisor[i] / ratio);
+
+    //     OSReport("fov_%dp %.2f -> %.2f\n", i + 1, fov_arr[i], new_fov);
+
+    //     fov_arr[i] = new_fov;
+
+    // }
+
+    return;
+}
+CODEPATCH_HOOKCREATE(0x800bc420, "", PlyCam_SetFOV_Hook, "", 0)
 
 void Wide_CreateDebugHUDGObj()
 {   
@@ -906,13 +985,44 @@ void Wide_CreateDebugHUDGObj()
     return;
 }
 
-void Wide_AdjustConstants()
+void Wide_On3DLoadStart()
 {
     float mult = Wide_GetAspectMult();
     
     // adjust hardcoded values for current aspect
     for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
         *wide_adjust_data[i].ptr = wide_adjust_data[i].orig * mult;
+
+    // use vertical splitscreen when aspect ratio is 16:9 or higher
+    g_is_ply_viewport_2_vertical = (*stc_cobj_aspect >= wide_kind_fractions[WIDEKIND_169]);
+
+    // get 2p splitscreen values
+    CamScissor *viewport, *map_viewport;
+    float hud_scale, event_text_y;
+    if (g_is_ply_viewport_2_vertical)
+    {
+        viewport = ply_viewport_2_custom;
+        map_viewport = &map_viewport_2_custom;
+        hud_scale = ply_viewport_2_hud_scale;
+        event_text_y = ply_viewport_2_event_text_y;
+    }
+    else
+    {
+        viewport = ply_viewport_2;
+        map_viewport = &map_viewport_2;
+        hud_scale = 1.2;
+        event_text_y =  228.5;
+    }
+
+    // modify splitscreen
+    memcpy((void *)0x80499548, viewport, sizeof(ply_viewport_2_custom));
+    memcpy((void *)0x80499558, viewport, sizeof(ply_viewport_2_custom));
+    memcpy((void *)0x80499568, viewport, sizeof(ply_viewport_2_custom));
+    memcpy((void *)0x805d5330, map_viewport, sizeof(map_viewport_2_custom));  // viewport
+    memcpy((void *)0x805d5338, map_viewport, sizeof(map_viewport_2_custom));  // scissor
+    *((float*)0x805dfcfc) = hud_scale;
+    *((float*)0x805dfbfc) = event_text_y;
+
 }
 
 void HUDAdjust_Init()
@@ -994,16 +1104,6 @@ void HUDAdjust_Init()
     // read in original values
     for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
         wide_adjust_data[i].orig = *wide_adjust_data[i].ptr;
-
-    // splitscreen modifications
-    memcpy((void *)0x80499548, &ply_viewport_2_custom, sizeof(ply_viewport_2_custom));
-    memcpy((void *)0x80499558, &ply_viewport_2_custom, sizeof(ply_viewport_2_custom));
-    memcpy((void *)0x80499568, &ply_viewport_2_custom, sizeof(ply_viewport_2_custom));
-    memcpy((void *)0x805d5330, &map_viewport_2_custom, sizeof(map_viewport_2_custom));  // viewport
-    memcpy((void *)0x805d5338, &map_viewport_2_custom, sizeof(map_viewport_2_custom));  // scissor
-    
-    *((float*)0x805dfcfc) = ply_viewport_2_hud_scale;
-    *((float*)0x805dfbfc) = ply_viewport_2_event_text_y;
     
     // 2p splitscreen info frame y adjustment
     CODEPATCH_HOOKAPPLY(0x801258bc);
@@ -1012,5 +1112,8 @@ void HUDAdjust_Init()
     
     // override splitscreen aspect multipler
     CODEPATCH_REPLACEFUNC(0x800bbc8c, PlyCam_GetAspect);
+
+    // set splitscreen FOV
+    CODEPATCH_HOOKAPPLY(0x800bc420);
 
 }

@@ -24,7 +24,7 @@ typedef enum HeightAlign
 
 void HUDAdjust_Init();
 void Wide_CreateDebugHUDGObj();
-void Wide_AdjustConstants();
+void Wide_On3DLoadStart();
 void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align);
 void HUDAdjust_Camera(COBJ *c);
 #endif

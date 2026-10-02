@@ -12,7 +12,7 @@
 extern StarpoleExport *starpole_export;
 
 WideKind wide_kind = WIDEKIND_43;
-static float wide_kind_fractions[] = {
+float wide_kind_fractions[] = {
     1.255,              // 4:3
     1.255 * 1.33333,    // 16:9
     1.255 * 1.2,        // 16:10

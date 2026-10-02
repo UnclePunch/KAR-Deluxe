@@ -12,11 +12,18 @@
 #include "../../wide/src/wide_export.h"
 
 WideExport *wide_export;
+MusicExport export = {
+    .SongData_PlayRandomSong = SongData_PlayRandomSong,
+    .SongData_PlayRandomStageSong = SongData_PlayRandomStageSong,
+};
 
 void OnBoot()
 {
     MusicSettings_Init();
     MusicChange_Init();
+
+    Hoshi_ExportMod(&export);
+
     return;
 }
 void OnSceneChange()
@@ -58,6 +65,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = false,
     .save_size = sizeof(struct MusicSettingsSave),
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

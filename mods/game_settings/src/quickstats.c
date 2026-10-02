@@ -38,6 +38,8 @@ void QuickStat_Think(GOBJ *r)
 
         // remove temp pause hud
         HUD_PauseDestroy();
+
+        Gm_HideHUD();
     }
     else if (cityui_stat_gobj)
     {
@@ -53,6 +55,8 @@ void QuickStat_Think(GOBJ *r)
                 GObj_Destroy(g3d->cityui_statbar_gobj[rp->ply][i]);
                 g3d->cityui_statbar_gobj[rp->ply][i] = 0;
             }
+
+            Gm_ShowHUD();
         }
         // update bars
         else
@@ -137,7 +141,7 @@ void QuickStat_OnPause()
 void QuickStat_On3DStart()
 {
     // add proc to rider that checks to create the stat HUD
-    if (!quickstats_enabled || !(Gm_IsInCity() && Gm_GetCityMode() == CITYMODE_TRIAL))
+    if (!quickstats_enabled || Gm_GetCityMode() != CITYMODE_TRIAL)
         return;
 
     // add new proc to each rider with a viewport

@@ -235,7 +235,7 @@ void MusicSettings_Exit(void *data)
     Scene_SetNextMajor(MJRKIND_MENU);
     Scene_ExitMajor();
 }
-void MusicSettings_Think(void *data)
+void MusicSettings_Think()
 {
 }
 

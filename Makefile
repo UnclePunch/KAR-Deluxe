@@ -2,6 +2,12 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment.")
 endif
 
+ifeq ($(OS),Windows_NT)
+    PYTHON := python
+else
+    PYTHON := python3
+endif
+
 # --- Compiler and Flags ---
 CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc
 LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
@@ -10,11 +16,11 @@ LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
 BUILD_DIR 		= build
 SCRIPT_DIR 		?= scripts
 HOSHI_DIR		= externals/hoshi
-LIB_ROOT_DIR 	= $(HOSHI_DIR)/Lib
+HOSHI_LIB_DIR 	= $(HOSHI_DIR)/Lib
+MOD_INC_DIR 	?= include
 INC_DIR 		?= $(HOSHI_DIR)/include
 PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
 HOSHI_BIN_DIR	= $(HOSHI_DIR)/out/release
-ORIG_DOL		= $(HOSHI_DIR)/dol/kar.dol
 ROOT_DIR 		= root
 ISO_DIR		 	?= iso
 OUT_DIR 		= out
@@ -23,7 +29,8 @@ ISO_OUT_DIR 	=
 INSTALL_DIR 	?=
 
 # --- File Paths ---
-ISO_PATH		= kar.iso
+ISO_PATH		?= kar.iso
+ORIG_DOL		= $(HOSHI_DIR)/dol/kar.dol
 HOSHI_BIN		= $(HOSHI_BIN_DIR)/hoshi.bin
 
 # --- Script Paths ---
@@ -43,12 +50,12 @@ MODS_ROOT_DIR = mods
 
 # --- Derived Variables ---
 # INCLUDES: Transforms include paths into compiler -I flags
-INCLUDES = -I$(INC_DIR) -I$(LIB_ROOT_DIR)
+INCLUDES = -I$(INC_DIR) -I$(MOD_INC_DIR) -I$(HOSHI_LIB_DIR)
 
 # --- Source File Discovery ---
 
-# 1. Libraries: Find all C source files recursively under the LIB_ROOT_DIR.
-LIB_SOURCES := $(shell find $(LIB_ROOT_DIR) -name "*.c")
+# 1. Libraries: Find all C source files recursively under the HOSHI_LIB_DIR.
+LIB_SOURCES := $(shell find $(HOSHI_LIB_DIR) -name "*.c")
 
 # 2. Mods: Find all mods in the mod folder
 MOD_NAMES ?= $(notdir $(wildcard $(MODS_ROOT_DIR)/*))
@@ -63,7 +70,7 @@ MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
 # --- Object and Dependency File Mapping ---
 
 # Map individual library source files to their corresponding object files in BUILD_DIR.
-LIB_OBJECTS := $(patsubst $(LIB_ROOT_DIR)/%.c,$(BUILD_DIR)/$(LIB_ROOT_DIR)/%.o,$(LIB_SOURCES))
+LIB_OBJECTS := $(patsubst $(HOSHI_LIB_DIR)/%.c,$(BUILD_DIR)/$(HOSHI_LIB_DIR)/%.o,$(LIB_SOURCES))
 
 # Map individual mod source files to their corresponding object files in BUILD_DIR.
 MOD_C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(MOD_C_SOURCES))
@@ -131,7 +138,7 @@ $(OBJ_DIRS):
 
 # Rule to extract the original dol from the iso
 $(ORIG_DOL):
-	python $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
+	$(PYTHON) $(DOLEXTRACT_SCRIPT) $(ISO_PATH) $(ORIG_DOL)
 
 # --- hoshi target ---
 hoshi: $(ORIG_DOL)
@@ -181,7 +188,7 @@ $(MODS_OUT_DIR)/$(1).bin: $(BUILD_DIR)/$(1).modlink | $(MODS_OUT_DIR)
 	@echo ""
 	@echo "--- Creating '$(1)' bin file ---"
 	@echo ""
-	python $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
+	$(PYTHON) $(PACKTOOL_DIR)/main.py $$< -m gbFunction -o $$@
 
 endef
 

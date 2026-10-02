@@ -19,6 +19,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 1,
+    .affects_gameplay = false,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
 };

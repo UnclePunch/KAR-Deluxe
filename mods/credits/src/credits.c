@@ -79,7 +79,7 @@ void CreditsMinor_Exit(void *data)
 
     return;
 }
-void CreditsMinor_Think(void *data)
+void CreditsMinor_Think()
 {
     if (Pad_GetDown(20) & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_START))
     {

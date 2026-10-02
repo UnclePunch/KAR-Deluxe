@@ -204,7 +204,7 @@ void CitySettings_Load()
 
     return;
 }
-void CitySettings_Think(void *data)
+void CitySettings_Think()
 {
     if (!settings_data.menu.gobj_cur)
         return;
@@ -771,7 +771,7 @@ void CitySettings_BGThink(GOBJ *g)
         settings_data.is_intro_anim = 0;
 
         // remove animation from bottom panel, will be moving this independently
-        JObj_RemoveAnimByFlags(stc_bg_panel_jobj, JObj_ANIM);
+        JObj_RemoveAnimByFlags(stc_bg_panel_jobj, ANIMBYFLAGS_JOBJ);
     }
 
     return;

@@ -42,6 +42,12 @@ typedef struct PlaylistData
     int songs[SONGS_PER_PLAYLIST];
 } PlaylistData;
 
+typedef struct MusicExport
+{
+    int (*SongData_PlayRandomSong)(int volume);
+    int (*SongData_PlayRandomStageSong)();
+} MusicExport;
+
 int SongData_Init();
 void SongData_CountSong(int entrynum);
 void SongData_IndexSong(int entrynum);
@@ -52,6 +58,7 @@ MusicSettingsPlaylistMode SongData_GetPlaylistMode(MusicSettingsPlaylist playlis
 int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist);
 int SongData_PlaySong(int song_database_idx, int volume);
 int SongData_PlayRandomSong(int volume);
+int SongData_PlayRandomStageSong();
 int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume);
 void SongData_UpdateCurPlayingEntrynum(int entrynum);
 int SongData_GetCurPlayingEntrynum();

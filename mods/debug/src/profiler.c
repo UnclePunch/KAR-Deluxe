@@ -1,14 +1,20 @@
 #include "obj.h"
 #include "os.h"
+#include "hsd.h"
+#include <stdio.h>
 #include "code_patch/code_patch.h"
 
+int profiler_enable = 0;
 int proc_total;
 int time_total;
 int pre_tick;
 
 void GOBJProc_Start()
 {
-    OSReport("## GObj Proc Begin ##\n\n");
+    if (!profiler_enable)
+        return;
+
+    // OSReport("## GObj Proc Begin ##\n\n");
     proc_total = 0;
     time_total = 0;
 
@@ -18,6 +24,9 @@ CODEPATCH_HOOKCREATE(0x80429ee8, "", GOBJProc_Start, "", 0)
 
 void GOBJProc_Pre(void *cb, GOBJ *g)
 {
+    if (!profiler_enable)
+        return;
+
     pre_tick = OSGetTick();
     return;
 }
@@ -25,6 +34,9 @@ CODEPATCH_HOOKCREATE(0x80429fc8, "", GOBJProc_Pre, "", 0)
 
 void GOBJProc_Post(void *cb, GOBJ *g)
 {
+    if (!profiler_enable)
+        return;
+
     static char *p_link_names[] = {
         "SYS",
         "1",
@@ -38,11 +50,11 @@ void GOBJProc_Post(void *cb, GOBJ *g)
         "MACHINE",
         "RIDER",
         "11",
-        "EVENTACTOR", // dyna blade, tac, meteor, etc
+        "ENEMY", // dyna blade, tac, meteor, etc
         "ITEM",       // anything in ItemKind
         "PROJECTILE", // bomb, plasma bullet, flame, firework etc
-        "15",
-        "16",
+        "SHADOW",
+        "EFFECTMODEL",
         "CAMWORLD",
         "18",
         "CAMHUD",
@@ -61,7 +73,20 @@ void GOBJProc_Post(void *cb, GOBJ *g)
     time_total += time;
     proc_total++;
 
-    OSReport("Func %p with p_link %d completed in %.2fms\n", cb, g->p_link, OSTicksToMilliseconds(time));
+    if (!(Pad_GetHeld(20) & PAD_BUTTON_DPAD_DOWN))
+        return;
+
+    char buffer[2];
+    char *p_link_name;
+    if (g->p_link <= sizeof(p_link_names) / sizeof(p_link_names[0]))
+        p_link_name = p_link_names[g->p_link];
+    else
+    {
+        sprintf(buffer, "%d", g->p_link);
+        p_link_name = buffer; 
+    }
+
+    OSReport("Func %p with p_link %s completed in %.4fms\n", cb, p_link_name, OSTicksToMilliseconds(time));
     return;
 }
 CODEPATCH_HOOKCREATE(0x80429fd8, "lwz	3, 0x0014 (25)\n\t"
@@ -70,8 +95,11 @@ CODEPATCH_HOOKCREATE(0x80429fd8, "lwz	3, 0x0014 (25)\n\t"
 
 void GOBJProc_End()
 {
-    OSReport("%d proc's completed in %.2fms\n", proc_total, OSTicksToMilliseconds(time_total));
-    OSReport("## GObj Proc End ##\n\n");
+    if (!profiler_enable)
+        return;
+
+    OSReport("%d proc's completed in %.4fms\n", proc_total, OSTicksToMilliseconds(time_total));
+    // OSReport("## GObj Proc End ##\n\n");
 
     return;
 }

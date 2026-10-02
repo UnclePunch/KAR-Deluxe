@@ -11,7 +11,7 @@
 #include "competitive/run.h"
 #include "competitive/drop_ability.h"
 #include "competitive/sd_as_ko.h"
-#include "competitive/intang_after_ko.h"
+#include "competitive/after_ko.h"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
@@ -20,13 +20,15 @@ extern StartupKind startup_kind;
 extern int quickstats_enabled;
 extern int brake_enabled;
 extern int rearview_enabled;
-extern int camerazoom_kind;
+extern int camera_default_zoom_kind;
+extern int camera_max_zoom_kind;
 extern int attractmode_enabled;
 extern int unpause_delay_enabled;
 extern int is_run_enabled;
 extern int ability_drop_enabled;
 extern int sd_as_ko_enabled;
 extern int intang_after_ko_enabled;
+extern int hp_after_ko_enabled;
 
 OptionDesc mod_settings = {
     // Controls Menu
@@ -110,7 +112,7 @@ OptionDesc mod_settings = {
                     .description = "Adjust rules for a more fair fight!",
                     .kind = OPTKIND_MENU,
                     .menu_ptr = &(MenuDesc){
-                        .option_num = 2,
+                        .option_num = 4,
                         .options = {
                             &(OptionDesc){
                                 .name = "Invincible on Foot",
@@ -135,6 +137,17 @@ OptionDesc mod_settings = {
                                 },
                             },
                             &(OptionDesc){
+                                .name = "Machine HP",
+                                .description = "Machines will have full HP after getting KO'd!",
+                                .kind = OPTKIND_VALUE,
+                                .val = &hp_after_ko_enabled,
+                                .value_num = 2,
+                                .value_names = (char *[]){
+                                    "Original",
+                                    "Full After KO",
+                                },
+                            },
+                            &(OptionDesc){
                                 .name = "Unpause",
                                 .description = "Display a countdown after unpausing the game!",
                                 .kind = OPTKIND_VALUE,
@@ -143,6 +156,40 @@ OptionDesc mod_settings = {
                                 .value_names = (char *[]){
                                     "Original",
                                     "Countdown",
+                                },
+                            },
+                        },
+                    },
+                },
+                &(OptionDesc){
+                    // Camera Menu
+                    .name = "Camera",
+                    .description = "Adjust settings for the in-game camera.",
+                    .kind = OPTKIND_MENU,
+                    .menu_ptr = &(MenuDesc){
+                        .option_num = 2,
+                        .options = {
+                        &(OptionDesc){
+                            .name = "Default Zoom",
+                            .description = "Set your default camera zoom level.",
+                            .kind = OPTKIND_VALUE,
+                            .val = &camera_default_zoom_kind,
+                            .value_num = 2,
+                            .value_names = (char *[]){
+                                "Original",
+                                "Zoomed Out",
+                            },
+                        },
+                        &(OptionDesc){
+                            .name = "Max Zoom",
+                            .description = "Set your maximum camera zoom level.",
+                            .kind = OPTKIND_VALUE,
+                            .val = &camera_max_zoom_kind,
+                            .value_num = 3,
+                            .value_names = (char *[]){
+                                "Original",
+                                "Far",
+                                "Very Far",
                                 },
                             },
                         },
@@ -161,17 +208,6 @@ OptionDesc mod_settings = {
                         "City Trial",
                         "Air Ride",
                         "LAN",
-                    },
-                },
-                &(OptionDesc){
-                    .name = "Camera",
-                    .description = "Set your default camera zoom level.",
-                    .kind = OPTKIND_VALUE,
-                    .val = &camerazoom_kind,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Original",
-                        "Zoomed Out",
                     },
                 },
                 &(OptionDesc){
@@ -209,7 +245,7 @@ void OnSaveLoaded()
     Run_Init();
     AbilityDrop_Init();
     SD_as_KO_Init();
-    IntangAfterKO_Init();
+    AfterKO_Init();
 
     return;
 }
@@ -218,7 +254,7 @@ void On3DLoad()
     QuickStat_On3DStart();
     UnpauseDelay_On3DStart();
     Rearview_InitFlags();
-    IntangAfterKO_On3DLoad();
+    AfterKO_On3DLoad();
 }
 void On3DPause(int pause_ply)
 {
@@ -230,6 +266,7 @@ ModDesc mod_desc = {
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
+    .affects_gameplay = true,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

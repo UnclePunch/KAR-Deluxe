@@ -1,6 +1,8 @@
 #include "hoshi/mod.h"
 #include "hoshi/settings.h"
 
+#include "wide/wide.h"
+
 #include "motion.h"
 
 #define VERSION_MAJOR 1
@@ -12,6 +14,8 @@ extern int shake_disabled;
 extern int fov_level;
 extern int rotate_level;
 extern int border_enabled;
+
+WideExport *wide_export = 0;
 
 OptionDesc mod_settings = {
     // Menu
@@ -108,6 +112,9 @@ void OnSceneChange()
 }
 void OnSaveLoaded()
 {
+    // get exports from widescreen mod
+    wide_export = (WideExport *)Hoshi_ImportMod("Widescreen", WIDE_VERSION_MAJOR, WIDE_VERSION_MINOR);
+
     Motion_Init();
 
     return;

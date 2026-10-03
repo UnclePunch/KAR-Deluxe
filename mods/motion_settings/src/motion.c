@@ -16,6 +16,10 @@
 #include "code_patch/code_patch.h"
 #include "hoshi/settings.h"
 
+#include "wide/wide.h"
+
+extern WideExport *wide_export;
+
 int tilt_disabled = 0;
 void Motion_Tilt_Hook(COBJ *c, Vec3 *up)
 {
@@ -113,8 +117,11 @@ void Motion_BorderGX(GOBJ *g, int pass)
     #define OUTER_BOX_MULT 0.9
     #define INNER_BOX_MULT 0.75
 
-    float horiz_edge = 30.34;
-    float vert_edge = 24.18;
+    float horiz_edge = ORIG_WIDTH / 2;
+    float vert_edge = ORIG_HEIGHT / 2;
+
+    if (wide_export)
+        horiz_edge *= wide_export->Wide_GetAspectMult();
 
     int width = 50;
     static GXColor color = {255, 0, 0, 128};

@@ -78,7 +78,7 @@ void On3DExit()
     Netsync_On3DExit();
 }
 
-void On3DPause(int pause_ply)
+void On3DPauseStart(int pause_ply)
 {
     // Hash_CreateText();
 }
@@ -100,6 +100,6 @@ ModDesc mod_desc = {
     .On3DLoadEnd = On3DLoadEnd,
     .On3DExit = On3DExit,
     .OnFrameEnd = OnFrameEnd,
-    .On3DPause = On3DPause,
+    .On3DPauseStart = On3DPauseStart,
     .On3DUnpause = On3DUnpause,
 };

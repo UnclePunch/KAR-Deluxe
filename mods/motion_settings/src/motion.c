@@ -121,7 +121,15 @@ void Motion_BorderGX(GOBJ *g, int pass)
     float vert_edge = ORIG_HEIGHT / 2;
 
     if (wide_export)
-        horiz_edge *= wide_export->Wide_GetAspectMult();
+    {
+        float aspect_mult = wide_export->Wide_GetAspectMult();
+        
+        // limit range to that of 16:9
+        if (aspect_mult > 1.3333)
+            aspect_mult = 1.3333;
+        
+        horiz_edge *= aspect_mult;
+    }
 
     int width = 50;
     static GXColor color = {255, 0, 0, 128};

@@ -22,7 +22,7 @@
 #include "card.h"
 #include "tracker.h"
 
-int is_bingo_mode = 1;
+extern int g_is_bingo_mode;
 
 BingoCard g_bingo_card;
 
@@ -991,6 +991,9 @@ void Bingo_On3DUnpause(int pause_ply)
 }
 void Bingo_OnPlayerSelectLoad()
 {
+    if (!g_is_bingo_mode)
+        return;
+
     BingoMode_Start();
 
     Text *t = Hoshi_CreateScreenText();

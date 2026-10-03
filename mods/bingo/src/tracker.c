@@ -7,7 +7,7 @@
 #include "log.h"
 #include "notif.h"
 
-extern int is_bingo_mode;
+extern int g_is_bingo_mode;
 extern GOBJ *bingo_card_gobj[5];
 extern BingoCard g_bingo_card;
 
@@ -27,7 +27,7 @@ Text *debug_text;
 void BingoTracker_Create()
 {
     // add proc to rider that updates bingo progress
-    if (!is_bingo_mode || Gm_GetCityMode() != CITYMODE_TRIAL)
+    if (!g_is_bingo_mode || Gm_GetCityMode() != CITYMODE_TRIAL)
         return;
 
     // create a new gobj for each player

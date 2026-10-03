@@ -9,7 +9,7 @@
 #include "card.h"
 #include "tracker.h"
 
-extern int is_bingo_mode;
+extern int g_is_bingo_mode;
 extern WideExport *g_wide_export;
 extern BingoCard g_bingo_card;
 extern GOBJ *bingo_tracker_gobj[5];
@@ -41,6 +41,9 @@ void BingoUI_OnBoot()
 }
 void BingoUI_On3DLoadStart()
 {
+    if (!g_is_bingo_mode)
+        return;
+
     // init bingo data
     for (int i = 0; i < GetElementsIn(bingo_card_gobj); i++)
     {
@@ -61,7 +64,6 @@ void BingoUI_On3DLoadStart()
 GOBJ *BingoUI_Create(int ply)
 {
     int tick_start = OSGetTick();
-    int tick;
 
     Vec3 text_pos;
     Text *t;
@@ -222,8 +224,6 @@ GOBJ *BingoUI_Create(int ply)
     }
     JObj_SetMtxDirtySub(card_j);
 
-
-
     bingo_card_gobj[ply] = b;
 
     // update UI
@@ -293,7 +293,7 @@ void BingoUI_Destroy(BingoUIData *bd)
 void BingoUI_DestroyOnPause()
 {
     // destroys any existing bingo UI when pausing
-    if (!is_bingo_mode || !(Gm_IsInCity() && Gm_GetCityMode() == CITYMODE_TRIAL))
+    if (!g_is_bingo_mode || !(Gm_IsInCity() && Gm_GetCityMode() == CITYMODE_TRIAL))
         return;
 
     Game3dData *g3d = Gm_Get3dData();
@@ -312,7 +312,7 @@ void BingoUI_DestroyOnPause()
 void BingoInput_Create()
 {
     // add proc to rider that checks to create the bingo UI
-    if (!is_bingo_mode || Gm_GetCityMode() != CITYMODE_TRIAL)
+    if (!g_is_bingo_mode || !Gm_IsInCity())
         return;
 
     // create text canvas

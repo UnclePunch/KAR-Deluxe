@@ -112,8 +112,9 @@ void OnSaveLoaded()
 
     return;
 }
-void On3DLoad()
+void On3DLoadEnd()
 {
+    Motion_BorderCreate();
 }
 void On3DPauseEnd(int pause_ply)
 {
@@ -129,6 +130,6 @@ ModDesc mod_desc = {
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .OnSaveLoaded = OnSaveLoaded,
-    .On3DLoadEnd = On3DLoad,
+    .On3DLoadEnd = On3DLoadEnd,
     .On3DPauseEnd = On3DPauseEnd,
 };

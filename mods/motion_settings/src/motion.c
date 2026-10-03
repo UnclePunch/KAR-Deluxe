@@ -10,6 +10,8 @@
 #include "obj.h"
 #include "game.h"
 
+#include "hud.h"
+
 #include "motion.h"
 #include "code_patch/code_patch.h"
 #include "hoshi/settings.h"
@@ -90,6 +92,97 @@ void Motion_ParamAdjust_Hook(float fov)
 CODEPATCH_HOOKCREATE(0x800bc420, "", Motion_ParamAdjust_Hook, "", 0)
 
 int border_enabled = 0;
+GOBJ *Motion_BorderCreate()
+{   
+    if (!border_enabled || Gm_GetPlyViewNum() != 1)
+        return 0;
+
+    GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_HUD, 0,
+                             0, 0,
+                             HSD_OBJKIND_NONE, 0,
+                             0, 0,
+                             Motion_BorderGX, GAMEGX_HUD, 10);
+
+    return g;
+}
+void Motion_BorderGX(GOBJ *g, int pass)
+{
+    if (*g_hud_is_hidden)
+        return;
+
+    #define OUTER_BOX_MULT 0.9
+    #define INNER_BOX_MULT 0.75
+
+    float horiz_edge = 30.34;
+    float vert_edge = 24.18;
+
+    int width = 50;
+    static GXColor color = {255, 0, 0, 128};
+    Vec3 outer_top_right =   { horiz_edge * OUTER_BOX_MULT,  vert_edge * OUTER_BOX_MULT, 0};
+    Vec3 outer_bottom_left = {-horiz_edge * OUTER_BOX_MULT, -vert_edge * OUTER_BOX_MULT, 0};
+    Vec3 inner_top_right =   { horiz_edge * INNER_BOX_MULT,  vert_edge * INNER_BOX_MULT, 0};
+    Vec3 inner_bottom_left = {-horiz_edge * INNER_BOX_MULT, -vert_edge * INNER_BOX_MULT, 0};
+
+    GXSetZMode(GX_ENABLE, GX_ALWAYS, GX_DISABLE);
+
+    // draw boxes
+    Motion_DrawBoxWithLines(&outer_top_right, &outer_bottom_left, width, &color);
+    Motion_DrawBoxWithLines(&inner_top_right, &inner_bottom_left, width, &color);
+
+    // draw lines on edges
+    Motion_DrawLine(-horiz_edge, 0, inner_bottom_left.X + 1, 0, width, &color);
+    Motion_DrawLine( horiz_edge, 0, inner_top_right.X - 1, 0, width, &color);
+    Motion_DrawLine(0, -vert_edge, 0, inner_bottom_left.Y + 1, width, &color);
+    Motion_DrawLine(0,  vert_edge, 0, inner_top_right.Y - 1, width, &color);
+}
+void Motion_DrawBoxWithLines(Vec3 *tr, Vec3 *bl, int width, GXColor *color)
+{
+    HSD_StateInitDirect(GX_VTXFMT0, 2);
+    GXLoadPosMtxImm(&COBJ_GetCurrent()->view_mtx, GX_PNMTX0);
+    GXSetLineWidth(width, 5);
+    GXBegin(GX_LINES, GX_VTXFMT0, 8);
+
+    // top
+    GXPosition3f32(bl->X, tr->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+    GXPosition3f32(tr->X, tr->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+
+    // right
+    GXPosition3f32(tr->X, tr->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+    GXPosition3f32(tr->X, bl->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+
+    // bottom
+    GXPosition3f32(tr->X, bl->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+    GXPosition3f32(bl->X, bl->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+
+    // left
+    GXPosition3f32(bl->X, bl->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+    GXPosition3f32(bl->X, tr->Y, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+
+    HSD_StateInvalidate(-1);
+}
+void Motion_DrawLine(float x1, float y1, float x2, float y2, int width, GXColor *color)
+{
+    HSD_StateInitDirect(GX_VTXFMT0, 2);
+    GXLoadPosMtxImm(&COBJ_GetCurrent()->view_mtx, GX_PNMTX0);
+    GXSetLineWidth(width, 5);
+    GXBegin(GX_LINES, GX_VTXFMT0, 2);
+
+    // draw line
+    GXPosition3f32(x1, y1, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+    GXPosition3f32(x2, y2, 0);
+    GXColor4u8(color->r, color->g, color->b, color->a);
+
+    HSD_StateInvalidate(-1);
+}
 
 void Motion_Init()
 {

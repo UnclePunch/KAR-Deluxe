@@ -14,7 +14,7 @@ WideExport *g_wide_export = 0;
 int g_is_bingo_mode = 0;
 int g_is_lockout = 0;
 int g_is_teams = 0;
-int g_goals_to_win = 0;
+int g_goals_to_win = 25;
 
 void OnBoot()
 {
@@ -92,14 +92,11 @@ OptionDesc mod_settings = {
                 },
                 &(OptionDesc){
                     .name = "Goal Amount",
-                    .description = "Goals required to win (lockout only).",
-                    .kind = OPTKIND_VALUE,
+                    .description = "Goals required to win.",
+                    .kind = OPTKIND_NUM,
                     .val = &g_goals_to_win,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Off",
-                        "On",
-                    },
+                    .min = 1,
+                    .max = 25,
                 },
                 &(OptionDesc){
                     .name = "Teams",

@@ -1,7 +1,7 @@
 #include "obj.h"
 #include "game.h"
 
-#include "../../wide/src/wide_export.h"
+#include "wide/wide.h"
 
 #include "code_patch/code_patch.h"
 

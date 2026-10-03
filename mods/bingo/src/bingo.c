@@ -982,7 +982,7 @@ void Bingo_On3DLoadEnd()
     // }
     
 }
-void Bingo_On3DPause(int pause_ply)
+void Bingo_On3DPauseStart(int pause_ply)
 {
     BingoUI_DestroyOnPause();
 }

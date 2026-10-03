@@ -5,7 +5,7 @@
 #include "card.h"   // needed for SIS index
 #include "notif.h"
 
-#include "../../wide/src/wide_export.h"
+#include "wide/wide.h"
 
 extern JOBJSet *notif_set;
 extern WideExport *g_wide_export;

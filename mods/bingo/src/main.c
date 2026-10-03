@@ -7,7 +7,7 @@
 
 #include "bingo.h"
 
-#include "../../wide/src/wide_export.h"
+#include "wide/wide.h"
 
 WideExport *g_wide_export = 0;
 
@@ -35,9 +35,9 @@ void On3DLoadEnd()
     return;
 }
 
-void On3DPause(int pause_ply)
+void On3DPauseStart(int pause_ply)
 {
-    Bingo_On3DPause(pause_ply);
+    Bingo_On3DPauseStart(pause_ply);
     return;
 }
 
@@ -64,7 +64,7 @@ ModDesc mod_desc = {
     .OnSaveLoaded = OnSaveLoaded,
     .On3DLoadStart = On3DLoadStart,
     .On3DLoadEnd = On3DLoadEnd,
-    .On3DPause = On3DPause,
+    .On3DPauseStart = On3DPauseStart,
     .On3DUnpause = On3DUnpause,
     .OnPlayerSelectLoad = OnPlayerSelectLoad,
 };

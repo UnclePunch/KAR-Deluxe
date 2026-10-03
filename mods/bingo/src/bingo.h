@@ -290,7 +290,7 @@ void Bingo_Init();
 void Bingo_OnPlayerSelectLoad();
 void Bingo_On3DLoadStart();
 void Bingo_On3DLoadEnd();
-void Bingo_On3DPause(int pause_ply);
+void Bingo_On3DPauseStart(int pause_ply);
 void Bingo_On3DUnpause(int pause_ply);
 void BingoInput_Think(GOBJ *r);
 void BingoTracker_Think(GOBJ *t);

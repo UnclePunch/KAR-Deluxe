@@ -17,6 +17,7 @@ StarpoleExport *starpole_export = 0;
 WideExport wide_export = {
     .HUDAdjust_Element = HUDAdjust_Element,
     .HUDAdjust_Camera = HUDAdjust_Camera,
+    .Wide_GetAspectMult = Wide_GetAspectMult,
 };
 
 void OnBoot()

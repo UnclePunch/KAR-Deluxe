@@ -182,7 +182,6 @@ BingoGoalDesc g_difficulty_param[] = {
                            (1 << ATK_BOMB) | 
                            (1 << ATK_NEEDLEHOLD) | 
                            (1 << ATK_TORNADO) |
-                           (1 << ATK_TIMEBOMB) | 
                            (1 << ATK_GORDO) | 
                            (1 << ATK_MININADO)},
         },
@@ -535,7 +534,6 @@ void BingoMode_InitGoal(BingoGoal *gd, BingoGoalDesc *desc, int param_idx)
         }
         case (GOAL_RIDEMACHINEANY):
         {
-            bp();
             gd->num = RandomInRange(desc->param.ride_machine_any[param_idx].num_min, desc->param.ride_machine_any[param_idx].num_max);
             break;
         }

@@ -1,6 +1,7 @@
 #include "obj.h"
 #include "text.h"
 #include "game.h"
+#include "hud.h"
 
 #include "bingo.h"
 #include "tracker.h"
@@ -8,6 +9,8 @@
 #include "notif.h"
 
 extern int g_is_bingo_mode;
+extern int g_goals_to_win;
+
 extern GOBJ *bingo_card_gobj[5];
 extern BingoCard g_bingo_card;
 
@@ -22,6 +25,7 @@ extern RailLog g_rail_log[5];
 extern AreaBound g_area_bounds[];
 
 GOBJ *bingo_tracker_gobj[5];
+static int bingo_end_timer;
 
 Text *debug_text;
 void BingoTracker_Create()
@@ -58,11 +62,6 @@ void BingoTracker_Create()
         }
 
         tp->stats.glide_frames = 0;
-
-        if (Ply_IsViewOn(i))
-        {
-            ;
-        }
     }
 
     // create gobj proc to clear the damage log before updating hitcoll
@@ -71,6 +70,9 @@ void BingoTracker_Create()
                             HSD_OBJKIND_NONE, 0, 
                             Log_Clear, 0, 
                             0, 0, 0);
+
+    // create proc to check for game end
+    GObj_AddProc(d, BingoTracker_CheckGameEnd, 21);
 
     // debug_text = Hoshi_CreateScreenText();
     // for (int i = 0; i < 2; i++)
@@ -109,7 +111,7 @@ void BingoTracker_Think(GOBJ *t)
                     goal->ply_completed = tp->ply;
                     sfx = GOALSFX_COMPLETE;
                 }
-                else
+                else if (sfx != GOALSFX_COMPLETE)   // dont overwrite a complete sfx
                 {
                     // play sound if progress went up
                     if (progress > tp->progress[goal_idx])
@@ -121,6 +123,15 @@ void BingoTracker_Think(GOBJ *t)
 
             // update result
             tp->progress[goal_idx] = progress;
+
+            char s[128];
+            Bingo_GetDescriptionForGoal(goal, s);
+
+            OSReport("ply %d: %d (%d/%d)\n", 
+                    tp->ply, 
+                    &s,
+                    tp->progress[goal_idx],
+                    goal->num);
         }
 
     }
@@ -220,6 +231,79 @@ void BingoTracker_GX(GOBJ *t, int pass)
 {
     if (pass != 2)
         return;
+}
+
+void BingoTracker_GameEndThink(GOBJ *g)
+{
+    bingo_end_timer++;
+    
+    if (bingo_end_timer == 10)
+    {
+        void (*Gm_PlayCheerSFX)(int r3, int r4) = (void *)0x80277f20;
+        Gm_PlayCheerSFX(6, 0);
+    }
+
+    if (bingo_end_timer == (3 * 60))
+    {
+        Scene_SetDirection(PAD_BUTTON_B);
+        Scene_ExitMinor();
+        BGM_Stop();
+        FGM_StopAll();
+        Pad_StopRumbleAll();
+    }
+
+}
+void BingoTracker_CheckGameEnd(GOBJ *g)
+{
+    u8 ply_goal_num[4] = {0};
+
+    // check progress
+    for (int goal_idx = 0; goal_idx < BINGO_UI_GRID_SIZE * BINGO_UI_GRID_SIZE; goal_idx++)
+    {
+        BingoGoal *goal = &g_bingo_card.goal[goal_idx];
+
+        if (goal->ply_completed != -1)
+            ply_goal_num[goal->ply_completed]++;
+    }
+
+    // look for winner
+    int winner_ply = -1;
+    for (int i = 0; i < GetElementsIn(ply_goal_num); i++)
+    {
+        if (ply_goal_num[i] >= g_goals_to_win)
+        {
+            winner_ply = i;
+            break;
+        }
+    }
+
+    // end game if winner is determined
+    if (winner_ply != -1 || Pad_GetDown(20) & PAD_BUTTON_DPAD_DOWN)
+    {
+        void (*Gm_StopPlyViewFGM)() = (void *)0x80114234;
+        
+        SFX_Play(0x00130003); // whistle sfx
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (Ply_IsViewOn(i))
+                HUD_CreateFinish(i);
+        }
+
+        Gm_GetGameData()->intro_state = 7; // skips all logic in Game_Think, let our gobj handle it
+        // Gm_Pause(PAUSEKIND_MATCHEND);
+        // Gm_StopPlyViewFGM();
+        // FGM_PauseAll();
+        // Pad_StopRumbleAll();
+
+        // create gobj proc to wait a bit before ending the game
+        GOBJ *g = GOBJ_EZCreator(0, GAMEPLINK_SYS, 0,
+                                0, 0,
+                                HSD_OBJKIND_NONE, 0, 
+                                BingoTracker_GameEndThink, 0, 
+                                0, 0, 0);
+        bingo_end_timer = 0;
+    }
 }
 
 void Bingo_UpdateStats(BingoTrackerData *tp)

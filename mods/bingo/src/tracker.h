@@ -20,5 +20,6 @@ typedef struct BingoTrackerData
 void BingoTracker_Create();
 void BingoTracker_Think(GOBJ *t);
 void BingoTracker_GX(GOBJ *t, int pass);
+void BingoTracker_CheckGameEnd(GOBJ *g);
 int Bingo_UpdateProgress(BingoTrackerData *tp, int goal_idx);
 void Bingo_UpdateStats(BingoTrackerData *tp);

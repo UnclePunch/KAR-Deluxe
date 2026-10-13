@@ -9,7 +9,7 @@
 // this is the width of the original perspective screen camera
 #define ORIG_WIDTH (60.68)
 #define ORIG_HEIGHT (48.36)
-#define ORIG_ASPECT (1.255375)
+#define ORIG_ASPECT (640.f / 511.f)
 
 typedef enum WideKind
 {

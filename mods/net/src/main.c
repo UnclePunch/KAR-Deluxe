@@ -18,7 +18,7 @@ OptionDesc mod_settings = {
 
 void OnBoot()
 {
-    Net_Init();
+    Net_HeapInit();
     return;
 }
 

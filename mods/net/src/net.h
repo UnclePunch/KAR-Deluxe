@@ -3,6 +3,8 @@
 #define PORT_DISCOVER 5000
 #define PORT_DATA 5001
 
+#define BUFFER_SIZE 256
+
 #define SO_IP(a, b, c, d) \
     ((((u32)(a) & 0xFF) << 24) | \
      (((u32)(b) & 0xFF) << 16) | \
@@ -16,16 +18,26 @@ typedef enum NetState
     NETSTATE_CONNECTED,
 } NetState;
 
+typedef enum NetDataKind
+{
+    NETDATA_POS,
+} NetDataKind;
+
 typedef struct NetPacket
 {
+    NetDataKind kind : 8;
     union
     {
         struct 
         {
             u16 port;
         } discover;
+        struct 
+        {
+            int ply;
+            Vec3 pos;
+        } pos;
     };
-    
 } NetPacket;
 
 void Net_HeapInit();

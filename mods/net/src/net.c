@@ -29,11 +29,34 @@ void Net_PrintDebug()
     OSReport("ConfigError: %d\n", IPGetConfigError(NULL));
 }
 
+static char *g_buffer = 0;
+static int g_buffer_size = 0;
+
 static s32 g_sock_discover = -1;
 static s32 g_sock_data = -1;
 static SOSockAddrIn g_client;
 static NetState g_net_state = NETSTATE_NONE;
 static NetPacket g_packet;
+static int g_debug_client = SO_IP(10, 0, 0, 62);
+
+s32 NetSendPos(int ply, Vec3 *pos)
+{
+    int enabled = OSDisableInterrupts();
+
+    NetPacket *p = (NetPacket *)&g_buffer[g_buffer_size];
+
+    if (g_buffer_size + sizeof(p->pos) > BUFFER_SIZE)
+        return -1;
+
+    p->kind = NETDATA_POS;
+    p->pos.ply = ply;
+    p->pos.pos = *pos;
+    g_buffer_size += sizeof(p->pos);
+
+    OSRestoreInterrupts(enabled);
+
+    return 1;
+}
 
 s32 NetSend(s32 sock, void *p, u32 size)
 {
@@ -94,6 +117,22 @@ void *server_loop(void *arg)
         switch (g_net_state)
         {
             case (NETSTATE_NONE):
+                // wait for SO to finish init'ing, then advance state
+                if (SOGetHostID() != 0)
+                {
+                    if (g_debug_client == 0)
+                        g_net_state = NETSTATE_DISCOVER;
+                    else
+                    {
+                        // set client info
+                        memset(&g_client, 0, sizeof(g_client));
+                        g_client.len        = sizeof(g_client);
+                        g_client.family     = SO_PF_INET;
+                        g_client.port       = PORT_DATA;
+                        g_client.addr.addr  = g_debug_client;
+                        g_net_state = NETSTATE_CONNECTED;
+                    }
+                }
                 break;
 
             case (NETSTATE_DISCOVER):
@@ -103,6 +142,11 @@ void *server_loop(void *arg)
                 break;
 
             case (NETSTATE_CONNECTED):
+                if (g_buffer_size > 0)
+                {
+                    NetSend(g_sock_data, g_buffer, g_buffer_size);
+                    g_buffer_size = 0;
+                }
                 break;
         }
 
@@ -120,6 +164,8 @@ void Net_HeapInit()
     void *heap_lo = HSD_MemAlloc(heap_size);
     heap_handle = OSCreateHeap(heap_lo, (void *)((u32)heap_lo + heap_size));
 
+    // alloc packet buffer
+    g_buffer = HSD_MemAlloc(BUFFER_SIZE);
 }
 void Net_OnSaveLoaded()
 {
@@ -169,7 +215,8 @@ void Net_OnSaveLoaded()
     SOFcntl(g_sock_data, SO_F_SETFL, SO_O_NONBLOCK);
 
     // init state
-    g_net_state = NETSTATE_DISCOVER;
+    g_net_state = NETSTATE_NONE;
+
     OSReport("server listening on port %d\n", PORT_DISCOVER);
 
     // create thread
@@ -203,4 +250,14 @@ void Net_OnFrameEnd()
 {
     if (g_ip)
         Text_SetText(g_ip_text, 0, "ip: %d.%d.%d.%d", (g_ip & 0xFF000000) >> 24, (g_ip & 0x00FF0000) >> 16, (g_ip & 0x0000FF00) >> 8, g_ip & 0xFF);
+
+    if (Scene_GetCurrentMinor() == MNRKIND_3D)
+    {
+        GOBJ *r = Ply_GetRiderGObj(0);
+        if (r)
+        {
+            RiderData *rd = r->userdata;
+            NetSendPos(rd->ply, &rd->pos);
+        }
+    }
 }

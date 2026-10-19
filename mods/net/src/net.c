@@ -45,7 +45,7 @@ s32 NetSendPos(int ply, Vec3 *pos)
 
     NetPacket *p = (NetPacket *)&g_buffer[g_buffer_size];
 
-    if (g_buffer_size + sizeof(p->pos) > BUFFER_SIZE)
+    if (g_client.addr.addr == 0 || g_buffer_size + sizeof(p->pos) > BUFFER_SIZE)
         return -1;
 
     p->kind = NETDATA_POS;
@@ -146,6 +146,12 @@ void *server_loop(void *arg)
                 {
                     NetSend(g_sock_data, g_buffer, g_buffer_size);
                     g_buffer_size = 0;
+                }
+
+                char buffer[32];
+                if (NetRecv(g_sock_data, &buffer, sizeof(buffer)))
+                {
+                    OSReport("received message: %s\n", buffer);
                 }
                 break;
         }

@@ -1,7 +1,7 @@
 #include "ip/IPSocket.h"
 
-#define PORT_DISCOVER 5000
-#define PORT_DATA 5001
+#define PORT_DISCOVER   5000
+#define PORT_DATA       5001
 
 #define BUFFER_SIZE 256
 
@@ -34,6 +34,7 @@ typedef struct NetPacket
         } discover;
         struct 
         {
+            int frame;
             int ply;
             Vec3 pos;
         } pos;

@@ -104,8 +104,6 @@ OptionDesc *AltCourses_CreateMenu()
     u16 *entrynum_arr = (u16 *)course_alloc;
     course_alloc += entrynum_data_size;
 
-    OSReport("g_alt_courses: %p\n", g_alt_courses);
-
     // populate
     course_num = 0;
     for (int i = 0; i < COURSE_NUM; i++)

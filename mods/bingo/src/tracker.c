@@ -127,9 +127,9 @@ void BingoTracker_Think(GOBJ *t)
             char s[128];
             Bingo_GetDescriptionForGoal(goal, s);
 
-            OSReport("ply %d: %d (%d/%d)\n", 
+            OSReport("ply %d: %s (%d/%d)\n", 
                     tp->ply, 
-                    &s,
+                    s,
                     tp->progress[goal_idx],
                     goal->num);
         }
@@ -147,84 +147,87 @@ void BingoTracker_Think(GOBJ *t)
         SFX_Play(goal_sfx_lookup[sfx]);
     }
 
-    for (int i = 0; i < g_dmg_log_num; i++)
+    if (0)
     {
-        DamageLog *this_log = &g_dmg_log[i];
-        if (this_log->dmg > 0)
+        for (int i = 0; i < g_dmg_log_num; i++)
         {
-            static char *hurt_kind_names[] = {
-                "rider",
-                "machine",
-                "machine_empty",
-                "3",
-                "item",
-                "weapon",
-                "map",
-            };
-            static char *action_names[] = {
-                "hurt",
-                "KO'd",
-            };
+            DamageLog *this_log = &g_dmg_log[i];
+            if (this_log->dmg > 0)
+            {
+                static char *hurt_kind_names[] = {
+                    "rider",
+                    "machine",
+                    "machine_empty",
+                    "3",
+                    "item",
+                    "weapon",
+                    "map",
+                };
+                static char *action_names[] = {
+                    "hurt",
+                    "KO'd",
+                };
 
 
-            // to-do: this crashes when taking damage from picking up a fake item
-            OSReport("%s (ply %d, kind %d, state: %d/%d, attack_kind: %d, is_airborne: %d) %s %s (ply %d, kind %d, state: %d/%d, is_airborne: %d) with %.2f damage\n", 
-                                                        hurt_kind_names[this_log->attacker.hurt_kind],
-                                                        this_log->attacker.ply,
-                                                        this_log->attacker.kind,
-                                                        this_log->attacker.state,
-                                                        this_log->attacker.state2,
-                                                        this_log->attacker.attack_data.kind,
-                                                        this_log->attacker.is_airborne,
-                                                        action_names[this_log->is_ko],
-                                                        hurt_kind_names[this_log->victim.hurt_kind],
-                                                        this_log->victim.ply,
-                                                        this_log->victim.kind,
-                                                        this_log->victim.state,
-                                                        this_log->victim.state2,
-                                                        this_log->victim.is_airborne,
-                                                        this_log->dmg
-                                                        );
+                // to-do: this crashes when taking damage from picking up a fake item
+                OSReport("%s (ply %d, kind %d, state: %d/%d, attack_kind: %d, is_airborne: %d) %s %s (ply %d, kind %d, state: %d/%d, is_airborne: %d) with %.2f damage\n", 
+                                                            hurt_kind_names[this_log->attacker.hurt_kind],
+                                                            this_log->attacker.ply,
+                                                            this_log->attacker.kind,
+                                                            this_log->attacker.state,
+                                                            this_log->attacker.state2,
+                                                            this_log->attacker.attack_data.kind,
+                                                            this_log->attacker.is_airborne,
+                                                            action_names[this_log->is_ko],
+                                                            hurt_kind_names[this_log->victim.hurt_kind],
+                                                            this_log->victim.ply,
+                                                            this_log->victim.kind,
+                                                            this_log->victim.state,
+                                                            this_log->victim.state2,
+                                                            this_log->victim.is_airborne,
+                                                            this_log->dmg
+                                                            );
+            }
         }
+        for (int i = 0; i < GetElementsIn(g_rail_log); i++)
+        {
+            RailLog *this_log = &g_rail_log[i];
+            if (this_log->ply != -1)
+                OSReport("ply %d entered rail %d with progress %.2f in status %d with ground state %d\n", this_log->ply, this_log->idx, this_log->progress, this_log->status, this_log->is_airborne);
+        }
+        for (int i = 0; i < g_zone_log_num; i++)
+        {
+            ZoneLog *this_log = &g_zone_log[i];
+            if (this_log->ply != -1)
+                OSReport("ply %d entered zone index %d with kind %d\n", this_log->ply, this_log->idx, this_log->kind);
+        }
+
+        RiderData *rp = Ply_GetRiderGObj(tp->ply)->userdata;
+        Text_SetText(debug_text, 0, "%.2f, %.2f, %.2f", rp->pos.X, rp->pos.Y, rp->pos.Z);
+        Text_SetText(debug_text, 1, "", rp->pos.X, rp->pos.Y, rp->pos.Z);
+
+        // for (int i = 0; i < GetElementsIn(g_area_bounds); i++)
+        // {
+        //     float hx = g_area_bounds[i].size.X * 0.5f;
+        //     float hy = g_area_bounds[i].size.Y * 0.5f;
+        //     float hz = g_area_bounds[i].size.Z * 0.5f;
+
+        //     float x_min = g_area_bounds[i].pos.X - hx;
+        //     float x_max = g_area_bounds[i].pos.X + hx;
+        //     float y_min = g_area_bounds[i].pos.Y - hy;
+        //     float y_max = g_area_bounds[i].pos.Y + hy;
+        //     float z_min = g_area_bounds[i].pos.Z - hz;
+        //     float z_max = g_area_bounds[i].pos.Z + hz;
+
+        //     if (rp->pos.X >= x_min && rp->pos.X <= x_max && 
+        //         rp->pos.Y >= y_min && rp->pos.Y <= y_max && 
+        //         rp->pos.Z >= z_min && rp->pos.Z <= z_max)
+        //         {
+        //             Text_SetText(debug_text, 1, "area: %d", i);
+        //             break;
+        //         }
+        // }
     }
-    for (int i = 0; i < GetElementsIn(g_rail_log); i++)
-    {
-        RailLog *this_log = &g_rail_log[i];
-        if (this_log->ply != -1)
-            OSReport("ply %d entered rail %d with progress %.2f in status %d with ground state %d\n", this_log->ply, this_log->idx, this_log->progress, this_log->status, this_log->is_airborne);
-    }
-    for (int i = 0; i < g_zone_log_num; i++)
-    {
-        ZoneLog *this_log = &g_zone_log[i];
-        if (this_log->ply != -1)
-            OSReport("ply %d entered zone index %d with kind %d\n", this_log->ply, this_log->idx, this_log->kind);
-    }
-
-    // RiderData *rp = Ply_GetRiderGObj(tp->ply)->userdata;
-    // Text_SetText(debug_text, 0, "%.2f, %.2f, %.2f", rp->pos.X, rp->pos.Y, rp->pos.Z);
-    // Text_SetText(debug_text, 1, "", rp->pos.X, rp->pos.Y, rp->pos.Z);
-
-    // for (int i = 0; i < GetElementsIn(g_area_bounds); i++)
-    // {
-    //     float hx = g_area_bounds[i].size.X * 0.5f;
-    //     float hy = g_area_bounds[i].size.Y * 0.5f;
-    //     float hz = g_area_bounds[i].size.Z * 0.5f;
-
-    //     float x_min = g_area_bounds[i].pos.X - hx;
-    //     float x_max = g_area_bounds[i].pos.X + hx;
-    //     float y_min = g_area_bounds[i].pos.Y - hy;
-    //     float y_max = g_area_bounds[i].pos.Y + hy;
-    //     float z_min = g_area_bounds[i].pos.Z - hz;
-    //     float z_max = g_area_bounds[i].pos.Z + hz;
-
-    //     if (rp->pos.X >= x_min && rp->pos.X <= x_max && 
-    //         rp->pos.Y >= y_min && rp->pos.Y <= y_max && 
-    //         rp->pos.Z >= z_min && rp->pos.Z <= z_max)
-    //         {
-    //             Text_SetText(debug_text, 1, "area: %d", i);
-    //             break;
-    //         }
-    // }
 
 }
 void BingoTracker_GX(GOBJ *t, int pass)

@@ -3,7 +3,7 @@
 
 #define DOWNSCALE_WIDTH (640 / 2)
 #define DOWNSCALE_HEIGHT (480 / 2)
-#define DOWNSCALE_NUM 40
+#define DOWNSCALE_NUM (60)
 
 #include "scene.h"
 

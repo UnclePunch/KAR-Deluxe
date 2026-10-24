@@ -4,6 +4,7 @@
 #include "item.h"
 #include "rider.h"
 #include "machine.h"
+#include "scene.h"
 
 #define BINGO_UI_GRID_SIZE (5)
 
@@ -287,15 +288,18 @@ void Bingo_GetDescriptionForGoal(BingoGoal *gd, char *out);
 void Bingo_UpdateIconProgress(BingoGoal *goal, int progress, JOBJ *icon_j, int progres_joint_idx);
 
 void Bingo_Init();
+MajorKind Bingo_InstallScene();
+void Bingo_OnSaveLoaded();
 void Bingo_OnPlayerSelectLoad();
 void Bingo_On3DLoadStart();
 void Bingo_On3DLoadEnd();
 void Bingo_On3DPauseStart(int pause_ply);
 void Bingo_On3DUnpause(int pause_ply);
+void Bingo_OnReset();
+
 void BingoInput_Think(GOBJ *r);
 void BingoTracker_Think(GOBJ *t);
 void BingoTracker_GX(GOBJ *t, int pass);
-
 
 
 #endif

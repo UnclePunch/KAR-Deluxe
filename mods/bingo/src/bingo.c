@@ -4,6 +4,7 @@
 #include "hsd.h"
 #include "preload.h"
 #include "game.h"
+#include "scene.h"
 #include "hud.h"
 #include "text.h"
 #include "weapon.h"
@@ -14,15 +15,14 @@
 #include "hoshi/func.h"
 #include "hoshi/screen_cam.h"
 
-#include "code_patch/code_patch.h"
-
 #include "bingo.h"
+#include "bingo_scene.h"
 #include "log.h"
 #include "notif.h"
 #include "card.h"
 #include "tracker.h"
 
-extern int g_is_bingo_mode;
+int g_is_bingo_mode = 0;
 
 BingoCard g_bingo_card;
 
@@ -955,10 +955,16 @@ void Bingo_Init()
     BingoLog_Init();
     BingoUI_OnBoot();
 
+    BingoScene_Init();
+
     // yakumono logging
     // CODEPATCH_HOOKAPPLY(0x80105d90);     // events give all yakubreak hits to the lowest port player @ 80108334. disabling for now i guess
     
     // Hoshi_AddPreloadGameFile(BINGO_ASSET_FILENAME, PRELOADHEAPKIND_ALLM);
+}
+void Bingo_OnSaveLoaded()
+{
+    BingoScene_SetBoot();
 }
 void Bingo_On3DLoadStart()
 {
@@ -1003,4 +1009,8 @@ void Bingo_OnPlayerSelectLoad()
     t->aspect = (Vec2){550, 32};
     t->viewport_color = (GXColor){0, 0, 0, 128};
     Text_AddSubtext(t, 0, 0, "Bingo " __DATE__ " " __TIME__);
+}
+void Bingo_OnReset()
+{
+    BingoScene_OnReset();
 }

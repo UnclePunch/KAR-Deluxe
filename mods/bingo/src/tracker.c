@@ -248,7 +248,7 @@ void BingoTracker_GameEndThink(GOBJ *g)
 
     if (bingo_end_timer == (3 * 60))
     {
-        Scene_SetDirection(PAD_BUTTON_B);
+        Scene_SetDirection(PAD_BUTTON_A);
         Scene_ExitMinor();
         BGM_Stop();
         FGM_StopAll();

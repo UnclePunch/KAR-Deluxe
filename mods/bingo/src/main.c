@@ -11,20 +11,70 @@
 
 WideExport *g_wide_export = 0;
 
-int g_is_bingo_mode = 0;
 int g_is_lockout = 0;
 int g_is_teams = 0;
 int g_goals_to_win = 25;
 
+OptionDesc mod_settings = {
+    // Menu
+    .name = "Bingo Settings",
+    .description = "Tweak Bingo mode.",
+    .pri = MENUPRI_NORMAL,
+    .kind = OPTKIND_MENU,
+    .menu_ptr = &(MenuDesc){
+        .option_num = 4,
+        .options = {
+            &(OptionDesc){
+                .name = "Enter Bingo",
+                .description = "gogogogo!",
+                .kind = OPTKIND_SCENE,
+            },
+            &(OptionDesc){
+                .name = "Lockout",
+                .description = "Opponents cannot claim completed goals.",
+                .kind = OPTKIND_VALUE,
+                .val = &g_is_lockout,
+                .value_num = 2,
+                .value_names = (char *[]){
+                    "Off",
+                    "On",
+                },
+            },
+            &(OptionDesc){
+                .name = "Goal Amount",
+                .description = "Goals required to win.",
+                .kind = OPTKIND_NUM,
+                .val = &g_goals_to_win,
+                .min = 1,
+                .max = 25,
+            },
+            &(OptionDesc){
+                .name = "Teams",
+                .description = "Players with the same color share a team.",
+                .kind = OPTKIND_VALUE,
+                .val = &g_is_teams,
+                .value_num = 2,
+                .value_names = (char *[]){
+                    "Off",
+                    "On",
+                },
+            },
+        },
+    },
+};
+
 void OnBoot()
 {
     Bingo_Init();
+    mod_settings.menu_ptr->options[0]->major_idx = Bingo_InstallScene();
+    
     return;
 }
 
 void OnSaveLoaded()
 {
     g_wide_export = Hoshi_ImportMod("Widescreen", 1, 0);
+    Bingo_OnSaveLoaded();
     return;
 }
 
@@ -58,60 +108,10 @@ void OnPlayerSelectLoad()
     return;
 }
 
-OptionDesc mod_settings = {
-    // Menu
-    .name = "Bingo Settings",
-    .description = "Tweak Bingo mode.",
-    .pri = MENUPRI_NORMAL,
-    .kind = OPTKIND_MENU,
-    .menu_ptr = &(MenuDesc){
-        .option_num = 4,
-        .options =
-            {
-                &(OptionDesc){
-                    .name = "Bingo Mode",
-                    .description = "Toggle Bingo mode.",
-                    .kind = OPTKIND_VALUE,
-                    .val = &g_is_bingo_mode,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Off",
-                        "On",
-                    },
-                },
-                &(OptionDesc){
-                    .name = "Lockout",
-                    .description = "Opponents cannot claim completed goals.",
-                    .kind = OPTKIND_VALUE,
-                    .val = &g_is_lockout,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Off",
-                        "On",
-                    },
-                },
-                &(OptionDesc){
-                    .name = "Goal Amount",
-                    .description = "Goals required to win.",
-                    .kind = OPTKIND_NUM,
-                    .val = &g_goals_to_win,
-                    .min = 1,
-                    .max = 25,
-                },
-                &(OptionDesc){
-                    .name = "Teams",
-                    .description = "Players with the same color share a team.",
-                    .kind = OPTKIND_VALUE,
-                    .val = &g_is_teams,
-                    .value_num = 2,
-                    .value_names = (char *[]){
-                        "Off",
-                        "On",
-                    },
-                },
-            },
-    },
-};
+void OnReset()
+{
+    Bingo_OnReset();
+}
 
 ModDesc mod_desc = {
     .name = "Bingo",
@@ -127,4 +127,5 @@ ModDesc mod_desc = {
     .On3DPauseStart = On3DPauseStart,
     .On3DUnpause = On3DUnpause,
     .OnPlayerSelectLoad = OnPlayerSelectLoad,
+    .OnReset = OnReset,
 };

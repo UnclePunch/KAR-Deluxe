@@ -46,7 +46,7 @@ GOBJ *MusicChange_Create()
 
     // air ride 1p needs to render in front of the hud
     int is_airride_1p = Gm_Get3dData()->plyview_num == 1 && !Gm_IsInCity();
-    int gx_pri = (is_airride_1p) ? 2 : 1;
+    int gx_pri = (is_airride_1p) ? 2 : 0;
 
     // create hud element gobj
     GOBJ *g = GOBJ_EZCreator(27, GAMEPLINK_PAUSEHUD, 0,

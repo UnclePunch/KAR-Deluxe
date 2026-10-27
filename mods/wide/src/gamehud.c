@@ -816,18 +816,8 @@ CODEPATCH_HOOKCREATE(0x80115ad8, "lwz 3, 0x28 (30)\n\t", MiniMapDotsCam_Adjust, 
 // plicon edges
 int Plicon_GetPosition(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4)
 {
-    typedef enum ScreenEdgeKind
-    {
-        EDGE_TOP,
-        EDGE_BOTTOM,
-        EDGE_LEFT,
-        EDGE_RIGHT,
-    } ScreenEdgeKind;
-
-    ScreenEdgeKind (*HUD_AdjustPliconEdge)(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4) = (void *)0x80120360;
-
     // this function handles scaling the plicon and rotating it based on the edge its on
-    ScreenEdgeKind edge_kind = HUD_AdjustPliconEdge(g, pos1, pos2, out_screen_pos, arg4);
+    HUDScreenEdgeKind edge_kind = HUD_AdjustPliconEdge(g, pos1, pos2, out_screen_pos, arg4);
 
     // 
     HUDElementData *gp = g->userdata;
@@ -853,7 +843,7 @@ int Plicon_GetPosition(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Ve
     u16 y = (u8)-1;
     switch (edge_kind)
     {
-        case (EDGE_BOTTOM):
+        case (SCREENEDGE_BOTTOM):
             y = viewport.bottom;
 
             // move X position based on splitscreen configuration
@@ -866,10 +856,10 @@ int Plicon_GetPosition(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Ve
             
             break;
 
-        case (EDGE_LEFT):
+        case (SCREENEDGE_LEFT):
             x = viewport.left + 10;
             goto HEIGHT_ADJUST;
-        case (EDGE_RIGHT):
+        case (SCREENEDGE_RIGHT):
             x = viewport.right - 10;
             goto HEIGHT_ADJUST;
 
@@ -890,7 +880,7 @@ int Plicon_GetPosition(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Ve
     out_screen_pos->X *= Wide_GetAspectMult();
 
     // exit function if plicon should not be shown
-    return (edge_kind == EDGE_TOP);
+    return (edge_kind == SCREENEDGE_TOP);
 }
 CODEPATCH_HOOKCONDITIONALCREATE(0x8012083c, "mr 3, 27\n\t"
                                  "addi 4, 1, 68\n\t"

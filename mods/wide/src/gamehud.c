@@ -814,10 +814,10 @@ void MiniMapDotsCam_Adjust(COBJ *c)
 CODEPATCH_HOOKCREATE(0x80115ad8, "lwz 3, 0x28 (30)\n\t", MiniMapDotsCam_Adjust, "", 0)
 
 // plicon edges
-int Plicon_GetPosition(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *eye_pos)
+int Plicon_GetPosition(GOBJ *g, Vec3 *self_pos, Vec3 *opponent_pos, Vec3 *out_screen_pos, Vec3 *eye_pos)
 {
     // this function handles scaling the plicon and rotating it based on the edge its on
-    HUDScreenEdgeKind edge_kind = HUD_AdjustPliconEdge(g, pos1, pos2, out_screen_pos, eye_pos);
+    HUDScreenEdgeKind edge_kind = HUD_AdjustPliconEdge(g, self_pos, opponent_pos, out_screen_pos, eye_pos);
 
     // 
     HUDElementData *gp = g->userdata;

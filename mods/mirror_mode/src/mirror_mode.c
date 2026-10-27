@@ -1,5 +1,6 @@
 
 #include "text.h"
+#include "hud.h"
 #include "os.h"
 #include "camera.h"
 #include "hsd.h"
@@ -17,6 +18,8 @@
 int g_is_mirror = 0;
 
 int g_mirror_flags;
+
+// culling hook
 int GXSetCullMode_Invert(GXCullMode cull)
 {
     if (g_mirror_flags & MIRRORFLAG_CULL)
@@ -38,7 +41,7 @@ CODEPATCH_HOOKCREATE(0x803cc518, "stwu	1, -40 (1)\n\t"
                                  "addi 1, 1, 40\n\t",
                                  0)
 
-// declare it so C code can call it
+// GXSetProjection hook
 extern void GXSetProjection_Orig(Mtx44 mtx, GXProjectionType type);
 __asm__(
     ".section .text\n"
@@ -66,6 +69,7 @@ void GXSetProjection_Hook(Mtx44 mtx, GXProjectionType type)
     GXSetProjection_Orig(mtx, type);
 }
 
+// GXProject hook
 extern void GXProject_Orig(float mx, float my, float mz, Mtx *mtx, float* p, float* vp,  float* sx, float* sy, float* sz);
 __asm__(
     ".section .text\n"
@@ -82,6 +86,52 @@ void GXProject_Hook(float mx, float my, float mz, Mtx *mtx, float* p, float* vp,
     GXProject_Orig(mx, my, mz, mtx, p, vp, sx, sy, sz);
     if (g_mirror_flags & MIRRORFLAG_GXPROJECT)
         *sx = (2.0f * vp[0] + vp[2]) - *sx;   // vp[0] = x origin, vp[2] = width
+}
+
+// Plicon edge hook
+extern HUDScreenEdgeKind HUD_AdjustPliconEdge_Orig(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4);
+__asm__(
+    ".section .text\n"
+    ".balign 4\n"
+    ".globl HUD_AdjustPliconEdge_Orig\n"
+    ".type  HUD_AdjustPliconEdge_Orig, @function\n"
+    "HUD_AdjustPliconEdge_Orig:\n"
+    "    stwu	1, -0x0060 (1)\n"      // the original first instruction
+    "    b    HUD_AdjustPliconEdge+4\n"
+    ".size HUD_AdjustPliconEdge_Orig, .-HUD_AdjustPliconEdge_Orig\n"
+);
+HUDScreenEdgeKind HUD_AdjustPliconEdge_Hook(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4)
+{
+    // run orig
+    HUDScreenEdgeKind edge = HUD_AdjustPliconEdge_Orig(g, pos1, pos2, out_screen_pos, arg4);
+
+    // check if mirror mode is enabled
+    if (g_mirror_flags & MIRRORFLAG_GXPROJECT)
+    {
+        if (edge == SCREENEDGE_LEFT || edge == SCREENEDGE_RIGHT)
+        {
+            // invert rotation
+            JOBJ *j = g->hsd_object;
+            j->rot.Z *= -1;
+
+            // invert edge
+            if (edge == SCREENEDGE_LEFT)
+                edge = SCREENEDGE_RIGHT;
+            else if (edge == SCREENEDGE_RIGHT)
+                edge = SCREENEDGE_LEFT;
+        }
+        if (edge == SCREENEDGE_BOTTOM)
+        {
+            // mirror X position across center
+
+            // // function calculates using a uniform width and adjusts for splitscreen after
+            // bp();
+            // float bottom_edge_range = *(float *)0x805dfdd8;
+            // out_screen_pos->X = bottom_edge_range/2) + bottom_edge_range  - out_screen_pos->X;
+        }
+    }
+
+    return edge;
 }
 
 int MirrorMode_Set(int flags)
@@ -208,6 +258,9 @@ void MirrorMode_Init()
 
     // minimap dots cam
     CODEPATCH_REPLACECALL(0x80115ac4, HUDMapDots_InitCObj);
+
+    // plicon indicator mirror
+    CODEPATCH_REPLACEFUNC(HUD_AdjustPliconEdge, HUD_AdjustPliconEdge_Hook);
 
     // invert controls
     CODEPATCH_HOOKAPPLY(0x8018f0cc);

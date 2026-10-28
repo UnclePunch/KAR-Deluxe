@@ -22,7 +22,8 @@ int g_mirror_flags;
 // culling hook
 int GXSetCullMode_Invert(GXCullMode cull)
 {
-    if (g_mirror_flags & MIRRORFLAG_CULL)
+    if (g_mirror_flags & MIRRORFLAG_CAM &       // requesting to invert culling
+        !(g_mirror_flags & MIRRORFLAG_JOBJ))    // if jobj mirroring is enabled, skip inverting culling since it will be effectively unmirrored
     {
         if (cull == GX_CULL_FRONT)
             cull = GX_CULL_BACK;
@@ -55,7 +56,7 @@ __asm__(
 );
 void GXSetProjection_Hook(Mtx44 mtx, GXProjectionType type)
 {
-    if (g_mirror_flags & MIRRORFLAG_GXSETPROJECTION) 
+    if (g_mirror_flags & MIRRORFLAG_CAM) 
     {
         Mtx44 m;
         memcpy(m, mtx, sizeof(Mtx44));
@@ -89,6 +90,38 @@ void GXProject_Hook(float mx, float my, float mz, Mtx *mtx, float* p, float* vp,
 }
 
 // Plicon edge hook
+extern void GXLoadPosMtxImm_Orig(Mtx *mtx, u32 id);
+__asm__(
+    ".section .text\n"
+    ".balign 4\n"
+    ".globl GXLoadPosMtxImm_Orig\n"
+    ".type  GXLoadPosMtxImm_Orig, @function\n"
+    "GXLoadPosMtxImm_Orig:\n"
+    "    lis	5, 0xCC01\n"      // the original first instruction
+    "    b    GXLoadPosMtxImm+4\n"
+    ".size GXLoadPosMtxImm_Orig, .-GXLoadPosMtxImm_Orig\n"
+);
+void GXLoadPosMtxImm_Hook(Mtx *mtx, GXPosNormMtx id)
+{
+    // this really only works for billboarded planes
+    // doing this so item patches display at the correct orientation
+
+    // check if mirror mode is enabled
+    if (g_mirror_flags & MIRRORFLAG_JOBJ)
+    {
+        Mtx m;
+        memcpy(&m, mtx, sizeof(Mtx));
+        m[0][0] = -m[0][0];
+        m[0][1] = -m[0][1];
+        m[0][2] = -m[0][2];
+        GXLoadPosMtxImm_Orig(&m, id);
+        return;
+    }
+    
+    GXLoadPosMtxImm_Orig(mtx, id);
+}
+
+// Plicon edge hook
 extern HUDScreenEdgeKind HUD_AdjustPliconEdge_Orig(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4);
 __asm__(
     ".section .text\n"
@@ -100,10 +133,10 @@ __asm__(
     "    b    HUD_AdjustPliconEdge+4\n"
     ".size HUD_AdjustPliconEdge_Orig, .-HUD_AdjustPliconEdge_Orig\n"
 );
-HUDScreenEdgeKind HUD_AdjustPliconEdge_Hook(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec3 *out_screen_pos, Vec3 *arg4)
+HUDScreenEdgeKind HUD_AdjustPliconEdge_Hook(GOBJ *g, Vec3 *self_pos, Vec3 *opponent_pos, Vec3 *out_screen_pos, Vec3 *eye_pos)
 {
     // run orig
-    HUDScreenEdgeKind edge = HUD_AdjustPliconEdge_Orig(g, pos1, pos2, out_screen_pos, arg4);
+    HUDScreenEdgeKind edge = HUD_AdjustPliconEdge_Orig(g, self_pos, opponent_pos, out_screen_pos, eye_pos);
 
     // check if mirror mode is enabled
     if (g_mirror_flags & MIRRORFLAG_GXPROJECT)
@@ -124,10 +157,10 @@ HUDScreenEdgeKind HUD_AdjustPliconEdge_Hook(GOBJ *g, Vec3 *pos1, Vec3 *pos2, Vec
         {
             // mirror X position across center
 
-            // // function calculates using a uniform width and adjusts for splitscreen after
-            // bp();
-            // float bottom_edge_range = *(float *)0x805dfdd8;
-            // out_screen_pos->X = bottom_edge_range/2) + bottom_edge_range  - out_screen_pos->X;
+            // function calculates using a uniform width and adjusts for splitscreen after
+            float bottom_edge_start_x = *(float *)0x805dfdd8;
+            float bottom_edge_width = *(float *)0x805dfdd4;
+            out_screen_pos->X = bottom_edge_start_x + ((bottom_edge_start_x + bottom_edge_width) - out_screen_pos->X);
         }
     }
 
@@ -150,7 +183,7 @@ int MirrorMode_Set(int flags)
 // 3D Cam: invert everything
 void GameCam_SetCurrentCOBJ(COBJ *c)
 {
-    MirrorMode_Set(MIRRORFLAG_CULL | MIRRORFLAG_GXPROJECT | MIRRORFLAG_GXSETPROJECTION);
+    MirrorMode_Set(MIRRORFLAG_CAM);
     CObj_SetCurrent(c);
 }
 void GameCam_EndCurrentCOBJ()
@@ -215,7 +248,7 @@ void HUDMap_CObjThink(GOBJ *g)
 
     COBJ *c = g->hsd_object;
 
-    int prev = MirrorMode_Set(MIRRORFLAG_CULL | MIRRORFLAG_GXPROJECT | MIRRORFLAG_GXSETPROJECTION);
+    int prev = MirrorMode_Set(MIRRORFLAG_CAM);
 
     CObj_SetCurrent(c);
     CObj_RenderGXLinks(g, 7);
@@ -238,13 +271,30 @@ void Rider_InvertControls(RiderData *rd)
 }
 CODEPATCH_HOOKCREATE(0x8018f0cc, "mr 3, 31\n\t", Rider_InvertControls, "", 0)
 
+void Item_RenderJObj(GOBJ *g, int pass)
+{
+    ItemData *ip = g->userdata;
+
+    // flip billboarded items
+    if (g_is_mirror && ip->kind > ITKIND_BOXRED && ip->kind < ITKIND_NUM)
+    {
+        int prev = MirrorMode_Set(g_mirror_flags | MIRRORFLAG_JOBJ);
+        JObj_GX(g, pass);
+        MirrorMode_Set(prev);
+        return;
+    }
+    
+    JObj_GX(g, pass);
+}
+
 void MirrorMode_Init()
 {
     g_mirror_flags = 0;
 
     CODEPATCH_HOOKAPPLY(0x803cc518);                                // invert culling when mirror enabled
-    CODEPATCH_REPLACEFUNC(GXSetProjection, GXSetProjection_Hook);   // invert projection matrix when mirror enabled
-    CODEPATCH_REPLACEFUNC(GXProject, GXProject_Hook);               // invert projection matrix when mirror enabled
+    CODEPATCH_REPLACEFUNC(GXSetProjection, GXSetProjection_Hook);   // invert projection matrix when flag enabled
+    CODEPATCH_REPLACEFUNC(GXProject, GXProject_Hook);               // invert gxproject operations when flag enabled
+    CODEPATCH_REPLACEFUNC(GXLoadPosMtxImm, GXLoadPosMtxImm_Hook);   // invert model matrix when flag enabled
     
     // main 3d cam
     CODEPATCH_REPLACECALL(0x800b05c0, GameCam_SetCurrentCOBJ);
@@ -264,4 +314,7 @@ void MirrorMode_Init()
 
     // invert controls
     CODEPATCH_HOOKAPPLY(0x8018f0cc);
+
+    // invert item models
+    CODEPATCH_REPLACECALL(0x8024fd64, Item_RenderJObj);   
 }

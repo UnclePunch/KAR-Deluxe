@@ -15,7 +15,7 @@ LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
 # --- Directories ---
 BUILD_DIR 		= build
 SCRIPT_DIR 		?= scripts
-HOSHI_DIR		= externals/hoshi
+HOSHI_DIR		?= externals/hoshi
 LIB_DIR 		= $(HOSHI_DIR)/Lib
 MOD_INC_DIR 	?= include
 HOSHI_INC_DIR 	?= $(HOSHI_DIR)/include
@@ -25,7 +25,6 @@ ROOT_DIR 		= root
 ISO_DIR		 	?= iso
 OUT_DIR 		= out
 MODS_OUT_DIR 	= $(ROOT_DIR)/files/mods
-ISO_OUT_DIR 	= 
 INSTALL_DIR 	?=
 
 # --- File Paths ---
@@ -52,10 +51,12 @@ MODS_ROOT_DIR = mods
 # INCLUDES: Transforms include paths into compiler -I flags
 INCLUDES = -I$(HOSHI_INC_DIR) -I$(MOD_INC_DIR) -I$(LIB_DIR)
 
+rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
 # --- Source File Discovery ---
 
 # 1. Libraries: Find all C source files recursively under the LIB_DIR.
-LIB_SOURCES := $(shell find $(LIB_DIR) -name "*.c")
+LIB_SOURCES := $(call rwildcard,$(LIB_DIR),*.c)
 
 # 2. Mods: Find all mods in the mod folder
 MOD_NAMES ?= $(notdir $(wildcard $(MODS_ROOT_DIR)/*))
@@ -63,9 +64,9 @@ MOD_NAMES ?= $(notdir $(wildcard $(MODS_ROOT_DIR)/*))
 
 # 3. Mods Source: For each mod, find its specific source files within its 'src' subdirectory.
 MOD_C_SOURCES := $(foreach mod,$(MOD_NAMES),\
-                       $(shell find $(MODS_ROOT_DIR)/$(mod)/src -name "*.c"))
+                       $(call rwildcard,$(MODS_ROOT_DIR)/$(mod)/src,*.c))
 MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
-                       $(shell find $(MODS_ROOT_DIR)/$(mod)/src -name "*.s"))
+                       $(call rwildcard,$(MODS_ROOT_DIR)/$(mod)/src,*.s))
 
 # --- Object and Dependency File Mapping ---
 

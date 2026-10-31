@@ -239,8 +239,9 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume)
             return 0;
         }
 
-        // find this song
         int rand_entry = HSD_Randi(song_num);
+        
+        // find this song
         int song_to_play = 0;
         song_num = 0;
         for (int i = 0; i < SONGS_PER_PLAYLIST; i++)
@@ -263,15 +264,17 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume)
     }
     case (PLAYLISTMODE_RANDOM):
     {
-        int rand_song_idx;
+        // int rand_song_idx;
 
-        // get a random song
-        do
-        {
-            rand_song_idx = HSD_Randi(stc_song_num);
-        } while (rand_song_idx == stc_cur_playing_entrynum);
+        // // get a random song
+        // do
+        // {
+        //     rand_song_idx = HSD_Randi(stc_song_num);
+        // } while (rand_song_idx == stc_cur_playing_entrynum);
 
-        SongData_PlaySong(rand_song_idx, volume); // play it
+        // SongData_PlaySong(rand_song_idx, volume); // play it
+
+        SongData_PlayRandomSong(volume);
 
         return 1;
     }
@@ -387,7 +390,7 @@ int SongData_PlayRandomStageSong()
         }
         }
 
-        if (playlist_kind != 1)
+        if (playlist_kind != -1)
         {
             int is_played = SongData_PlayFromPlaylist(playlist_kind, volume);
 

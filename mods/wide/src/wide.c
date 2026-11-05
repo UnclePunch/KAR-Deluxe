@@ -142,9 +142,13 @@ void Wide_OnOptionChange(int val)
                 {
                     c = tc->cam_gobj->hsd_object;
 
-                    c->projection_param.ortho.left = 0;
-                    c->projection_param.ortho.right = 640;
+                    // reset text cam cobj (copied from 8044f758)
+                    COBJ_Init(c, (COBJDesc *)0x805096a0);
+                    CObj_SetOrtho(c, 0, -480, 0, 640);
+
+                    // widen cobj
                     CObj_AdjustWideOrtho(c);
+
                     CObj_SetMtxDirty(c);
                     break;
                 }
@@ -169,16 +173,19 @@ void Wide_OnOptionChange(int val)
 void CObj_AdjustWideOrtho(COBJ *c)
 {
     float adjust_ratio = Wide_GetAspectMult();
-    float orig_width = c->projection_param.ortho.right;
+    float orig_width = c->projection_param.ortho.right - c->projection_param.ortho.left;
+    float new_width = orig_width * adjust_ratio;
 
     // widen bounds
     c->projection_param.ortho.left *= adjust_ratio;
     c->projection_param.ortho.right *= adjust_ratio;
 
+    float center_x = (c->projection_param.ortho.right + c->projection_param.ortho.left) / 2;
+
     // shift eye and interest to center 0->640 (compatibility with original game code)
-    float shift_amt = -((c->projection_param.ortho.right + c->projection_param.ortho.left) - orig_width) / 2;
-    c->eye->pos.X = shift_amt;
-    c->interest->pos.X = shift_amt;
+    float shift_amt = -(new_width - orig_width) * (center_x / new_width);
+    c->eye->pos.X += shift_amt;
+    c->interest->pos.X += shift_amt;
 }
 CODEPATCH_HOOKCREATE(0x8044f778, "mr 3,28\n\t", CObj_AdjustWideOrtho, "", 0)
 CODEPATCH_HOOKCREATE(0x800ab218, "lwz 3, 0x28(26)\n\t", CObj_AdjustWideOrtho, "", 0)

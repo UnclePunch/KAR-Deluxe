@@ -18,6 +18,7 @@ WideExport wide_export = {
     .HUDAdjust_Element = HUDAdjust_Element,
     .HUDAdjust_Camera = HUDAdjust_Camera,
     .Wide_GetAspectMult = Wide_GetAspectMult,
+    .CObj_AdjustWideOrtho = CObj_AdjustWideOrtho,
 };
 
 void OnBoot()

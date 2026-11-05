@@ -4,7 +4,7 @@
 #include "datatypes.h"
 #include "obj.h"
 
-#define WIDE_VERSION_MAJOR 1
+#define WIDE_VERSION_MAJOR 2
 #define WIDE_VERSION_MINOR 0
 
 // this is the width of the original perspective screen camera
@@ -31,6 +31,7 @@ typedef struct WideExport
     void (*HUDAdjust_Element)(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align);
     void (*HUDAdjust_Camera)(COBJ *c);
     float (*Wide_GetAspectMult)();
+    void (*CObj_AdjustWideOrtho)(COBJ *c);
 } WideExport;
 
 #endif

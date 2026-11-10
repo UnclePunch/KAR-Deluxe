@@ -50,7 +50,7 @@ static struct PlaylistDefault playlist_defaults[] = {
     {.playlist = PLAYLIST_RESULTS, .entry = 1, .song_name = "Top Ride Results"},
     {.playlist = PLAYLIST_HIGHJUMP, .entry = 0, .song_name = "Air Glider"},
     {.playlist = PLAYLIST_TARGETFLIGHT, .entry = 0, .song_name = "Target Flight"},
-    {.playlist = PLAYLIST_DESTRUCTIONDERBY, .entry = 0, .song_name = "Drag Race"},
+    {.playlist = PLAYLIST_DESTRUCTIONDERBY, .entry = 0, .song_name = "Checker Knights"},
     {.playlist = PLAYLIST_AIRGLIDER, .entry = 0, .song_name = "Air Glider"},
     {.playlist = PLAYLIST_DRAGRACE, .entry = 0, .song_name = "Drag Race"},
     {.playlist = PLAYLIST_KIRBYMELEE, .entry = 0, .song_name = "Kirby Melee"},

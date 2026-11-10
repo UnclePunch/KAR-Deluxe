@@ -1,7 +1,7 @@
 #ifndef MUSICSETTINGS_H
 #define MUSICSETTINGS_H
 
-#define VERSION_MAJOR 1
+#define VERSION_MAJOR 2
 #define VERSION_MINOR 0
 
 #include "music_database.h"
@@ -46,7 +46,7 @@ typedef struct MusicSettingsSave
     struct
     {
         MusicSettingsPlaylistMode mode;
-        int song_hash[SONGS_PER_PLAYLIST];
+        s16 song_hash[SONGS_PER_PLAYLIST];
     } playlist[PLAYLIST_NUM];
 } MusicSettingsSave;
 

@@ -203,7 +203,7 @@ int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist)
     // check all songs against the currently playing one
     for (int i = 0; i < SONGS_PER_PLAYLIST; i++)
     {
-        int song_database_idx = stc_playlist_data[playlist].songs[i];
+        u16 song_database_idx = stc_playlist_data[playlist].songs[i];
         if (song_database_idx != 0)
         {
             if (stc_cur_playing_entrynum == stc_song_data[song_database_idx].entrynum)
@@ -280,7 +280,7 @@ int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume)
     }
     }
 }
-int SongData_PlaySong(int song_database_idx, int volume)
+int SongData_PlaySong(u16 song_database_idx, int volume)
 {
     int entrynum = stc_song_data[song_database_idx].entrynum;
 

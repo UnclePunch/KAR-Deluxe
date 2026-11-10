@@ -122,7 +122,7 @@ void MusicSettings_CopyFromSave()
         int song_num = 0;
         for (int song_idx = 0; song_idx < SONGS_PER_PLAYLIST; song_idx++)
         {
-            int hash = mod_save->playlist[playlist_idx].song_hash[song_idx]; // get hash from save
+            s16 hash = mod_save->playlist[playlist_idx].song_hash[song_idx]; // get hash from save
 
             // OSReport("  hash: %x\n", hash);
 
@@ -147,7 +147,7 @@ void MusicSettings_CopyFromSave()
 
             if (!is_found)
             {
-                OSReport("ERROR: Playlist %d Song Entry %d with hash 0x%08x not found!\n", playlist_idx, song_idx, hash);
+                OSReport("ERROR: Playlist %d Song Entry %d with hash 0x%04x not found!\n", playlist_idx, song_idx, hash);
             }
         }
 
@@ -195,7 +195,7 @@ void MusicSettings_CopyToSave()
         for (int song_idx = 0; song_idx < stc_playlist_data[playlist_idx].song_num; song_idx++)
         {
             int database_song_idx = stc_playlist_data[playlist_idx].songs[song_idx];
-            int song_hash = stc_song_data[database_song_idx].hash;
+            s16 song_hash = stc_song_data[database_song_idx].hash;
 
             // OSReport("  hash: %x\n", song_hash);
 

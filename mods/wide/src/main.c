@@ -68,12 +68,20 @@ OptionDesc mod_settings = {
     .on_change = Wide_OnOptionChange,
 };
 
+ModCredit *mod_credits[] = {
+    &(ModCredit) {
+        .role = "UI Adjustments",
+        .names = (char *[]){ "VirtualTurtle", NULL },
+    },
+    NULL,
+};
 
 ModDesc mod_desc = {
     .name = "Widescreen",
     .author = "UnclePunch",
     .version.major = WIDE_VERSION_MAJOR,
     .version.minor = WIDE_VERSION_MINOR,
+    .credits = mod_credits,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSaveLoaded = OnSaveLoaded,

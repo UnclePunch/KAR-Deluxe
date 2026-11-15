@@ -48,6 +48,18 @@ void On3DLoadEnd()
     EventReveal_Do();
 }
 
+ModCredit *mod_credits[] = {
+    &(ModCredit) {
+        .role = "UI Design",
+        .names = (char *[]){ "TacoTikiTaco", NULL },
+    },
+    &(ModCredit) {
+        .role = "Planning",
+        .names = (char *[]){ "Shank", NULL },
+    },
+    NULL,
+};
+
 ModDesc mod_desc = {
     .name = "City Settings",
     .author = "UnclePunch",
@@ -55,6 +67,7 @@ ModDesc mod_desc = {
     .version.minor = VERSION_MINOR,
     .affects_gameplay = true,
     .save_size = sizeof(struct CitySettingsSave),
+    .credits = mod_credits,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .OnSaveInit = OnSaveInit,

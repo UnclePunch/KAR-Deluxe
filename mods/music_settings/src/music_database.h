@@ -1,7 +1,7 @@
 #ifndef MUSICDATABASE_H
 #define MUSICDATABASE_H
 
-#define SONGS_PER_PLAYLIST 15
+#define SONGS_PER_PLAYLIST 30
 
 typedef enum MusicSettingsPlaylist
 {
@@ -29,7 +29,7 @@ typedef enum MusicSettingsPlaylistMode
 
 typedef struct SongData
 {
-    int hash;
+    s16 hash;
     u16 entrynum;
     u8 is_rand_selected;
     char *name;
@@ -38,8 +38,8 @@ typedef struct SongData
 typedef struct PlaylistData
 {
     MusicSettingsPlaylistMode mode;
-    int song_num;
-    int songs[SONGS_PER_PLAYLIST];
+    u16 song_num;
+    u16 songs[SONGS_PER_PLAYLIST];
 } PlaylistData;
 
 typedef struct MusicExport
@@ -56,7 +56,7 @@ SongData *SongData_GetDataByEntrynum(int entrynum);
 int SongData_GetIndexByName(char *song_name);
 MusicSettingsPlaylistMode SongData_GetPlaylistMode(MusicSettingsPlaylist playlist);
 int SongData_CheckPlaylistForCurrentPlayingSong(MusicSettingsPlaylist playlist);
-int SongData_PlaySong(int song_database_idx, int volume);
+int SongData_PlaySong(u16 song_database_idx, int volume);
 int SongData_PlayRandomSong(int volume);
 int SongData_PlayRandomStageSong();
 int SongData_PlayFromPlaylist(MusicSettingsPlaylist playlist, int volume);

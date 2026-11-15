@@ -24,7 +24,7 @@ void CitySelect_UpdatePlayer(int ply, int p_kind, int color_idx)
     if (!stc_scene_menu_common->city_select.board_gobj)
         return;
 
-    CitySelectMenuData *md = stc_scene_menu_common->city_select.board_gobj->userdata;
+    CitySelectBoardData *md = stc_scene_menu_common->city_select.board_gobj->userdata;
     int *select_color_start = (int *)0x804ab608;
 
     md->ply[ply].p_kind = p_kind;
@@ -222,7 +222,7 @@ void CitySelect_Cursor6Think(GOBJ *g)
     }
 
     // update color
-    Select_SetUIColor(cj, 2, 0, stc_ui_colors[cd->color_idx].main); // underside
+    Select_SetUIColor(cj, 2, 0, stc_ui_colors[cd->color].main); // underside
 }
 
 int CitySelect_GetNextColor(int ply, int dir, int col_idx)

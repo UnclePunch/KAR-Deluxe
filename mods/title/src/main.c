@@ -16,10 +16,19 @@ void OnBoot()
     return;
 }
 
+ModCredit *mod_credits[] = {
+    &(ModCredit) {
+        .role = "Artwork",
+        .names = (char *[]){ "TacoTikiTaco", NULL },
+    },
+    NULL,
+};
+
 ModDesc mod_desc = {
     .name = "KAR Deluxe Title",
     .author = "UnclePunch",
     .version.major = 1,
     .version.minor = 0,
+    .credits = mod_credits,
     .OnBoot = OnBoot,
 };

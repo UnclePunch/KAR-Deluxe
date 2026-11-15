@@ -2,6 +2,7 @@
     Entrypoint for the music_settings module.
 
  *---------------------------------------------------------------------------*/
+#include <stddef.h>
 
 #include "hoshi/settings.h"
 #include "hoshi/mod.h"
@@ -54,6 +55,14 @@ void On3DUnpause(int pauser_ply)
     MusicChange_Destroy();
 }
 
+ModCredit *mod_credits[] = {
+    &(ModCredit) {
+        .role = "UI Design",
+        .names = (char *[]){ "TacoTikiTaco", NULL },
+    },
+    NULL,
+};
+
 ModDesc mod_desc = {
     .name = "Music Settings",
     .author = "UnclePunch",
@@ -61,6 +70,7 @@ ModDesc mod_desc = {
     .version.minor = VERSION_MINOR,
     .affects_gameplay = false,
     .save_size = sizeof(struct MusicSettingsSave),
+    .credits = mod_credits,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,
     .OnSaveInit = OnSaveInit,

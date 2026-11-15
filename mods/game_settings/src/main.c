@@ -261,12 +261,25 @@ void On3DPauseStart(int pause_ply)
     QuickStat_OnPause();
 }
 
+ModCredit *mod_credits[] = {
+    &(ModCredit) {
+        .role = "Additional Programming",
+        .names = (char *[]){ "container12345", NULL },
+    },
+    &(ModCredit) {
+        .role = "Game Balance",
+        .names = (char *[]){ "TacoTikiTaco", "Jas5250", NULL },
+    },
+    NULL,
+};
+
 ModDesc mod_desc = {
     .name = "Game Settings",
     .author = "UnclePunch",
     .version.major = VERSION_MAJOR,
     .version.minor = VERSION_MINOR,
     .affects_gameplay = true,
+    .credits = mod_credits,
     .option_desc = &mod_settings,
     .OnBoot = OnBoot,
     .OnSceneChange = OnSceneChange,

@@ -309,7 +309,7 @@ int MachineRespawn_CheckIfEnabledInCity(RiderData *rd)
     else
         return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801952c8, "mr 3,31\n\t", MachineRespawn_CheckIfEnabledInCity, "", 0, 0x801952e0)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801952c8, "mr 3,31\n\t", MachineRespawn_CheckIfEnabledInCity, "", 0, "", 0x801952e0)
 int MachineRespawn_CheckToRespawnRider(RiderData *rd)
 {
     // this hook runs after destruction derby check fails
@@ -329,7 +329,7 @@ int MachineRespawn_CheckToRespawnRider(RiderData *rd)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801a5424, "mr 3,31\n\t", MachineRespawn_CheckToRespawnRider, "", 0, 0x801a5470)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801a5424, "mr 3,31\n\t", MachineRespawn_CheckToRespawnRider, "", 0, "", 0x801a5470)
 void MachineRespawn_DisableWalkAfterDead(RiderData *rd)
 {
     GameData *gd = Gm_GetGameData();

@@ -22,7 +22,7 @@ int AttractMode_Hook()
     else
         return 1;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x8001823c, "", AttractMode_Hook, "", 0, 0x80018270)
+CODEPATCH_HOOKCONDITIONALCREATE(0x8001823c, "", AttractMode_Hook, "", 0, "", 0x80018270)
 void AttractMode_Init()
 {
     CODEPATCH_HOOKAPPLY(0x8001823c);

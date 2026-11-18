@@ -67,7 +67,7 @@ int Hook_OnKOFromDamage(MachineData *md)
 
     return 1;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801e1f60, "mr 3, 30\n\t", Hook_OnKOFromDamage, "", 0, 0x801e1f78)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801e1f60, "mr 3, 30\n\t", Hook_OnKOFromDamage, "", 0, "", 0x801e1f78)
 
 // Give full HP after respawning from a fall
 void Hook_OnFallRespawn(int ply) // only runs during DD

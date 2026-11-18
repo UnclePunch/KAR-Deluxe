@@ -135,7 +135,7 @@ int UnpauseDelay_Wait_Hook()
         return 0; // continue running game's pause function
     }
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x80041188, "", UnpauseDelay_Wait_Hook, "", 0, 0x800415d8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x80041188, "", UnpauseDelay_Wait_Hook, "", 0, "", 0x800415d8)
 
 int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
 {
@@ -170,9 +170,9 @@ int UnpauseDelay_Enter_Hook(HSD_Pad *pad)
 
     return 1;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x800413b0, "", UnpauseDelay_Enter_Hook, "", 0, 0x800415d8)
-CODEPATCH_HOOKCONDITIONALCREATE(0x800411f8, "", UnpauseDelay_Enter_Hook, "", 0, 0x800415d8)
-CODEPATCH_HOOKCONDITIONALCREATE(0x800411d4, "", UnpauseDelay_Enter_Hook, "", 0, 0x800415d8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x800413b0, "", UnpauseDelay_Enter_Hook, "", 0, "", 0x800415d8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x800411f8, "", UnpauseDelay_Enter_Hook, "", 0, "", 0x800415d8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x800411d4, "", UnpauseDelay_Enter_Hook, "", 0, "", 0x800415d8)
 
 void UnpauseDelay_Init()
 {

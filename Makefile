@@ -16,7 +16,7 @@ LD = $(DEVKITPPC)/bin/powerpc-eabi-ld
 BUILD_DIR 		= build
 SCRIPT_DIR 		?= scripts
 HOSHI_DIR		?= externals/hoshi
-LIB_DIR 		= $(HOSHI_DIR)/Lib
+LIB_DIR 		?= $(HOSHI_DIR)/Lib
 MOD_INC_DIR 	?= include
 HOSHI_INC_DIR 	?= $(HOSHI_DIR)/include
 PACKTOOL_DIR 	?= $(HOSHI_DIR)/packtool
@@ -71,7 +71,7 @@ MOD_ASM_SOURCES := $(foreach mod,$(MOD_NAMES),\
 # --- Object and Dependency File Mapping ---
 
 # Map individual library source files to their corresponding object files in BUILD_DIR.
-LIB_OBJECTS := $(patsubst $(LIB_DIR)/%.c,$(BUILD_DIR)/$(LIB_DIR)/%.o,$(LIB_SOURCES))
+LIB_OBJECTS := $(patsubst $(LIB_DIR)/%.c,$(BUILD_DIR)/lib/%.o,$(LIB_SOURCES))
 
 # Map individual mod source files to their corresponding object files in BUILD_DIR.
 MOD_C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(MOD_C_SOURCES))
@@ -144,6 +144,11 @@ $(ORIG_DOL):
 # --- hoshi target ---
 hoshi: $(ORIG_DOL)
 	$(MAKE) -C $(HOSHI_DIR) MOD_NAME=KirbyAirRideDeluxe
+
+# --- Library Compilation Rule ---
+$(BUILD_DIR)/lib/%.o: $(LIB_DIR)/%.c | $(OBJ_DIRS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # --- Generic Compilation Rule for C Source Files ---
 # This single pattern rule handles compiling ANY .c file into its corresponding .o file in BUILD_DIR.

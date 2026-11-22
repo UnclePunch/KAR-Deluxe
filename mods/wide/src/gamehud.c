@@ -64,12 +64,6 @@ static CamScissor *ply_orig_viewport_lookup[] = {
     ply_viewport_4,
 };
 
-static void (*ply_viewport_get[])(int view_index, CamScissor *out) = {
-    PlyCam_Get2PScissor,
-    PlyCam_Get4PScissor,
-    PlyCam_Get4PScissor,
-};
-
 static CamScissor map_viewport_2 = {
     .left = 55,
     .right = 215,
@@ -104,6 +98,50 @@ static CamScissor map_viewport_2_custom = {
     .right = 400,
 };
 
+void PlyCam_GetScissor(int view_index, CamScissor *out)
+{
+    int plyview_num = Gm_GetPlyViewNum();
+
+    switch (plyview_num)
+    {
+        case (1):
+        PlyCam_GetFullscreenScissor(out);
+        break;
+        case (2):
+        PlyCam_Get2PScissor(view_index, out);
+        break;
+        case (3):
+        case (4):
+        PlyCam_Get4PScissor(view_index, out);
+        break;
+    }
+}
+void PlyCam_GetOriginalViewport(int view_index, CamScissor *out)
+{
+    int plyview_num = Gm_GetPlyViewNum();
+
+    CamScissor *orig_viewport = 0;
+
+    switch (plyview_num)
+    {
+        case (1):
+            orig_viewport = ply_viewport_1;
+            break;
+        case (2):
+            orig_viewport = &ply_viewport_2[view_index];
+            break;
+        case (3):
+        case (4):
+            orig_viewport = &ply_viewport_4[view_index];
+            break;
+        default:
+            return;
+    }
+
+    memcpy(out, orig_viewport, sizeof(CamScissor));
+}
+
+
 extern float wide_kind_fractions[];
 
 void DebugHUD_GX(GOBJ *g, int pass)
@@ -134,7 +172,7 @@ void DebugHUD_GX(GOBJ *g, int pass)
         for (int i = 0; i < plyview_num; i++)
         {
             CamScissor view_arr;
-            ply_viewport_get[plyview_num - 2](i, &view_arr);
+            PlyCam_GetScissor(i, &view_arr);
             float width_pixel = view_arr.right - view_arr.left;
             float height_pixel = view_arr.bottom - view_arr.top;
             
@@ -323,10 +361,10 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
     {
         // return;
 
-        CamScissor *orig_view_arr = &ply_orig_viewport_lookup[plyview_num - 1][gp->ply];
-
         CamScissor view_arr;
-        ply_viewport_get[plyview_num - 2](gp->ply, &view_arr);
+        PlyCam_GetScissor(gp->ply, &view_arr);
+        CamScissor orig_viewport;
+        PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
 
         Vec3 *plyview_pos_offset;
         switch (gp->kind)
@@ -349,34 +387,34 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
         u16 orig_x_pixel, cur_x_pixel;
         if (x_align == WIDEALIGN_LEFT)
         {
-            orig_x_pixel = orig_view_arr->left;
+            orig_x_pixel = orig_viewport.left;
             cur_x_pixel = view_arr.left;
         }
         else if (x_align == WIDEALIGN_RIGHT)
         {
-            orig_x_pixel = orig_view_arr->right;
+            orig_x_pixel = orig_viewport.right;
             cur_x_pixel = view_arr.right;
         }
         else if (x_align == WIDEALIGN_CENTER)
         {
-            orig_x_pixel = (orig_view_arr->right + orig_view_arr->left) / 2;
+            orig_x_pixel = (orig_viewport.right + orig_viewport.left) / 2;
             cur_x_pixel = (view_arr.right + view_arr.left) / 2;
         }
         
         u16 orig_y_pixel, cur_y_pixel;
         if (y_align == HEIGHTALIGN_TOP)
         {
-            orig_y_pixel = orig_view_arr->top;
+            orig_y_pixel = orig_viewport.top;
             cur_y_pixel = view_arr.top;
         }
         else if (y_align == HEIGHTALIGN_BOTTOM)
         {
-            orig_y_pixel = orig_view_arr->bottom;
+            orig_y_pixel = orig_viewport.bottom;
             cur_y_pixel = view_arr.bottom;
         }
         else if (y_align == HEIGHTALIGN_CENTER)
         {
-            orig_y_pixel = (orig_view_arr->bottom + orig_view_arr->top) / 2;
+            orig_y_pixel = (orig_viewport.bottom + orig_viewport.top) / 2;
             cur_y_pixel = (view_arr.bottom + view_arr.top) / 2;
         }
         
@@ -416,23 +454,10 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
     }
 
     CamScissor viewport;
-    CamScissor *orig_viewport;
-    switch (plyview_num)
-    {
-        case (1):
-            PlyCam_GetFullscreenScissor(&viewport);
-            orig_viewport = &viewport;
-            break;
-        case (2):
-            PlyCam_Get2PScissor(gp->ply, &viewport);
-            orig_viewport = &ply_viewport_2[gp->ply];
-            break;
-        case (3):
-        case (4):
-            PlyCam_Get4PScissor(gp->ply, &viewport);
-            orig_viewport = &ply_viewport_4[gp->ply];
-            break;
-    }
+    PlyCam_GetScissor(gp->ply, &viewport);
+    CamScissor orig_viewport;
+    PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
+
     JOBJ *j = (joint_index == 0) ? g->hsd_object : JObj_GetIndex(g->hsd_object, joint_index);
 
     float dir = (x_align == WIDEALIGN_LEFT) ? -1 : 1;
@@ -441,8 +466,8 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
     if (aspect_scale > 1.3333)
         aspect_scale = 1.3333;
 
-    float viewport_scale_x = (float)((viewport.right - viewport.left)) / (float)((orig_viewport->right - orig_viewport->left));
-    float viewport_scale_y = (float)((viewport.bottom - viewport.top)) / (float)((orig_viewport->bottom - orig_viewport->top));
+    float viewport_scale_x = (float)((viewport.right - viewport.left)) / (float)((orig_viewport.right - orig_viewport.left));
+    float viewport_scale_y = (float)((viewport.bottom - viewport.top)) / (float)((orig_viewport.bottom - orig_viewport.top));
     float cur_width = ORIG_WIDTH * viewport_scale_x * aspect_scale;
     float cur_height = ORIG_HEIGHT * viewport_scale_y;
     float extra_x = (cur_width - ORIG_WIDTH);
@@ -663,21 +688,20 @@ void HUDAdjust_PositionModel(GOBJ *g)
     Vec2 *offset;
     for (int ply = 0; ply < 4; ply++)
     {        
+        PlyCam_GetScissor(ply, &scissor);
+
         switch (g3d->plyview_num)
         {
             case (1):
-                PlyCam_GetFullscreenScissor(&scissor);
                 static Vec2 offset_1p = {0, 0};
                 offset = &offset_1p;
             case (2):
-                PlyCam_Get2PScissor(ply, &scissor);
                 static Vec2 offset_2p = {1.2, 7.4};
                 offset = &offset_2p;
                 break;
 
             case (3):
             case (4):
-                PlyCam_Get4PScissor(ply, &scissor);
                 static Vec2 offset_4p = {0, 0};
                 offset = &offset_4p;
                 break;
@@ -824,19 +848,7 @@ int Plicon_GetPosition(GOBJ *g, Vec3 *self_pos, Vec3 *opponent_pos, Vec3 *out_sc
 
     // get camera viewport
     CamScissor viewport;
-    switch (Gm_GetPlyViewNum())
-    {
-        case (1):
-            PlyCam_GetFullscreenScissor(&viewport);
-            break;
-        case (2):
-            PlyCam_Get2PScissor(gp->ply, &viewport);
-            break;
-        case (3):
-        case (4):
-            PlyCam_Get4PScissor(gp->ply, &viewport);
-            break;
-    }
+    PlyCam_GetScissor(gp->ply, &viewport);
 
     // doing gymnastics here to avoid 3 casts (2 instead rofl)
     u16 x = (u8)-1;
@@ -887,8 +899,10 @@ CODEPATCH_HOOKCONDITIONALCREATE(0x8012083c, "mr 3, 27\n\t"
                                  "addi 5, 1, 44\n\t"
                                  "addi 6, 1, 56\n\t"
                                  "addi 7, 1, 32\n\t",
-                                 Plicon_GetPosition, "", 
+                                 Plicon_GetPosition, 
+                                 "", 
                                  0x80120cb0,
+                                 "",
                                  0x80120e50)
 
 float PlyCam_GetAspect(CamData *cam_data)
@@ -897,14 +911,14 @@ float PlyCam_GetAspect(CamData *cam_data)
 
     PlayerCamData *ply_cam = cam_data->player_cam_data;
 
-    // get current viewport
-    CamScissor viewport;
     if (ply_cam->lod == 0)  // not active?
         return stc_plycam_lookup->param->aspect_mult_1p;
     else if (ply_cam->lod == 1)
         return stc_plycam_lookup->param->aspect_mult_1p;
-    else
-        ply_viewport_get[ply_cam->lod - 2](ply_cam->ply, &viewport);
+
+    // get current viewport
+    CamScissor viewport;
+    PlyCam_GetScissor(ply_cam->ply, &viewport);
 
     // get ratio of current viewport
     int width = viewport.right - viewport.left;

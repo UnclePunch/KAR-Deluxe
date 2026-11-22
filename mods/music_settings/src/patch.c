@@ -89,7 +89,7 @@ int Hook_Game_BGMPlay()
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x8000ff34, "", Hook_Game_BGMPlay, "", 0, 0x8000ff58)
+CODEPATCH_HOOKCONDITIONALCREATE(0x8000ff34, "", Hook_Game_BGMPlay, "", 0, "", 0x8000ff58)
 
 // main menu music replacement function
 void Hook_MainMenu_BGMPlay()
@@ -137,7 +137,7 @@ int Hook_CityResults_BGMPlay()
     else
         return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x80045a18, "", Hook_CityResults_BGMPlay, "", 0, 0x80045a20)
+CODEPATCH_HOOKCONDITIONALCREATE(0x80045a18, "", Hook_CityResults_BGMPlay, "", 0, "", 0x80045a20)
 
 // 30 seconds left in city music hook
 int Hook_CityHurry_BGMPlay()
@@ -149,7 +149,7 @@ int Hook_CityHurry_BGMPlay()
     else
         return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x80061c2c, "", Hook_CityHurry_BGMPlay, "", 0, 0x8000ff58)
+CODEPATCH_HOOKCONDITIONALCREATE(0x80061c2c, "", Hook_CityHurry_BGMPlay, "", 0, "", 0x8000ff58)
 
 // city stats ending music hook
 void Hook_CityGraph_BGMPlay()
@@ -183,7 +183,7 @@ int Hook_CheckEnterScene()
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x80017960, "", Hook_CheckEnterScene, "", 0, 0x80018198)
+CODEPATCH_HOOKCONDITIONALCREATE(0x80017960, "", Hook_CheckEnterScene, "", 0, "", 0x80018198)
 
 // enter scene prompt
 void Hook_MusicPrompt_Create(GOBJ *menu_gobj)

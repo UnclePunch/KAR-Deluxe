@@ -336,7 +336,7 @@ int AroundWorld_OnMinorExit()
 
     return 1;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x80040160, "", AroundWorld_OnMinorExit, "", 0, 0x800404a8)
+CODEPATCH_HOOKCONDITIONALCREATE(0x80040160, "", AroundWorld_OnMinorExit, "", 0, "", 0x800404a8)
 
 ///////////////////
 // Apply Patches //

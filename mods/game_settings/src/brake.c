@@ -41,7 +41,7 @@ int Brake_ForbidChargeForward(MachineData *mp)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801ef4f4, "mr 3,31\n\t", Brake_ForbidChargeForward, "lbz 0, 0x0C30(31)\n\t", 0, 0x801ef54c)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801ef4f4, "mr 3,31\n\t", Brake_ForbidChargeForward, "lbz 0, 0x0C30(31)\n\t", 0, "", 0x801ef54c)
 int Brake_OnBikeBuildCharge(MachineData *mp)
 {
     if (!brake_enabled)
@@ -53,7 +53,7 @@ int Brake_OnBikeBuildCharge(MachineData *mp)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801fa298, "mr 3,31\n\t", Brake_OnBikeBuildCharge, "", 0, 0x801fa2a0)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801fa298, "mr 3,31\n\t", Brake_OnBikeBuildCharge, "", 0, "", 0x801fa2a0)
 int Brake_OnStarBuildCharge(MachineData *mp)
 {
     if (!brake_enabled)
@@ -65,7 +65,7 @@ int Brake_OnStarBuildCharge(MachineData *mp)
 
     return 0;
 }
-CODEPATCH_HOOKCONDITIONALCREATE(0x801ef414, "mr 3,31\n\t", Brake_OnStarBuildCharge, "", 0, 0x801ef428)
+CODEPATCH_HOOKCONDITIONALCREATE(0x801ef414, "mr 3,31\n\t", Brake_OnStarBuildCharge, "", 0, "", 0x801ef428)
 void Brake_Init()
 {
     CODEPATCH_HOOKAPPLY(0x80190d70);

@@ -347,49 +347,68 @@ void HUD_PixelToPos(u16 x, u16 y, float mult, Vec2 *out)
     out->Y = -(((float)y / 480.f) * ORIG_HEIGHT - (ORIG_HEIGHT / 2));
 }
 
-void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align)
+void HUDAdjust_Element(GOBJ *g, int joint_index, WideHUDKind hud_kind, WideAlign x_align, HeightAlign y_align)
 {
     Game3dData *g3d = Gm_Get3dData();
 
-    static Vec3 plyview_pos_center = (Vec3){0, 0, 0};
-    Vec3 *pos_offset = &plyview_pos_center;
+    Vec3 pos_offset = (Vec3){0, 0, 0};
     
     CamScissor splitscreen_viewport, orig_viewport;
 
-    // in-game HUD adjustment w/ splitscreen
-    if (is_ply_element)
+    switch (hud_kind)
     {
-        HUDElementData *gp = g->userdata;
-
-        PlyCam_GetScissor(gp->ply, &splitscreen_viewport);
-        PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
-
-        // get plyview offset
-        switch (gp->kind)
+        case (WIDEHUD_NONE):
         {
-            default:
-            {
-                if (Gm_GetPlyViewNum() > 1)
-                {
-                    HUDElementData *pos_data = g3d->plyview_pos_gobj->userdata;
-                    pos_offset = &pos_data->ply_hud.pos[gp->ply];
-                }
-              break;
-            }
-            case (HUDKIND_CITYSTATBG):
-            case (HUDKIND_CITYSTATBAR):
-            {
-              HUDElementData *pos_data = g3d->cityui_pause_gobj->userdata;
-              pos_offset = &pos_data->city_pause.ply_offset[gp->ply];
-              break;
-            }
+            // no splitscreen, so use fullscreen for both
+            PlyCam_GetFullscreenScissor(&splitscreen_viewport);
+            PlyCam_GetFullscreenScissor(&orig_viewport);
+            break;
         }
-    }
-    else
-    {
-        // not splitscreen, so use fullscreen for both
-        PlyCam_GetFullscreenScissor(&splitscreen_viewport);
-        PlyCam_GetFullscreenScissor(&orig_viewport);
+        case (WIDEHUD_GAME):
+        {
+            // in-game HUD adjustment w/ splitscreen
+
+            HUDElementData *gp = g->userdata;
+
+            PlyCam_GetScissor(gp->ply, &splitscreen_viewport);
+            PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
+
+            // get plyview offset
+            switch (gp->kind)
+            {
+                default:
+                {
+                    if (Gm_GetPlyViewNum() > 1)
+                    {
+                        HUDElementData *pos_data = g3d->plyview_pos_gobj->userdata;
+                        pos_offset = pos_data->ply_hud.pos[gp->ply];
+                    }
+                    break;
+                }
+                case (HUDKIND_CITYSTATBG):
+                case (HUDKIND_CITYSTATBAR):
+                {
+                    HUDElementData *pos_data = g3d->cityui_pause_gobj->userdata;
+                    pos_offset = pos_data->city_pause.ply_offset[gp->ply];
+                    break;
+                }
+            }
+    
+            break;
+        }
+        case (WIDEHUD_MNRADAR):
+        {
+            MnRadarCtIconData *gp = g->userdata;
+
+            CamScissor *mn_radar_ply_viewports = (CamScissor *)0x804995d8;
+            splitscreen_viewport = mn_radar_ply_viewports[gp->ply];
+            orig_viewport = mn_radar_ply_viewports[gp->ply];
+
+            MnRadar_GetPlyViewOffset(gp->ply, &pos_offset, 0);
+
+            break;
+        }
+    
     }
 
     // we're going to get an original pixel coord and a new pixel coord.
@@ -432,7 +451,7 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
         orig_y_pixel = (orig_viewport.bottom + orig_viewport.top) / 2;
         new_y_pixel = (splitscreen_viewport.bottom + splitscreen_viewport.top) / 2;
     }
-    
+
     // convert pixel values to in-world units
     Vec2 orig_corner_pos;
     HUD_PixelToPos(orig_x_pixel, 
@@ -442,23 +461,23 @@ void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x
     Vec2 new_corner_pos;
     HUD_PixelToPos(new_x_pixel, 
                     new_y_pixel,
-                    Wide_GetAspectMult(),
+                    Wide_GetAspectMultLimited(),
                     &new_corner_pos);
     
-    // OSReport("orig_corner_pos.X: %.2f\n", orig_corner_pos.X);
-    // OSReport("orig_corner_pos.Y: %.2f\n", orig_corner_pos.Y);
-    // OSReport("new_corner_pos.X: %.2f\n", new_corner_pos.X);
-    // OSReport("new_corner_pos.Y: %.2f\n", new_corner_pos.Y);
-    // OSReport("plyview_pos_offset->X: %.2f\n", pos_offset->X);
-    // OSReport("plyview_pos_offset->Y: %.2f\n", pos_offset->Y);
+    OSReport("orig_corner_pos.X: %.2f\n", orig_corner_pos.X);
+    OSReport("orig_corner_pos.Y: %.2f\n", orig_corner_pos.Y);
+    OSReport("new_corner_pos.X: %.2f\n", new_corner_pos.X);
+    OSReport("new_corner_pos.Y: %.2f\n", new_corner_pos.Y);
+    OSReport("plyview_pos_offset->X: %.2f\n", pos_offset.X);
+    OSReport("plyview_pos_offset->Y: %.2f\n", pos_offset.Y);
 
     JOBJ *j = (joint_index == 0) ? g->hsd_object : JObj_GetIndex(g->hsd_object, joint_index);
 
-    float new_x = new_corner_pos.X + (pos_offset->X - orig_corner_pos.X);
-    float new_y = new_corner_pos.Y + (pos_offset->Y - orig_corner_pos.Y);
+    float new_x = new_corner_pos.X + (pos_offset.X - orig_corner_pos.X);
+    float new_y = new_corner_pos.Y + (pos_offset.Y - orig_corner_pos.Y);
     
-    // OSReport("x pos: %.2f -> %.2f\n", j->trans.X, new_x);
-    // OSReport("y pos: %.2f -> %.2f\n", j->trans.Y, new_y);
+    OSReport("x pos: %.2f -> %.2f\n", j->trans.X, new_x);
+    OSReport("y pos: %.2f -> %.2f\n", j->trans.Y, new_y);
 
     j->trans.X = new_x;
     j->trans.Y = new_y;
@@ -504,11 +523,11 @@ void HUDAdjust_Camera(COBJ *c)
 // right side elements
 void HUDAdjust_RightTopAlign(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
+    HUDAdjust_Element(g, 0, WIDEHUD_GAME, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
 }
 void HUDAdjust_RightBottomAlign(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
+    HUDAdjust_Element(g, 0, WIDEHUD_GAME, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
 }
 CODEPATCH_HOOKCREATE(0x80118e70, "mr 3,28\n\t", HUDAdjust_RightBottomAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x801181d4, "mr 3,27\n\t", HUDAdjust_RightBottomAlign, "", 0) // speedometer outer
@@ -523,11 +542,11 @@ CODEPATCH_HOOKCREATE(0x8011ae08, "mr 3,28\n\t", HUDAdjust_RightTopAlign, "", 0) 
 // left side elements
 void HUDAdjust_LeftTopAlign(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
+    HUDAdjust_Element(g, 0, WIDEHUD_GAME, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
 }
 void HUDAdjust_LeftBottomAlign(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
+    HUDAdjust_Element(g, 0, WIDEHUD_GAME, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
 }
 CODEPATCH_HOOKCREATE(0x8012b650, "mr 3,30\n\t", HUDAdjust_LeftTopAlign, "", 0)
 CODEPATCH_HOOKCREATE(0x801260fc, "mr 3,29\n\t", HUDAdjust_LeftBottomAlign, "", 0) // plynum2
@@ -599,7 +618,7 @@ void HUDAdjust_PauseStats(GOBJ *g)
         height_align = HEIGHTALIGN_CENTER;
     }
     
-    HUDAdjust_Element(g, 0, false, wide_align, height_align);
+    HUDAdjust_Element(g, 0, WIDEHUD_NONE, wide_align, height_align);
 }
 CODEPATCH_HOOKCREATE(0x80128d4c, "mr 3,29\n\t", HUDAdjust_PauseStats, "", 0)
 void HUDAdjust_CityPauseOptions(GOBJ *g)
@@ -609,11 +628,11 @@ void HUDAdjust_CityPauseOptions(GOBJ *g)
     if (view_num == 1)
     {
         // line
-        HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
+        HUDAdjust_Element(g, 1, WIDEHUD_NONE, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
         // options
-        HUDAdjust_Element(g, 2, false, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
+        HUDAdjust_Element(g, 2, WIDEHUD_NONE, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
         // player indicator
-        HUDAdjust_Element(g, 6, false, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
+        HUDAdjust_Element(g, 6, WIDEHUD_NONE, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
     }
     else if (view_num == 2 && g_is_ply_viewport_2_vertical)
     {
@@ -634,18 +653,18 @@ void HUDAdjust_AirRidePauseOptions(GOBJ *g)
     if (Gm_GetPlyViewNum() == 0)
     {
         // pause text
-        HUDAdjust_Element(g, 1, false, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
+        HUDAdjust_Element(g, 1, WIDEHUD_NONE, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);
         // options
-        HUDAdjust_Element(g, 2, false, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
+        HUDAdjust_Element(g, 2, WIDEHUD_NONE, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
         // player indicator
-        HUDAdjust_Element(g, 3, false, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
+        HUDAdjust_Element(g, 3, WIDEHUD_NONE, WIDEALIGN_LEFT, HEIGHTALIGN_BOTTOM);
     }
 }
 CODEPATCH_HOOKCREATE(0x801283c0, "mr 3,29\n\t", HUDAdjust_AirRidePauseOptions, "", 0)
 // hp bar
 GOBJ *Hook_HPBarHUD(GOBJ *g)
 {
-    HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
+    HUDAdjust_Element(g, 0, WIDEHUD_GAME, WIDEALIGN_RIGHT, HEIGHTALIGN_BOTTOM);
     return g;
 }
 CODEPATCH_HOOKCREATE(0x8011f670, "mr 3,30\n\t", Hook_HPBarHUD, "", 0)
@@ -928,6 +947,38 @@ float PlyCam_GetAspect(CamData *cam_data)
         return stc_plycam_lookup->param->aspect_mult_1p;
 }
 
+// MnRadar
+void MnRadar_AdjustScMenRadarctIcon(GOBJ *g, int ply)
+{
+    static HeightAlign radar_ply_y_aligns[] = {
+        HEIGHTALIGN_TOP,
+        HEIGHTALIGN_BOTTOM,
+        HEIGHTALIGN_TOP,
+        HEIGHTALIGN_BOTTOM,
+    };
+
+    MnRadarCtIconData *gp = g->userdata;
+    gp->ply = ply;          // lowkey fucked to do this but PlyNum data doesnt contain a reference so just put one there i guess
+
+    HUDAdjust_Element(g,
+                        0,
+                        WIDEHUD_MNRADAR,
+                        WIDEALIGN_LEFT,
+                        radar_ply_y_aligns[gp->ply]);
+}
+CODEPATCH_HOOKCREATE(0x80160d80, "mr 3, 30\n\t" "mr 4, 26\n\t", MnRadar_AdjustScMenRadarctIcon, "", 0)
+CODEPATCH_HOOKCREATE(0x801608cc, "mr 3, 30\n\t" "mr 4, 29\n\t", MnRadar_AdjustScMenRadarctIcon, "", 0)
+
+void MnRadar_AdjustScMenRadarctLoading(GOBJ *g)
+{
+    HUDAdjust_Element(g,
+                        0,
+                        WIDEHUD_NONE,
+                        WIDEALIGN_RIGHT,
+                        HEIGHTALIGN_CENTER);
+}
+CODEPATCH_HOOKCREATE(0x80160a9c, "mr 3, 30\n\t", MnRadar_AdjustScMenRadarctLoading, "", 0)
+
 static float g_fov_cache[3];
 static int g_is_fov_cached = 0;
 void PlyCam_SetFOV_Hook()
@@ -1117,6 +1168,11 @@ void HUDAdjust_Init()
     // plicons
     CODEPATCH_HOOKAPPLY(0x8012083c);
 
+    // mnradar
+    CODEPATCH_HOOKAPPLY(0x80160d80);
+    CODEPATCH_HOOKAPPLY(0x801608cc);
+    CODEPATCH_HOOKAPPLY(0x80160a9c);
+    
     // read in original values
     for (int i = 0; i < GetElementsIn(wide_adjust_data); i++)
         wide_adjust_data[i].orig = *wide_adjust_data[i].ptr;

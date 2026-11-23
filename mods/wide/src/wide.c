@@ -110,6 +110,15 @@ float Wide_GetAspectMult()
 {
     return (*stc_cobj_aspect) / ORIG_ASPECT;
 }
+float Wide_GetAspectMultLimited()
+{
+    float aspect_scale = Wide_GetAspectMult();
+    
+    if (aspect_scale > 1.3333)
+        aspect_scale = 1.3333;
+
+    return aspect_scale;
+}
 void Wide_OnOptionChange(int val)
 {
     if (starpole_export && starpole_export->dolphin_data)

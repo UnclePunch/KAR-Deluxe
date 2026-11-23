@@ -30,7 +30,7 @@ typedef struct
 
 typedef struct WideExport
 {
-    void (*HUDAdjust_Element)(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align);
+    void (*HUDAdjust_Element)(GOBJ *g, int joint_index, WideHUDKind hud_kind, WideAlign x_align, HeightAlign y_align);
     void (*HUDAdjust_Camera)(COBJ *c);
     float (*Wide_GetAspectMult)();
     void (*CObj_AdjustWideOrtho)(COBJ *c);
@@ -38,6 +38,7 @@ typedef struct WideExport
 
 void Wide_Init();
 float Wide_GetAspectMult();
+float Wide_GetAspectMultLimited();
 void Wide_OnOptionChange(int val);
 void Wide_CreatePillarbox();
 void CObj_AdjustWideOrtho(COBJ *c);

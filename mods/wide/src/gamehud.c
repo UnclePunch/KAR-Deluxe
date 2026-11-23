@@ -120,7 +120,7 @@ void PlyCam_GetOriginalViewport(int view_index, CamScissor *out)
 {
     int plyview_num = Gm_GetPlyViewNum();
 
-    CamScissor *orig_viewport = 0;
+    CamScissor *orig_viewport;
 
     switch (plyview_num)
     {
@@ -140,7 +140,6 @@ void PlyCam_GetOriginalViewport(int view_index, CamScissor *out)
 
     memcpy(out, orig_viewport, sizeof(CamScissor));
 }
-
 
 extern float wide_kind_fractions[];
 
@@ -351,135 +350,122 @@ void HUD_PixelToPos(u16 x, u16 y, float mult, Vec2 *out)
 void HUDAdjust_Element(GOBJ *g, int joint_index, int is_ply_element, WideAlign x_align, HeightAlign y_align)
 {
     Game3dData *g3d = Gm_Get3dData();
-    HUDElementData *gp = g->userdata;
 
-    // if not a player view element, use fullscreen region
-    int plyview_num = g3d->plyview_num;
+    static Vec3 plyview_pos_center = (Vec3){0, 0, 0};
+    Vec3 *pos_offset = &plyview_pos_center;
+    
+    CamScissor splitscreen_viewport, orig_viewport;
 
-    // WIP custom splitscreen adjustment 
-    if (plyview_num > 1)
+    // in-game HUD adjustment w/ splitscreen
+    if (is_ply_element)
     {
-        // return;
+        HUDElementData *gp = g->userdata;
 
-        CamScissor view_arr;
-        PlyCam_GetScissor(gp->ply, &view_arr);
-        CamScissor orig_viewport;
+        PlyCam_GetScissor(gp->ply, &splitscreen_viewport);
         PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
 
-        Vec3 *plyview_pos_offset;
+        // get plyview offset
         switch (gp->kind)
         {
             default:
             {
-              HUDElementData *pos_data = g3d->plyview_pos_gobj->userdata;
-              plyview_pos_offset = &pos_data->ply_hud.pos[gp->ply];
+                if (Gm_GetPlyViewNum() > 1)
+                {
+                    HUDElementData *pos_data = g3d->plyview_pos_gobj->userdata;
+                    pos_offset = &pos_data->ply_hud.pos[gp->ply];
+                }
               break;
             }
             case (HUDKIND_CITYSTATBG):
             case (HUDKIND_CITYSTATBAR):
             {
               HUDElementData *pos_data = g3d->cityui_pause_gobj->userdata;
-              plyview_pos_offset = &pos_data->city_pause.ply_offset[gp->ply];
+              pos_offset = &pos_data->city_pause.ply_offset[gp->ply];
               break;
             }
         }
-
-        u16 orig_x_pixel, cur_x_pixel;
-        if (x_align == WIDEALIGN_LEFT)
-        {
-            orig_x_pixel = orig_viewport.left;
-            cur_x_pixel = view_arr.left;
-        }
-        else if (x_align == WIDEALIGN_RIGHT)
-        {
-            orig_x_pixel = orig_viewport.right;
-            cur_x_pixel = view_arr.right;
-        }
-        else if (x_align == WIDEALIGN_CENTER)
-        {
-            orig_x_pixel = (orig_viewport.right + orig_viewport.left) / 2;
-            cur_x_pixel = (view_arr.right + view_arr.left) / 2;
-        }
-        
-        u16 orig_y_pixel, cur_y_pixel;
-        if (y_align == HEIGHTALIGN_TOP)
-        {
-            orig_y_pixel = orig_viewport.top;
-            cur_y_pixel = view_arr.top;
-        }
-        else if (y_align == HEIGHTALIGN_BOTTOM)
-        {
-            orig_y_pixel = orig_viewport.bottom;
-            cur_y_pixel = view_arr.bottom;
-        }
-        else if (y_align == HEIGHTALIGN_CENTER)
-        {
-            orig_y_pixel = (orig_viewport.bottom + orig_viewport.top) / 2;
-            cur_y_pixel = (view_arr.bottom + view_arr.top) / 2;
-        }
-        
-        // get offset from bottom of original viewport to hud position model root
-        Vec2 orig_corner_pos;
-        HUD_PixelToPos(orig_x_pixel, 
-                        orig_y_pixel,
-                        1.0f,
-                        &orig_corner_pos);
-        Vec2 cur_corner_pos;
-        HUD_PixelToPos(cur_x_pixel, 
-                        cur_y_pixel,
-                        Wide_GetAspectMult(),
-                        &cur_corner_pos);
-        
-        OSReport("orig_corner_pos.X: %.2f\n", orig_corner_pos.X);
-        OSReport("orig_corner_pos.Y: %.2f\n", orig_corner_pos.Y);
-        OSReport("cur_corner_pos.X: %.2f\n", cur_corner_pos.X);
-        OSReport("cur_corner_pos.Y: %.2f\n", cur_corner_pos.Y);
-        OSReport("plyview_pos_offset->Y: %.2f\n", plyview_pos_offset->X);
-        OSReport("plyview_pos_offset->Y: %.2f\n", plyview_pos_offset->Y);
-
-        JOBJ *j = (joint_index == 0) ? g->hsd_object : JObj_GetIndex(g->hsd_object, joint_index);
-
-        float new_x = cur_corner_pos.X + (plyview_pos_offset->X - orig_corner_pos.X);
-        float new_y = cur_corner_pos.Y + (plyview_pos_offset->Y - orig_corner_pos.Y);
-        
-        OSReport("x pos: %.2f -> %.2f\n", j->trans.X, new_x);
-        OSReport("y pos: %.2f -> %.2f\n", j->trans.Y, new_y);
-
-        j->trans.X = new_x;
-        j->trans.Y = new_y;
-
-        JObj_SetMtxDirtySub(j);
-
-        return;
+    }
+    else
+    {
+        // not splitscreen, so use fullscreen for both
+        PlyCam_GetFullscreenScissor(&splitscreen_viewport);
+        PlyCam_GetFullscreenScissor(&orig_viewport);
     }
 
-    CamScissor viewport;
-    PlyCam_GetScissor(gp->ply, &viewport);
-    CamScissor orig_viewport;
-    PlyCam_GetOriginalViewport(gp->ply, &orig_viewport);
+    // we're going to get an original pixel coord and a new pixel coord.
+    // the new pixel coord logic is primarly here to account for
+    // modified splitscreen configurations.
+    // for 1P/fullscreen, the values will be identical.
+    u16 orig_x_pixel, orig_y_pixel;
+    u16 new_x_pixel, new_y_pixel;
+
+    // get x corner pixel value
+    if (x_align == WIDEALIGN_LEFT)
+    {
+        orig_x_pixel = orig_viewport.left;
+        new_x_pixel = splitscreen_viewport.left;
+    }
+    else if (x_align == WIDEALIGN_RIGHT)
+    {
+        orig_x_pixel = orig_viewport.right;
+        new_x_pixel = splitscreen_viewport.right;
+    }
+    else if (x_align == WIDEALIGN_CENTER)
+    {
+        orig_x_pixel = (orig_viewport.right + orig_viewport.left) / 2;
+        new_x_pixel = (splitscreen_viewport.right + splitscreen_viewport.left) / 2;
+    }
+    
+    // get y corner pixel value
+    if (y_align == HEIGHTALIGN_TOP)
+    {
+        orig_y_pixel = orig_viewport.top;
+        new_y_pixel = splitscreen_viewport.top;
+    }
+    else if (y_align == HEIGHTALIGN_BOTTOM)
+    {
+        orig_y_pixel = orig_viewport.bottom;
+        new_y_pixel = splitscreen_viewport.bottom;
+    }
+    else if (y_align == HEIGHTALIGN_CENTER)
+    {
+        orig_y_pixel = (orig_viewport.bottom + orig_viewport.top) / 2;
+        new_y_pixel = (splitscreen_viewport.bottom + splitscreen_viewport.top) / 2;
+    }
+    
+    // convert pixel values to in-world units
+    Vec2 orig_corner_pos;
+    HUD_PixelToPos(orig_x_pixel, 
+                    orig_y_pixel,
+                    1.0f,
+                    &orig_corner_pos);
+    Vec2 new_corner_pos;
+    HUD_PixelToPos(new_x_pixel, 
+                    new_y_pixel,
+                    Wide_GetAspectMult(),
+                    &new_corner_pos);
+    
+    // OSReport("orig_corner_pos.X: %.2f\n", orig_corner_pos.X);
+    // OSReport("orig_corner_pos.Y: %.2f\n", orig_corner_pos.Y);
+    // OSReport("new_corner_pos.X: %.2f\n", new_corner_pos.X);
+    // OSReport("new_corner_pos.Y: %.2f\n", new_corner_pos.Y);
+    // OSReport("plyview_pos_offset->X: %.2f\n", pos_offset->X);
+    // OSReport("plyview_pos_offset->Y: %.2f\n", pos_offset->Y);
 
     JOBJ *j = (joint_index == 0) ? g->hsd_object : JObj_GetIndex(g->hsd_object, joint_index);
 
-    float dir = (x_align == WIDEALIGN_LEFT) ? -1 : 1;
+    float new_x = new_corner_pos.X + (pos_offset->X - orig_corner_pos.X);
+    float new_y = new_corner_pos.Y + (pos_offset->Y - orig_corner_pos.Y);
     
-    float aspect_scale = (*stc_cobj_aspect) / ORIG_ASPECT;
-    if (aspect_scale > 1.3333)
-        aspect_scale = 1.3333;
+    // OSReport("x pos: %.2f -> %.2f\n", j->trans.X, new_x);
+    // OSReport("y pos: %.2f -> %.2f\n", j->trans.Y, new_y);
 
-    float viewport_scale_x = (float)((viewport.right - viewport.left)) / (float)((orig_viewport.right - orig_viewport.left));
-    float viewport_scale_y = (float)((viewport.bottom - viewport.top)) / (float)((orig_viewport.bottom - orig_viewport.top));
-    float cur_width = ORIG_WIDTH * viewport_scale_x * aspect_scale;
-    float cur_height = ORIG_HEIGHT * viewport_scale_y;
-    float extra_x = (cur_width - ORIG_WIDTH);
-    float extra_y = (cur_height - ORIG_HEIGHT);
-    j->trans.X += dir * extra_x * 0.5f;
-    // j->trans.Y -= extra_y * 0.5f;
+    j->trans.X = new_x;
+    j->trans.Y = new_y;
+
     JObj_SetMtxDirtySub(j);
 
-    // OSReport("ply %d:\n", gp->ply);
-    // OSReport(" aspect scale: %.2f\n", aspect_scale);
-    // OSReport(" viewport scale: %.2f\n", viewport_scale);
-
+    return;
 }
 void HUDAdjust_Camera(COBJ *c)
 {
@@ -515,7 +501,7 @@ void HUDAdjust_Camera(COBJ *c)
     }
 }
 
-// speedometer
+// right side elements
 void HUDAdjust_RightTopAlign(GOBJ *g)
 {
     HUDAdjust_Element(g, 0, true, WIDEALIGN_RIGHT, HEIGHTALIGN_TOP);
@@ -534,6 +520,7 @@ CODEPATCH_HOOKCREATE(0x80124650, "mr 3,30\n\t", HUDAdjust_RightBottomAlign, "", 
 CODEPATCH_HOOKCREATE(0x80128004, "mr 3,29\n\t", HUDAdjust_RightTopAlign, "", 0)     // event compass
 CODEPATCH_HOOKCREATE(0x8011ae08, "mr 3,28\n\t", HUDAdjust_RightTopAlign, "", 0)     // air ride lap num
 
+// left side elements
 void HUDAdjust_LeftTopAlign(GOBJ *g)
 {
     HUDAdjust_Element(g, 0, true, WIDEALIGN_LEFT, HEIGHTALIGN_TOP);

@@ -166,10 +166,10 @@ void Debug_Think()
                             "6",
                         };
 
-                        OSReport("\t%s (%p)\n\tStatus: %s\n\tLoad State: %s\n\tSize: %.2fkb\n\tPtr: %p\n\n",
+                        OSReport("\t%s (%p)\n\tPriority: %d\n\tLoad State: %s\n\tSize: %.2fkb\n\tPtr: %p\n\n",
                                  file_name,
                                  pe,
-                                 (pe->status > 0) ? "Needed" : "Unneeded",
+                                 pe->pri,
                                  load_state_names[pe->load_state],
                                  BytesToKB(pe->file_size),
                                  pe->file_data);

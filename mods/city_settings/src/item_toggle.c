@@ -180,7 +180,7 @@ static ItemToggleNames stc_item_names[] = {
     {
         .name = "Tornado Panel",
         .desc = {"Launch enemies into the sky.",
-                 "Charge/Quick spin to activate, even in mid-air."},
+                 "Charge/Quick spin to activate, even mid-air."},
     },
     {
         .name = "Sword Panel",

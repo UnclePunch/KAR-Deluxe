@@ -32,11 +32,11 @@ void StadiumChance_Adjust()
     gmDataAll *gm_data_all = *stc_gmdataall;
 
     int stadium_num = 0;
-    struct StadiumChance stadium_chance[STKIND_NUM];
+    struct StadiumChance stadium_chance[STAGEKIND_NUM];
 
     // count number of whitelisted stadiums
     int whitelisted_stadium_num = 0;
-    for (int i = 0; i < STKIND_NUM; i++)
+    for (int i = 0; i < STAGEKIND_NUM; i++)
     {
         if ((random_stadium_bitfield & (1 << i)))
             whitelisted_stadium_num++;
@@ -46,7 +46,7 @@ void StadiumChance_Adjust()
     // ensure 1 valid selection exists
     int stadium_selection = gd->city.menu_stadium_selection;
     int valid_stadium_exists = 0;
-    for (int i = 0; i < STKIND_NUM; i++)
+    for (int i = 0; i < STAGEKIND_NUM; i++)
     {
         if (Gm_StadiumIsDefaultUnlocked(i) || Gm_StadiumIsUnlocked(i)) // ensure stadium is unlocked
         {
@@ -70,7 +70,7 @@ void StadiumChance_Adjust()
 
     // create array of valid stadium events
     int chance_total = 0;
-    for (int i = 0; i < STKIND_NUM; i++)
+    for (int i = 0; i < STAGEKIND_NUM; i++)
     {
         int is_in_group = 1;
 

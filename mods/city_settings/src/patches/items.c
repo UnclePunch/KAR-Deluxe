@@ -96,7 +96,7 @@ void AllUp_AdjustSpawn()
         {
             if (box_gene_info->item_desc->item_spawn[i].it_kind == ITKIND_ALLUP)
             {
-                all_up_rate = box_gene_info->item_desc->item_spawn[i].fall_chance[STGROUP_VSKINGDEDEDE];
+                all_up_rate = box_gene_info->item_desc->item_spawn[i].fall_chance[STADIUMGROUP_VSKINGDEDEDE];
                 break;
             }
         }
@@ -220,7 +220,7 @@ void ItemFreq_Adjust()
 
 void Hook_BoxGene_Init()
 {
-    if (Gm_IsGrKindCity(Gm_GetCurrentGrKind()))
+    if (Gm_IsStKindCity(Gm_GetCurrentStageKind2()))
     {
         LegendaryPiece_AdjustSpawn();
         ItemFreq_Adjust();

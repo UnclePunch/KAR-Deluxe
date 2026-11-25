@@ -18,30 +18,30 @@ StadiumKind stadium_lineup[7] = {0}; // contains the stadium events that will be
 int stadium_wins[4] = {0};           // tracks wins across stadiums
 
 static char *stad_names[] = {
-    "STKIND_DRAG1",
-    "STKIND_DRAG2",
-    "STKIND_DRAG3",
-    "STKIND_DRAG4",
-    "STKIND_AIRGLIDER",
-    "STKIND_TARGETFLIGHT",
-    "STKIND_HIGHJUMP",
-    "STKIND_MELEE1",
-    "STKIND_MELEE2",
-    "STKIND_DESTRUCTION1",
-    "STKIND_DESTRUCTION2",
-    "STKIND_DESTRUCTION3",
-    "STKIND_DESTRUCTION4",
-    "STKIND_DESTRUCTION5",
-    "STKIND_SINGLERACE1",
-    "STKIND_SINGLERACE2",
-    "STKIND_SINGLERACE3",
-    "STKIND_SINGLERACE4",
-    "STKIND_SINGLERACE5",
-    "STKIND_SINGLERACE6",
-    "STKIND_SINGLERACE7",
-    "STKIND_SINGLERACE8",
-    "STKIND_SINGLERACE9",
-    "STKIND_VSKINGDEDEDE",
+    "STADIUMKIND_DRAG1",
+    "STADIUMKIND_DRAG2",
+    "STADIUMKIND_DRAG3",
+    "STADIUMKIND_DRAG4",
+    "STADIUMKIND_AIRGLIDER",
+    "STADIUMKIND_TARGETFLIGHT",
+    "STADIUMKIND_HIGHJUMP",
+    "STADIUMKIND_MELEE1",
+    "STADIUMKIND_MELEE2",
+    "STADIUMKIND_DESTRUCTION1",
+    "STADIUMKIND_DESTRUCTION2",
+    "STADIUMKIND_DESTRUCTION3",
+    "STADIUMKIND_DESTRUCTION4",
+    "STADIUMKIND_DESTRUCTION5",
+    "STADIUMKIND_SINGLERACE1",
+    "STADIUMKIND_SINGLERACE2",
+    "STADIUMKIND_SINGLERACE3",
+    "STADIUMKIND_SINGLERACE4",
+    "STADIUMKIND_SINGLERACE5",
+    "STADIUMKIND_SINGLERACE6",
+    "STADIUMKIND_SINGLERACE7",
+    "STADIUMKIND_SINGLERACE8",
+    "STADIUMKIND_SINGLERACE9",
+    "STADIUMKIND_VSKINGDEDEDE",
 };
 
 void AroundWorld_Init()
@@ -64,13 +64,13 @@ void AroundWorld_DecideStadiums()
     stadium_lineup_num = 0;
 
     static StadiumGroup stadium_groups[] = {
-        STGROUP_DRAGRACE,
-        STGROUP_AIRGLIDER,
-        STGROUP_TARGETFLIGHT,
-        STGROUP_HIGHJUMP,
-        STGROUP_MELEE,
-        STGROUP_DESTRUCTION,
-        STGROUP_SINGLERACE,
+        STADIUMGROUP_DRAGRACE,
+        STADIUMGROUP_AIRGLIDER,
+        STADIUMGROUP_TARGETFLIGHT,
+        STADIUMGROUP_HIGHJUMP,
+        STADIUMGROUP_MELEE,
+        STADIUMGROUP_DESTRUCTION,
+        STADIUMGROUP_SINGLERACE,
     };
 
     for (int group_idx = 0; group_idx < GetElementsIn(stadium_groups); group_idx++)
@@ -79,7 +79,7 @@ void AroundWorld_DecideStadiums()
         int kinds_in_group_num = 0;
 
         // create an array of all stadiums that fit this group and are enabled
-        for (int kind = 0; kind < STKIND_NUM; kind++)
+        for (int kind = 0; kind < STADIUMKIND_NUM; kind++)
         {
             if ((random_stadium_bitfield & (1 << kind)) && Gm_GetStadiumGroupFromKind(kind) == stadium_groups[group_idx])
                 kinds_in_group[kinds_in_group_num++] = kind;
@@ -246,21 +246,21 @@ int AroundWorld_OnMinorExit()
     s8 ranks[4];
     switch (Gm_GetStadiumGroupFromKind(gd->city.stadium_kind))
     {
-    case (STGROUP_DRAGRACE):
-    case (STGROUP_SINGLERACE):
+    case (STADIUMGROUP_DRAGRACE):
+    case (STADIUMGROUP_SINGLERACE):
     {
         AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_race_time, 'i', 0);
         break;
     }
-    case (STGROUP_AIRGLIDER):
-    case (STGROUP_HIGHJUMP):
+    case (STADIUMGROUP_AIRGLIDER):
+    case (STADIUMGROUP_HIGHJUMP):
     {
         AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_dist, 'f', 1);
         break;
     }
-    case (STGROUP_TARGETFLIGHT):
-    case (STGROUP_DESTRUCTION):
-    case (STGROUP_MELEE):
+    case (STADIUMGROUP_TARGETFLIGHT):
+    case (STADIUMGROUP_DESTRUCTION):
+    case (STADIUMGROUP_MELEE):
     {
         AroundWorld_CalculateRanks(ranks, &gd->stadium_results.ply_points, 'i', 1);
         break;
@@ -287,7 +287,7 @@ int AroundWorld_OnMinorExit()
     if (stadium_lineup_idx >= stadium_lineup_num)
     {
         // spoof as DD so results screen uses points to rank players
-        gd->city.stadium_kind = STKIND_DESTRUCTION1;
+        gd->city.stadium_kind = STADIUMKIND_DESTRUCTION1;
         gd->city_kind = gm_data_all->stadium_desc[gd->city.stadium_kind].city_kind;
 
         // store final win count

@@ -396,7 +396,7 @@ void Game_Init()
     CODEPATCH_HOOKAPPLY(0x8011fe90);                        // PlyNum
     CODEPATCH_HOOKAPPLY(0x80124670);                        // KirbyWalk
 
-    Hoshi_AddPreloadGameFile(COLORTEX_FILENAME, PRELOADHEAPKIND_ALLM);
+    Hoshi_AddPreloadGameFile(COLORTEX_FILENAME, PRELOADHEAPKIND_ALLM, 1);
 
     // HUD/
     /*

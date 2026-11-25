@@ -347,44 +347,44 @@ int SongData_PlayRandomStageSong()
     else if (mj == MJRKIND_CITY)
     {
         MusicSettingsPlaylist playlist_kind = -1;
-        GroundKind gr_kind = Gm_GetCurrentGrKind();
+        GroundKind gr_kind = Gm_GetCurrentStageKind2();
 
         switch (gr_kind)
         {
-        case (GRKIND_CITY1):
+        case (STAGEKIND_CITY1):
         case (52): // free run
         {
             playlist_kind = PLAYLIST_CITY;
         }
-        case (GRKIND_DRAG1):
-        case (GRKIND_DRAG2):
-        case (GRKIND_DRAG3):
-        case (GRKIND_DRAG4):
+        case (STAGEKIND_DRAG1):
+        case (STAGEKIND_DRAG2):
+        case (STAGEKIND_DRAG3):
+        case (STAGEKIND_DRAG4):
         {
             playlist_kind = PLAYLIST_DRAGRACE;
         }
-        case (GRKIND_AIRGLIDER):
+        case (STAGEKIND_AIRGLIDER):
         {
             playlist_kind = PLAYLIST_AIRGLIDER;
         }
-        case (GRKIND_TARGETFLIGHT):
+        case (STAGEKIND_TARGETFLIGHT):
         {
             playlist_kind = PLAYLIST_TARGETFLIGHT;
         }
-        case (GRKIND_HIGHJUMP):
+        case (STAGEKIND_HIGHJUMP):
         {
             playlist_kind = PLAYLIST_HIGHJUMP;
         }
-        case (GRKIND_KIRBYMELEE1):
-        case (GRKIND_KIRBYMELEE2):
+        case (STAGEKIND_KIRBYMELEE1):
+        case (STAGEKIND_KIRBYMELEE2):
         {
             playlist_kind = PLAYLIST_KIRBYMELEE;
         }
-        case (GRKIND_DESTRUCTIONDERBY1):
-        case (GRKIND_DESTRUCTIONDERBY2):
-        case (GRKIND_DESTRUCTIONDERBY3):
-        case (GRKIND_DESTRUCTIONDERBY4):
-        case (GRKIND_DESTRUCTIONDERBY5):
+        case (STAGEKIND_DESTRUCTIONDERBY1):
+        case (STAGEKIND_DESTRUCTIONDERBY2):
+        case (STAGEKIND_DESTRUCTIONDERBY3):
+        case (STAGEKIND_DESTRUCTIONDERBY4):
+        case (STAGEKIND_DESTRUCTIONDERBY5):
         {
             playlist_kind = PLAYLIST_DESTRUCTIONDERBY;
         }

@@ -32,54 +32,54 @@ CODEPATCH_HOOKCREATE(0x8005e63c, "", Hook_BGM_Stop, "", 0)
 // main in-game music hook
 int Hook_Game_BGMPlay()
 {
-    GroundKind gr_kind = Gm_GetCurrentGrKind();
+    GroundKind gr_kind = Gm_GetCurrentStageKind2();
     switch (gr_kind)
     {
-    case (GRKIND_CITY1):
-    case (52): // city trial free run
+    case (STAGEKIND_CITY1):
+    case (STAGEKIND_CITYFREE): 
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_CITY, 255))
             return 1;
         break;
     }
-    case (GRKIND_DRAG1):
-    case (GRKIND_DRAG2):
-    case (GRKIND_DRAG3):
-    case (GRKIND_DRAG4):
+    case (STAGEKIND_DRAG1):
+    case (STAGEKIND_DRAG2):
+    case (STAGEKIND_DRAG3):
+    case (STAGEKIND_DRAG4):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_DRAGRACE, 255))
             return 1;
         break;
     }
-    case (GRKIND_AIRGLIDER):
+    case (STAGEKIND_AIRGLIDER):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_AIRGLIDER, 255))
             return 1;
     }
-    case (GRKIND_TARGETFLIGHT):
+    case (STAGEKIND_TARGETFLIGHT):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_TARGETFLIGHT, 255))
             return 1;
         break;
     }
-    case (GRKIND_HIGHJUMP):
+    case (STAGEKIND_HIGHJUMP):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_HIGHJUMP, 255))
             return 1;
         break;
     }
-    case (GRKIND_KIRBYMELEE1):
-    case (GRKIND_KIRBYMELEE2):
+    case (STAGEKIND_KIRBYMELEE1):
+    case (STAGEKIND_KIRBYMELEE2):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_KIRBYMELEE, 255))
             return 1;
         break;
     }
-    case (GRKIND_DESTRUCTIONDERBY1):
-    case (GRKIND_DESTRUCTIONDERBY2):
-    case (GRKIND_DESTRUCTIONDERBY3):
-    case (GRKIND_DESTRUCTIONDERBY4):
-    case (GRKIND_DESTRUCTIONDERBY5):
+    case (STAGEKIND_DESTRUCTIONDERBY1):
+    case (STAGEKIND_DESTRUCTIONDERBY2):
+    case (STAGEKIND_DESTRUCTIONDERBY3):
+    case (STAGEKIND_DESTRUCTIONDERBY4):
+    case (STAGEKIND_DESTRUCTIONDERBY5):
     {
         if (SongData_PlayFromPlaylist(PLAYLIST_DESTRUCTIONDERBY, 255))
             return 1;
